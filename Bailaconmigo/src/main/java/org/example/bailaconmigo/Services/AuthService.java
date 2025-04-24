@@ -1,8 +1,7 @@
 package org.example.bailaconmigo.Services;
 
-import org.example.bailaconmigo.DTOs.DancerProfileResponseDto;
-import org.example.bailaconmigo.DTOs.EditDancerProfileDto;
-import org.example.bailaconmigo.DTOs.RegisterRequestDto;
+import org.example.bailaconmigo.Configs.JwtTokenUtil;
+import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.DancerProfile;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,6 +36,10 @@ public class AuthService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
     /**
      * Registra un nuevo usuario en la base de datos.
      *
@@ -104,7 +108,72 @@ public class AuthService {
 
             profileRepository.save(profile);
         }
+    }
 
+    /**
+     * Permite a un usuario iniciar sesión y obtener un token JWT
+     */
+    public LoginResponseDto login(LoginRequestDto request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Contraseña incorrecta");
+        }
+
+        String token = jwtTokenUtil.generateToken(user.getEmail(), user.getId(), user.getRole().toString());
+
+        return new LoginResponseDto(
+                token,
+                user.getId(),
+                user.getFullName(),
+                user.getRole().toString()
+        );
+    }
+
+    /**
+     * Inicia el proceso de recuperación de contraseña
+     */
+    public void forgotPassword(ForgotPasswordRequestDto request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email no registrado"));
+
+        String resetToken = jwtTokenUtil.generatePasswordResetToken(user.getEmail());
+
+        user.setPasswordResetToken(resetToken);
+        user.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), resetToken);
+    }
+
+    /**
+     * Restablece la contraseña con el token proporcionado
+     */
+    public void resetPassword(ResetPasswordRequestDto request) {
+        // Verificar que el token sea válido
+        if (!jwtTokenUtil.validateToken(request.getToken())) {
+            throw new RuntimeException("Token inválido o expirado");
+        }
+
+        String email = jwtTokenUtil.getEmailFromToken(request.getToken());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Verificar que el token de la base de datos coincida y no haya expirado
+        if (!request.getToken().equals(user.getPasswordResetToken()) ||
+                user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token inválido o expirado");
+        }
+
+        // Establecer la nueva contraseña
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        // Invalidar el token de restablecimiento
+        user.setPasswordResetToken(null);
+        user.setPasswordResetTokenExpiry(null);
+
+        userRepository.save(user);
     }
 
     public void editProfile(Long userId, EditDancerProfileDto dto) {
@@ -156,6 +225,4 @@ public class AuthService {
             return dto;
         }).collect(Collectors.toList());
     }
-
-
 }

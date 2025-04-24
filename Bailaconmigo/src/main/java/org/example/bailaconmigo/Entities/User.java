@@ -10,6 +10,7 @@ import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -35,6 +36,10 @@ public class User {
     private SubscriptionType subscriptionType;
 
     private LocalDate subscriptionExpiration;
+
+
+    private String passwordResetToken;
+    private LocalDateTime passwordResetTokenExpiry;
 }
 
 
