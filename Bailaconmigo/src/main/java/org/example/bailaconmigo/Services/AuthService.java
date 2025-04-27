@@ -2,13 +2,11 @@ package org.example.bailaconmigo.Services;
 
 import org.example.bailaconmigo.Configs.JwtTokenUtil;
 import org.example.bailaconmigo.DTOs.*;
-import org.example.bailaconmigo.Entities.DancerProfile;
+import org.example.bailaconmigo.Entities.*;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
-import org.example.bailaconmigo.Entities.Rating;
-import org.example.bailaconmigo.Entities.User;
-import org.example.bailaconmigo.Entities.Media;
 import org.example.bailaconmigo.Repositories.DancerProfileRepository;
+import org.example.bailaconmigo.Repositories.OrganizerProfileRepository;
 import org.example.bailaconmigo.Repositories.RatingRepository;
 import org.example.bailaconmigo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +36,9 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private OrganizerProfileRepository organizerProfileRepository;
 
     @Autowired
     private EmailService emailService;
@@ -112,6 +113,20 @@ public class AuthService {
             profile.setMedia(new ArrayList<>());
 
             profileRepository.save(profile);
+        }
+        else if (user.getRole() == Role.ORGANIZADOR) {
+            OrganizerProfile organizerProfile = new OrganizerProfile();
+
+            organizerProfile.setUser(user);
+            organizerProfile.setOrganizationName(user.getFullName());
+            organizerProfile.setContactEmail(user.getEmail());
+            organizerProfile.setContactPhone("");  // Vacío inicialmente
+            organizerProfile.setDescription("");   // Vacío inicialmente
+            organizerProfile.setWebsite("");       // Vacío inicialmente
+            organizerProfile.setEvents(new ArrayList<>());
+            organizerProfile.setMedia(new ArrayList<>());
+
+            organizerProfileRepository.save(organizerProfile);
         }
     }
 

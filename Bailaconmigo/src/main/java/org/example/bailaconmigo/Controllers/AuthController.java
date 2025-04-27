@@ -2,6 +2,7 @@ package org.example.bailaconmigo.Controllers;
 
 import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Services.AuthService;
+import org.example.bailaconmigo.Services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequestDto registerRequest) {
