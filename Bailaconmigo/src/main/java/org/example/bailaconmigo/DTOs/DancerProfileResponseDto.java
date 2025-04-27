@@ -17,5 +17,7 @@ public class DancerProfileResponseDto {
     private String aboutMe;
     private String availability;
     private List<String> mediaUrls;
+    private double averageRating;
+
 }
 

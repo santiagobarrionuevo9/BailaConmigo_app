@@ -51,4 +51,15 @@ public class DancerProfile {
 
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL)
     private List<Media> media = new ArrayList<>();
+
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rating> ratings = new ArrayList<>();
+
+    // Método auxiliar para obtener el promedio de estrellas
+    public double getAverageRating() {
+        if (ratings == null || ratings.isEmpty()) {
+            return 0.0;
+        }
+        return ratings.stream().mapToInt(Rating::getStars).average().orElse(0.0);
+    }
 }

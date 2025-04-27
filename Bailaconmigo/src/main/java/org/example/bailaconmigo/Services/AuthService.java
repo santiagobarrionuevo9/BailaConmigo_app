@@ -5,9 +5,11 @@ import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.DancerProfile;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
+import org.example.bailaconmigo.Entities.Rating;
 import org.example.bailaconmigo.Entities.User;
 import org.example.bailaconmigo.Entities.Media;
 import org.example.bailaconmigo.Repositories.DancerProfileRepository;
+import org.example.bailaconmigo.Repositories.RatingRepository;
 import org.example.bailaconmigo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,6 +32,9 @@ public class AuthService {
 
     @Autowired
     private DancerProfileRepository profileRepository;
+
+    @Autowired
+    private RatingRepository ratingRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -201,6 +206,59 @@ public class AuthService {
 
         profileRepository.save(profile);
     }
+
+    public void rateProfile(Long raterId, RatingRequestDto dto) {
+        if (raterId == null || dto.getProfileId() == null) {
+            throw new RuntimeException("IDs inválidos.");
+        }
+
+        if (dto.getStars() < 1 || dto.getStars() > 5) {
+            throw new RuntimeException("La puntuación debe estar entre 1 y 5 estrellas.");
+        }
+
+        if (ratingRepository.existsByRaterIdAndProfileId(raterId, dto.getProfileId())) {
+            throw new RuntimeException("Ya has calificado a este perfil.");
+        }
+
+        User rater = userRepository.findById(raterId)
+                .orElseThrow(() -> new RuntimeException("Usuario calificador no encontrado"));
+
+        DancerProfile profile = profileRepository.findById(dto.getProfileId())
+                .orElseThrow(() -> new RuntimeException("Perfil a calificar no encontrado"));
+
+        Rating rating = new Rating();
+        rating.setRater(rater);
+        rating.setProfile(profile);
+        rating.setStars(dto.getStars());
+        rating.setComment(dto.getComment());
+
+        ratingRepository.save(rating);
+    }
+
+    public DancerProfileResponseDto getProfileById(Long id) {
+        DancerProfile profile = profileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Perfil no encontrado"));
+
+        DancerProfileResponseDto dto = new DancerProfileResponseDto();
+        dto.setFullName(profile.getFullName());
+        dto.setAge(profile.getAge());
+        dto.setCity(profile.getCity());
+        dto.setDanceStyles(profile.getDanceStyles());
+        dto.setLevel(profile.getLevel());
+        dto.setAboutMe(profile.getAboutMe());
+        dto.setAvailability(profile.getAvailability());
+
+        List<String> mediaUrls = profile.getMedia().stream()
+                .map(Media::getUrl)
+                .collect(Collectors.toList());
+        dto.setMediaUrls(mediaUrls);
+
+        // Nuevo campo: reputación promedio
+        dto.setAverageRating(profile.getAverageRating());
+
+        return dto;
+    }
+
 
     public List<DancerProfileResponseDto> getAllProfiles() {
         return profileRepository.findAll().stream().map(profile -> {

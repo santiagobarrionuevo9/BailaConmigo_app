@@ -78,6 +78,16 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/{id}")
+    public DancerProfileResponseDto getProfileById(@PathVariable Long id) {
+        return authService.getProfileById(id);
+    }
+
+    @PostMapping("/rate")
+    public void rateProfile(@RequestParam Long raterId, @RequestBody RatingRequestDto ratingDto) {
+        authService.rateProfile(raterId, ratingDto);
+    }
+
     @GetMapping("/all")
     public ResponseEntity<List<DancerProfileResponseDto>> getAllProfiles() {
         List<DancerProfileResponseDto> profiles = authService.getAllProfiles();
