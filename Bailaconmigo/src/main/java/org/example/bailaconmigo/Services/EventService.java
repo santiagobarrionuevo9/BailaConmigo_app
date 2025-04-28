@@ -4,6 +4,7 @@ import org.example.bailaconmigo.DTOs.CreateEventRequestDto;
 import org.example.bailaconmigo.DTOs.EventRatingRequestDto;
 import org.example.bailaconmigo.DTOs.EventResponseDto;
 import org.example.bailaconmigo.Entities.*;
+import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Repositories.EventRatingRepository;
 import org.example.bailaconmigo.Repositories.EventRepository;

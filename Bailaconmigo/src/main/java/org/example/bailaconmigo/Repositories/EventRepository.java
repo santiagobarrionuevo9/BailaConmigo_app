@@ -1,7 +1,7 @@
 package org.example.bailaconmigo.Repositories;
 
 import org.example.bailaconmigo.Entities.Event;
-import org.example.bailaconmigo.Entities.EventType;
+import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Entities.OrganizerProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

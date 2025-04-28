@@ -1,4 +1,4 @@
-package org.example.bailaconmigo.Entities;
+package org.example.bailaconmigo.Entities.Enum;
 
 public enum EventType {
     CLASE,         // Para clases de baile

@@ -2,7 +2,7 @@ package org.example.bailaconmigo.DTOs;
 
 import lombok.Data;
 import org.example.bailaconmigo.Entities.Enum.DanceStyle;
-import org.example.bailaconmigo.Entities.EventType;
+import org.example.bailaconmigo.Entities.Enum.EventType;
 
 import java.time.LocalDateTime;
 import java.util.List;

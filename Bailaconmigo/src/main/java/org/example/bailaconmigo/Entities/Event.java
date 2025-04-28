@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.bailaconmigo.Entities.Enum.DanceStyle;
+import org.example.bailaconmigo.Entities.Enum.EventType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
