@@ -1,0 +1,22 @@
+h1, h2, h3 {
+    color: #5a2a83; /* Color violeta elegante */
+  }
+  
+  ul.list-group li {
+    font-size: 1.1rem;
+  }
+  
+  .btn-primary {
+    background-color: #5a2a83;
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    background-color: #7c3aed;
+  }
+  
+  img {
+    max-height: 400px;
+    object-fit: cover;
+  }
+  

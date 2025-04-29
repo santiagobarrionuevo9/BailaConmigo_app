@@ -1,0 +1,49 @@
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow p-4" style="width: 400px;">
+      <h2 class="text-center mb-4">Iniciar sesión</h2>
+      
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input
+            id="email"
+            formControlName="email"
+            type="email"
+            class="form-control"
+            [ngClass]="{'is-invalid': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}"
+          />
+          <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="invalid-feedback">
+            Email inválido.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña</label>
+          <input
+            id="password"
+            formControlName="password"
+            type="password"
+            class="form-control"
+            [ngClass]="{'is-invalid': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
+          />
+          <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="invalid-feedback">
+            La contraseña es obligatoria.
+          </div>
+        </div>
+  
+        <button type="submit" class="btn btn-primary w-100 mb-3" [disabled]="loginForm.invalid">
+          Iniciar sesión
+        </button>
+  
+        <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+          {{ errorMessage }}
+        </div>
+  
+        <div class="text-center mt-3">
+          <span>¿No tienes cuenta?</span>
+          <a routerLink="/register" class="text-decoration-none ms-1">Regístrate aquí</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  

@@ -1,0 +1,143 @@
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow p-4" style="width: 500px;">
+      <h2 class="text-center mb-4">Crear cuenta</h2>
+  
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label for="fullName" class="form-label">Nombre completo</label>
+          <input
+            id="fullName"
+            formControlName="fullName"
+            type="text"
+            class="form-control"
+            [ngClass]="{'is-invalid': registerForm.get('fullName')?.invalid && registerForm.get('fullName')?.touched}"
+          />
+          <div *ngIf="registerForm.get('fullName')?.invalid && registerForm.get('fullName')?.touched" class="invalid-feedback">
+            El nombre es obligatorio.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input
+            id="email"
+            formControlName="email"
+            type="email"
+            class="form-control"
+            [ngClass]="{'is-invalid': registerForm.get('email')?.invalid && registerForm.get('email')?.touched}"
+          />
+          <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="invalid-feedback">
+            Email inválido.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña</label>
+          <input
+            id="password"
+            formControlName="password"
+            type="password"
+            class="form-control"
+            [ngClass]="{'is-invalid': registerForm.get('password')?.invalid && registerForm.get('password')?.touched}"
+          />
+          <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="invalid-feedback">
+            La contraseña es obligatoria.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="gender" class="form-label">Género</label>
+          <select
+            id="gender"
+            formControlName="gender"
+            class="form-select"
+            [ngClass]="{'is-invalid': registerForm.get('gender')?.invalid && registerForm.get('gender')?.touched}"
+          >
+            <option value="">Selecciona tu género</option>
+            <option value="MALE">Masculino</option>
+            <option value="FEMALE">Femenino</option>
+            <option value="OTHER">Otro</option>
+          </select>
+          <div *ngIf="registerForm.get('gender')?.invalid && registerForm.get('gender')?.touched" class="invalid-feedback">
+            El género es obligatorio.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="birthdate" class="form-label">Fecha de nacimiento</label>
+          <input
+            id="birthdate"
+            formControlName="birthdate"
+            type="date"
+            class="form-control"
+            [ngClass]="{'is-invalid': registerForm.get('birthdate')?.invalid && registerForm.get('birthdate')?.touched}"
+          />
+          <div *ngIf="registerForm.get('birthdate')?.invalid && registerForm.get('birthdate')?.touched" class="invalid-feedback">
+            La fecha de nacimiento es obligatoria.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="city" class="form-label">Ciudad</label>
+          <input
+            id="city"
+            formControlName="city"
+            type="text"
+            class="form-control"
+            [ngClass]="{'is-invalid': registerForm.get('city')?.invalid && registerForm.get('city')?.touched}"
+          />
+          <div *ngIf="registerForm.get('city')?.invalid && registerForm.get('city')?.touched" class="invalid-feedback">
+            La ciudad es obligatoria.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="role" class="form-label">Rol</label>
+          <select
+            id="role"
+            formControlName="role"
+            class="form-select"
+            [ngClass]="{'is-invalid': registerForm.get('role')?.invalid && registerForm.get('role')?.touched}"
+          >
+            <option value="">Selecciona un rol</option>
+            <option value="BAILARIN">Bailarin</option>
+            <option value="ORGANIZADOR">Organizador</option>
+          </select>
+          <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="invalid-feedback">
+            El rol es obligatorio.
+          </div>
+        </div>
+  
+        <div class="mb-3">
+          <label for="subscriptionType" class="form-label">Tipo de suscripción</label>
+          <select
+            id="subscriptionType"
+            formControlName="subscriptionType"
+            class="form-select"
+            [ngClass]="{'is-invalid': registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched}"
+          >
+            <option value="">Selecciona una suscripción</option>
+            <option value="BASICO">Basico</option>
+            <option value="PRO">Pro</option>
+          </select>
+          <div *ngIf="registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched" class="invalid-feedback">
+            El tipo de suscripción es obligatorio.
+          </div>
+        </div>
+  
+        <button type="submit" class="btn btn-success w-100">
+          Registrarse
+        </button>
+  
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3" role="alert">
+          {{ errorMessage }}
+        </div>
+  
+        <div class="text-center mt-3">
+          <span>¿Ya tienes cuenta?</span>
+          <a routerLink="/login" class="text-decoration-none ms-1">Inicia sesión</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
