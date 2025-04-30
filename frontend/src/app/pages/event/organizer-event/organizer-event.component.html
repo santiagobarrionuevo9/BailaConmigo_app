@@ -1,0 +1,9 @@
+<h2>Mis Eventos</h2>
+<a routerLink="/create-event" class="btn btn-primary">Crear nuevo evento</a>
+<ul>
+  <li *ngFor="let event of events">
+    <strong>{{ event.name }}</strong> - {{ event.dateTime | date:'short' }}
+    <p>{{ event.description }}</p>
+  </li>
+</ul>
+

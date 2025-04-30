@@ -18,9 +18,16 @@ export class AppComponent {
 
   constructor(private router: Router) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
+    const role = localStorage.getItem('role'); // o traerlo del token
+    if (role === 'BAILARIN') {
+      this.router.navigate(['/profile']);
+    } else if (role === 'ORGANIZADOR') {
+      this.router.navigate(['/events']);
+    }
     this.checkLoginStatus();
   }
+  
 
   checkLoginStatus() {
     const token = localStorage.getItem('token');

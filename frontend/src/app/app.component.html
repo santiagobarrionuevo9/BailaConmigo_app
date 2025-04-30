@@ -1,3 +1,4 @@
+<!-- Navbar principal con Bootstrap -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" routerLink="/">BailaConmigo</a>
@@ -23,6 +24,9 @@
           <a class="nav-link" routerLink="/profile" *ngIf="isLoggedIn">Perfil</a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" routerLink="/register" *ngIf="!isLoggedIn">Registrarse</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" routerLink="/login" *ngIf="!isLoggedIn">Login</a>
         </li>
       </ul>
@@ -35,5 +39,7 @@
   </div>
 </nav>
 
-<!-- Router outlet para renderizar las páginas -->
-<router-outlet></router-outlet>
+<!-- Contenido principal renderizado por rutas -->
+<main class="container mt-4">
+  <router-outlet></router-outlet>
+</main>
