@@ -197,7 +197,7 @@ public class AuthService {
     }
 
     public void editProfile(Long userId, EditDancerProfileDto dto) {
-        DancerProfile profile = profileRepository.findByUserId(userId)
+        DancerProfile profile = profileRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new RuntimeException("Perfil no encontrado"));
 
         profile.setCity(dto.getCity());
@@ -206,8 +206,14 @@ public class AuthService {
         profile.setAboutMe(dto.getAboutMe());
         profile.setAvailability(dto.getAvailability());
 
-        // Simulación de multimedia (urls)
-        List<Media> mediaList = dto.getMediaUrls().stream()
+        // Obtener los URLs de media actuales
+        List<String> currentMediaUrls = profile.getMedia().stream()
+                .map(Media::getUrl)
+                .collect(Collectors.toList());
+
+        // Solo agregar los nuevos URLs que no existan ya en el perfil
+        List<Media> newMediaItems = dto.getMediaUrls().stream()
+                .filter(url -> !currentMediaUrls.contains(url)) // Solo URLs nuevos
                 .map(url -> {
                     Media media = new Media();
                     media.setUrl(url);
@@ -216,9 +222,10 @@ public class AuthService {
                 })
                 .collect(Collectors.toList());
 
-        profile.getMedia().clear();
-        profile.getMedia().addAll(mediaList);
-
+        // Agregar solo los nuevos elementos sin borrar los existentes
+        if (!newMediaItems.isEmpty()) {
+            profile.getMedia().addAll(newMediaItems);
+        }
         profileRepository.save(profile);
     }
 
@@ -251,7 +258,7 @@ public class AuthService {
     }
 
     public DancerProfileResponseDto getProfileById(Long id) {
-        DancerProfile profile = profileRepository.findById(id)
+        DancerProfile profile = profileRepository.findByUser_Id(id)
                 .orElseThrow(() -> new RuntimeException("Perfil no encontrado"));
 
         DancerProfileResponseDto dto = new DancerProfileResponseDto();

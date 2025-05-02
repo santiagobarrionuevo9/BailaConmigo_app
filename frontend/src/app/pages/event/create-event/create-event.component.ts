@@ -13,6 +13,8 @@ import { CommonModule } from '@angular/common';
 })
 export class CreateEventComponent {
   form: FormGroup;
+  availableDanceStyles: string[] = ['SALSA', 'BACHATA', 'KIZOMBA', 'MERENGUE', 'TANGO', 'ZOUK', 'URBANO', 'CUMBIA'];
+  selectedStyles: string[] = [];
   
   constructor(private fb: FormBuilder, private eventService: EventService) {
     this.form = this.fb.group({
@@ -52,4 +54,33 @@ export class CreateEventComponent {
       }
     });
   }
+
+  onDanceStylesChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    const styles = value.split(',').map(s => s.trim()).filter(s => s);
+    this.form.get('danceStyles')?.setValue(styles);
+  }
+  
+  onMediaUrlsChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    const urls = value.split(',').map(s => s.trim()).filter(s => s);
+    this.form.get('mediaUrls')?.setValue(urls);
+  }
+
+  // Método para agregar un estilo de baile
+  addDanceStyle(style: string): void {
+    if (!style || this.selectedStyles.includes(style)) return;
+    
+    this.selectedStyles.push(style);
+    // Actualizar el campo oculto en el formulario
+    this.form.patchValue({ danceStyles: [...this.selectedStyles] });
+  }
+
+  // Método para eliminar un estilo de baile
+  removeDanceStyle(index: number): void {
+    this.selectedStyles.splice(index, 1);
+    // Actualizar el campo oculto en el formulario
+    this.form.patchValue({ danceStyles: [...this.selectedStyles] });
+  }
+  
 }

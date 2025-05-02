@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { LoginComponent } from "./pages/auth/login/login.component";
 import { RegisterComponent } from "./pages/auth/register/register.component";
 import { CommonModule } from '@angular/common';
+import { AuthstateService } from './services/authstate.service';
 
 @Component({
   selector: 'app-root',
@@ -16,37 +17,33 @@ export class AppComponent {
   isLoggedIn = false;
   userRole: string = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authState: AuthstateService ) {}
 
   ngOnInit(): void {
+    this.authState.isLoggedIn$.subscribe((loggedIn) => {
+      this.isLoggedIn = loggedIn;
+    });
+
+    this.authState.userRole$.subscribe((role) => {
+      this.userRole = role;
+    });
     const role = localStorage.getItem('role'); // o traerlo del token
     if (role === 'BAILARIN') {
       this.router.navigate(['/profile']);
     } else if (role === 'ORGANIZADOR') {
       this.router.navigate(['/events']);
     }
-    this.checkLoginStatus();
   }
   
 
-  checkLoginStatus() {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-
-    if (token) {
-      this.isLoggedIn = true;
-      this.userRole = role || '';
-    } else {
-      this.isLoggedIn = false;
-      this.userRole = '';
-    }
-  }
+  
 
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    this.authState.updateAuthState(false, '');
     this.isLoggedIn = false;
     this.userRole = '';
-    this.router.navigate(['/login']);
+    this.router.navigate(['/home']);
   }
 }

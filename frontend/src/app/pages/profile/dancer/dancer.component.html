@@ -1,87 +1,124 @@
 <div class="container mt-4">
-    <div class="card shadow">
-      <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
-        <h5 class="mb-0">Perfil de Bailarín</h5>
-        <button class="btn btn-light btn-sm" (click)="toggleEdit()">
-          {{ isEditing ? 'Cancelar' : 'Editar' }}
-        </button>
-      </div>
-  
-      <div class="card-body" *ngIf="profileData">
-        <div class="mb-3">
-          <strong>Nombre completo:</strong> {{ profileData.fullName }}
-        </div>
-        <div class="mb-3">
-          <strong>Edad:</strong> {{ profileData.age }}
-        </div>
-        <div class="mb-3">
-          <strong>Reputación promedio:</strong> {{ profileData.averageRating }}/5
-        </div>
-  
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="isEditing">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Ciudad</label>
-              <input class="form-control" formControlName="city" />
-            </div>
-  
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Nivel</label>
-              <select class="form-select" formControlName="level">
-                <option *ngFor="let lvl of ['PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO']" [value]="lvl">{{ lvl }}</option>
-              </select>
-            </div>
-  
-            <div class="col-md-12 mb-3">
-              <label class="form-label">Estilos de Baile</label>
-              <select class="form-select" multiple formControlName="danceStyles">
-                <option *ngFor="let style of ['SALSA', 'BACHATA', 'KIZOMBA']" [value]="style">{{ style }}</option>
-              </select>
-            </div>
-  
-            <div class="col-md-12 mb-3">
-              <label class="form-label">Sobre mí</label>
-              <textarea class="form-control" rows="3" formControlName="aboutMe"></textarea>
-            </div>
-  
-            <div class="col-md-12 mb-3">
-              <label class="form-label">Disponibilidad</label>
-              <textarea class="form-control" rows="2" formControlName="availability"></textarea>
-            </div>
-  
-            <label>Subir foto o video:</label>
-            <input type="file" (change)="onFileSelected($event)" />
-  
-            <div *ngFor="let media of form.value.mediaUrls">
-                <video *ngIf="isVideo(media)" [src]="media" controls width="320" height="240"></video>
-                <img *ngIf="isImage(media)" [src]="media" width="200" />
-              </div>
-              
-               <!-- Cierre del div que itera sobre mediaUrls -->
-  
-            <div class="text-end mt-3">
-              <button type="submit" class="btn btn-success">Guardar Cambios</button>
-            </div>
-          </div> <!-- Cierre de la fila -->
-        </form>
-  
-        <div *ngIf="!isEditing">
-          <p><strong>Ciudad:</strong> {{ profileData.city }}</p>
-          <p><strong>Nivel:</strong> {{ profileData.level }}</p>
-          <p><strong>Estilos:</strong> {{ profileData.danceStyles.join(', ') }}</p>
-          <p><strong>Sobre mí:</strong> {{ profileData.aboutMe }}</p>
-          <p><strong>Disponibilidad:</strong> {{ profileData.availability }}</p>
-  
-          <div class="d-flex flex-wrap gap-3 mt-3">
-            <div *ngFor="let url of profileData.mediaUrls">
-              <video *ngIf="url.endsWith('.mp4')" width="200" controls>
-                <source [src]="url" type="video/mp4" />
-              </video>
-              <img *ngIf="!url.endsWith('.mp4')" [src]="url" width="200" class="img-thumbnail" />
+  <div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #ff6600; color: white;">
+      <h5 class="mb-0">Perfil de Bailarín</h5>
+      <button class="btn btn-light btn-sm" (click)="toggleEdit()">
+        {{ isEditing ? 'Cancelar' : 'Editar' }}
+      </button>
+    </div>
+
+    <div class="card-body" *ngIf="profileData">
+      <!-- CARRUSEL TIPO TINDER -->
+      <div *ngIf="mediaPreview.length > 0" class="mb-4">
+        <div id="mediaCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div *ngFor="let media of mediaPreview; let i = index" class="carousel-item" [ngClass]="{ active: i === 0 }">
+              <ng-container *ngIf="isVideo(media); else imageTemplate">
+                <video 
+                  [src]="media" 
+                  controls 
+                  class="d-block mx-auto carousel-media"
+                ></video>
+              </ng-container>
+              <ng-template #imageTemplate>
+                <img 
+                  [src]="media" 
+                  class="d-block mx-auto carousel-media" 
+                  alt="media"
+                />
+              </ng-template>
             </div>
           </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#mediaCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#mediaCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </button>
         </div>
       </div>
+
+      <div class="mb-3"><strong>Nombre completo:</strong> {{ profileData.fullName }}</div>
+      <div class="mb-3"><strong>Edad:</strong> {{ profileData.age }}</div>
+      <div class="mb-3"><strong>Reputación promedio:</strong> {{ profileData.averageRating }}/5</div>
+
+      <!-- FORMULARIO DE EDICIÓN -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="isEditing">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Ciudad</label>
+            <input class="form-control" formControlName="city" />
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Nivel</label>
+            <select class="form-select" formControlName="level">
+              <option *ngFor="let lvl of ['PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO']" [value]="lvl">{{ lvl }}</option>
+            </select>
+          </div>
+
+          <!-- Reemplazar el select múltiple existente por este -->
+          <div class="col-md-12 mb-3">
+            <label class="form-label">Estilos de Baile</label>
+            
+            <div class="input-group mb-2">
+              <select #styleSelect class="form-select">
+                <option value="">-- Seleccionar estilo --</option>
+                <option *ngFor="let style of availableDanceStyles" [value]="style" 
+                        [disabled]="selectedStyles.includes(style)">{{ style }}</option>
+              </select>
+              <button type="button" class="btn" style="background-color: #ff6600; color: white;" 
+                      (click)="addDanceStyle(styleSelect.value); styleSelect.value=''">
+                <i class="bi bi-plus-lg"></i> Agregar
+              </button>
+            </div>
+            
+            <!-- Lista de estilos seleccionados -->
+            <div class="selected-styles mt-2">
+              <div *ngFor="let style of selectedStyles; let i = index" class="badge" 
+                   style="background-color: #ff6600; color: white; padding: 0.5rem 1rem; margin-right: 0.5rem; margin-bottom: 0.5rem;">
+                {{ style }}
+                <button type="button" class="btn-close btn-close-white ms-2" aria-label="Eliminar" 
+                        (click)="removeDanceStyle(i)"></button>
+              </div>
+              <div *ngIf="selectedStyles.length === 0" class="text-muted">
+                No hay estilos seleccionados
+              </div>
+            </div>
+            
+            <!-- Campo oculto para mantener los valores en el formulario -->
+            <input type="hidden" formControlName="danceStyles">
+          </div>
+
+          <div class="col-md-12 mb-3">
+            <label class="form-label">Sobre mí</label>
+            <textarea class="form-control" rows="3" formControlName="aboutMe"></textarea>
+          </div>
+
+          <div class="col-md-12 mb-3">
+            <label class="form-label">Disponibilidad</label>
+            <textarea class="form-control" rows="2" formControlName="availability"></textarea>
+          </div>
+
+          <div class="col-md-12 mb-3">
+            <label class="form-label">Subir foto o video</label>
+            <input type="file" (change)="onFileSelected($event)" class="form-control" />
+          </div>
+
+          <div class="text-end mt-3">
+            <button type="submit" class="btn" style="background-color: #ff6600; color: white;">Guardar Cambios</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- VISTA DE SOLO LECTURA -->
+      <div *ngIf="!isEditing">
+        <p><strong>Ciudad:</strong> {{ profileData.city }}</p>
+        <p><strong>Nivel:</strong> {{ profileData.level }}</p>
+        <p><strong>Estilos:</strong> {{ profileData.danceStyles.join(', ') }}</p>
+        <p><strong>Sobre mí:</strong> {{ profileData.aboutMe }}</p>
+        <p><strong>Disponibilidad:</strong> {{ profileData.availability }}</p>
+      </div>
     </div>
+  </div>
 </div>
-  

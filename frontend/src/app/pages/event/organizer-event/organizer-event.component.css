@@ -1,0 +1,34 @@
+.text-orange {
+    color: #cc5500 !important;
+  }
+  
+  .bg-orange {
+    background-color: #cc5500 !important;
+  }
+  
+  .border-orange {
+    border: 1px solid #cc5500 !important;
+  }
+  
+  .btn-orange {
+    background-color: #cc5500;
+    color: white;
+    border: none;
+  }
+  
+  .btn-orange:hover {
+    background-color: #a84300;
+    color: white;
+  }
+  
+  .btn-outline-orange {
+    color: #cc5500;
+    border: 1px solid #cc5500;
+    background-color: transparent;
+  }
+  
+  .btn-outline-orange:hover {
+    background-color: #cc5500;
+    color: white;
+  }
+  

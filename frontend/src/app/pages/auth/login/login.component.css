@@ -1,0 +1,60 @@
+/* Fondo con degradado suave y cálido */
+body {
+    background: linear-gradient(to right, #ffe8cc, #fff2e6);
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  /* Card centrada con bordes suaves y detalles en naranja */
+  .card {
+    border: 1px solid #cc5500;
+    border-radius: 16px;
+    background-color: #fffdfb;
+  }
+  
+  /* Título en naranja oscuro */
+  .card h2 {
+    color: #cc5500;
+  }
+  
+  /* Etiquetas en color fuerte */
+  .form-label {
+    color: #b34700;
+    font-weight: 600;
+  }
+  
+  /* Botón naranja elegante */
+  .btn-primary {
+    background-color: #cc5500;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: #a84300;
+  }
+  
+  /* Enlace de registro con efecto */
+  a.text-decoration-none {
+    color: #cc5500;
+    font-weight: 500;
+  }
+  
+  a.text-decoration-none:hover {
+    text-decoration: underline;
+    color: #a84300;
+  }
+  
+  /* Validaciones */
+  .is-invalid {
+    border-color: #e74c3c;
+  }
+  
+  .invalid-feedback {
+    font-size: 0.875rem;
+  }
+  
+  .text-muted {
+    color: #cc5500 !important;
+    font-style: italic;
+  }
+  

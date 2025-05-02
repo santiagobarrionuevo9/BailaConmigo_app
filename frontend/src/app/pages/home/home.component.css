@@ -1,22 +1,25 @@
+/* Títulos principales en naranja oscuro */
 h1, h2, h3 {
-    color: #5a2a83; /* Color violeta elegante */
-  }
-  
-  ul.list-group li {
-    font-size: 1.1rem;
-  }
-  
-  .btn-primary {
-    background-color: #5a2a83;
-    border: none;
-  }
-  
-  .btn-primary:hover {
-    background-color: #7c3aed;
-  }
-  
-  img {
-    max-height: 400px;
-    object-fit: cover;
-  }
-  
+  color: #cc5500;
+}
+
+/* Lista con borde y fondo más neutros */
+ul.list-group li {
+  font-size: 1.1rem;
+  border-left: 4px solid #cc5500;
+}
+
+/* Botón principal en violeta (opcional: cambiar a naranja también) */
+.btn-primary {
+  background-color: #cc5500;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #b34700;
+}
+
+/* Línea divisoria */
+hr {
+  border-top: 2px solid #cc5500;
+}

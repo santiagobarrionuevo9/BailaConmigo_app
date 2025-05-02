@@ -5,7 +5,8 @@ import { SubscriptionType } from '../../../models/subscription-type';
 import { AuthService } from '../../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { RegisterRequestDto } from '../../../models/register-request';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -24,7 +25,8 @@ export class RegisterComponent {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     this.registerForm = this.fb.group({
       fullName: ['', [Validators.required]],
@@ -40,29 +42,31 @@ export class RegisterComponent {
 
   onSubmit(): void {
     if (this.registerForm.invalid) return;
-
-    const registerRequest = {
-      fullName: this.registerForm.value.fullName,
-      email: this.registerForm.value.email,
-      password: this.registerForm.value.password,
-      gender: this.registerForm.value.gender,
-      birthdate: this.registerForm.value.birthdate,
-      city: this.registerForm.value.city,
-      role: this.registerForm.value.role,
-      subscriptionType: this.registerForm.value.subscriptionType
-    };
-
-    this.authService.register(this.registerForm.value).subscribe({
-      next: (response) => {
-        this.successMessage = response;
-        this.errorMessage = '';
-        this.registerForm.reset();
+  
+    const registerRequest = this.registerForm.value;
+  
+    this.authService.register(registerRequest).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Registro exitoso!',
+          text: 'Tu cuenta fue creada correctamente.',
+          confirmButtonText: 'Ir al login'
+        }).then(() => {
+          this.router.navigate(['/login']);
+        });
       },
       error: (error) => {
-        this.errorMessage = error.error || 'Error en el registro.';
-        this.successMessage = '';
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al registrarse',
+          text: error.error || 'Ocurrió un error durante el registro.',
+          confirmButtonText: 'Volver al login'
+        }).then(() => {
+          this.router.navigate(['/login']);
+        });
       }
     });
-    
   }
+  
 }

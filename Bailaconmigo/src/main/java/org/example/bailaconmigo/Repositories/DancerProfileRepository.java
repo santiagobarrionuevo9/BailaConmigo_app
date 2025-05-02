@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface DancerProfileRepository extends JpaRepository<DancerProfile, Long> {
-    Optional<DancerProfile> findByUserId(Long userId);
+    Optional<DancerProfile> findByUser_Id(Long userId);
 }
 

@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { LoginRequestDto } from '../../../models/login-request';
+import { AuthstateService } from '../../../services/authstate.service';
 
 
 @Component({
@@ -19,7 +20,9 @@ export class LoginComponent {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
+    private authState: AuthstateService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -31,22 +34,30 @@ export class LoginComponent {
     if (this.loginForm.invalid) {
       return;
     }
-
+  
     const loginRequest = {
       email: this.loginForm.value.email,
       password: this.loginForm.value.password
     };
-
+  
     this.authService.login(loginRequest).subscribe({
       next: (response) => {
-        // Guardamos token y datos del usuario
         localStorage.setItem('token', response.token);
         localStorage.setItem('userId', response.userId.toString());
         localStorage.setItem('fullName', response.fullName);
         localStorage.setItem('role', response.role);
-
-        // Redirigir o hacer algo después de login exitoso
+        this.authState.updateAuthState(true, response.role);
         console.log('Login exitoso', response);
+  
+        // ✅ Redirigir al perfil
+        // ✅ Redirigir según el rol
+        if (response.role === 'BAILARIN') {
+          this.router.navigate(['/profile']);
+        } else if (response.role === 'ORGANIZADOR') {
+          this.router.navigate(['/events']);
+        } else {
+          this.router.navigate(['/']);
+        }
       },
       error: (error) => {
         console.error('Error al iniciar sesión', error);
@@ -54,4 +65,5 @@ export class LoginComponent {
       }
     });
   }
+  
 }

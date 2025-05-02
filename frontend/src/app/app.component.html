@@ -1,5 +1,6 @@
 <!-- Navbar principal con Bootstrap -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark-orange">
+
   <div class="container-fluid">
     <a class="navbar-brand" routerLink="/">BailaConmigo</a>
 
@@ -17,20 +18,16 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/home" *ngIf="isLoggedIn">Inicio</a>
-        </li>
-        <li class="nav-item">
+        <li class="nav-item" *ngIf="userRole === 'BAILARIN'">
           <a class="nav-link" routerLink="/profile" *ngIf="isLoggedIn">Perfil</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/register" *ngIf="!isLoggedIn">Registrarse</a>
+        <li class="nav-item" *ngIf="userRole === 'ORGANIZADOR'">
+          <a class="nav-link" routerLink="/events" *ngIf="isLoggedIn">Eventos</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/login" *ngIf="!isLoggedIn">Login</a>
         </li>
       </ul>
-
       <div class="d-flex align-items-center text-white" *ngIf="isLoggedIn">
         <span class="me-3">Rol: {{ userRole }}</span>
         <button class="btn btn-outline-light btn-sm" (click)="logout()">Cerrar sesión</button>

@@ -16,8 +16,9 @@ export class ProfileService {
     return this.http.get<DancerProfileResponseDto>(`${this.baseUrl}/${id}`);
   }
 
-  updateProfile(userId: number, dto: EditDancerProfileDto): Observable<any> {
-    return this.http.put(`${this.baseUrl}/edit/${userId}`, dto);
+  updateProfile(userId: number, dto: EditDancerProfileDto): Observable<string> {
+    
+    return this.http.put(`${this.baseUrl}/edit/${userId}`, dto, { responseType: 'text' });
   }
 
   uploadMedia(formData: FormData): Observable<string> {
