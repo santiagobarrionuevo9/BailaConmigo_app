@@ -3,6 +3,10 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { EventService } from '../../../services/event.service';
 import { CreateEventRequestDto } from '../../../models/createeventrequest';
 import { CommonModule } from '@angular/common';
+import { UserContextService } from '../../../services/user-context.service';
+import Swal from 'sweetalert2';
+import { AuthService } from '../../../services/auth.service';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-create-event',
@@ -13,10 +17,10 @@ import { CommonModule } from '@angular/common';
 })
 export class CreateEventComponent {
   form: FormGroup;
-  availableDanceStyles: string[] = ['SALSA', 'BACHATA', 'KIZOMBA', 'MERENGUE', 'TANGO', 'ZOUK', 'URBANO', 'CUMBIA'];
+  availableDanceStyles: string[] = [];
   selectedStyles: string[] = [];
   
-  constructor(private fb: FormBuilder, private eventService: EventService) {
+  constructor(private fb: FormBuilder, private eventService: EventService,private router: Router, private userContext: UserContextService, private authService: AuthService) {
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
@@ -32,28 +36,47 @@ export class CreateEventComponent {
       mediaUrls: [[]]        // Array vacío por defecto
     });
   }
+
+  ngOnInit(): void {
+    this.authService.getDanceStyles().subscribe(styles => {
+      this.availableDanceStyles = styles;
+    });
+  }
+  
   
   submit(): void {
     if (this.form.invalid) return;
-    
+  
     const dto: CreateEventRequestDto = this.form.value;
-    
-    // Asegurar que los valores se envían correctamente
-    // Si el backend espera un conjunto para danceStyles, asegúrate de convertir el array a Set
-    
-    const organizerId = 1; // Reemplazar con ID real del organizador (¿obtener del usuario autenticado?)
-    
+    const organizerId = this.userContext.userId!;
+  
     this.eventService.createEvent(organizerId, dto).subscribe({
       next: (response) => {
-        alert(response || 'Evento creado exitosamente');
+        Swal.fire({
+          icon: 'success',
+          title: '¡Evento creado!',
+          text: response || 'El evento se creó exitosamente.',
+          confirmButtonColor: '#b34700',
+        }).then(() => {
+          this.router.navigate(['/events']);
+        });
         this.form.reset();
+        this.selectedStyles = []; // limpiar estilos también
       },
       error: (err) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al crear el evento',
+          text: err?.error || err.message || 'Error desconocido',
+          confirmButtonColor: '#d33',
+        }).then(() => {
+          this.router.navigate(['/events']);
+        });
         console.error('Error al crear el evento:', err);
-        alert('Error al crear el evento: ' + (err.error || err.message || 'Error desconocido'));
       }
     });
   }
+  
 
   onDanceStylesChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
@@ -81,6 +104,11 @@ export class CreateEventComponent {
     this.selectedStyles.splice(index, 1);
     // Actualizar el campo oculto en el formulario
     this.form.patchValue({ danceStyles: [...this.selectedStyles] });
+  }
+
+  // Método para volver a la página anterior
+  goBack(): void {
+    this.router.navigate(['/events']);
   }
   
 }

@@ -37,7 +37,7 @@ public class EventService {
      */
     public void createEvent(Long organizerId, CreateEventRequestDto dto) {
         // Buscar el perfil del organizador en lugar del usuario
-        OrganizerProfile organizerProfile = organizerProfileRepository.findById(organizerId)
+        OrganizerProfile organizerProfile = organizerProfileRepository.findByUser_Id(organizerId)
                 .orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
 
         // Verificar que el usuario asociado al perfil sea un organizador
@@ -90,7 +90,7 @@ public class EventService {
      * Obtiene todos los eventos de un organizador específico
      */
     public List<EventResponseDto> getEventsByOrganizer(Long organizerId) {
-        OrganizerProfile organizer = organizerProfileRepository.findById(organizerId)
+        OrganizerProfile organizer = organizerProfileRepository.findByUser_Id(organizerId)
                 .orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
 
         return eventRepository.findByOrganizer(organizer).stream()

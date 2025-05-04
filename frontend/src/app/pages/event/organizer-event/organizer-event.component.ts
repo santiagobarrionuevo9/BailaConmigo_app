@@ -3,6 +3,7 @@ import { EventResponseDto } from '../../../models/eventresponse';
 import { EventService } from '../../../services/event.service';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { UserContextService } from '../../../services/user-context.service';
 
 @Component({
   selector: 'app-organizer-event',
@@ -13,12 +14,13 @@ import { RouterLink } from '@angular/router';
 })
 export class OrganizerEventComponent implements OnInit {
   events: EventResponseDto[] = [];
-  organizerId: number = 1; // Reemplazar con el ID real del organizador autenticado
+  organizerId!: number;
   expandedEvents: boolean[] = [];
   
-  constructor(private eventService: EventService) {}
+  constructor(private eventService: EventService,private userContext: UserContextService) {}
   
   ngOnInit(): void {
+    this.organizerId = this.userContext.userId!;
     this.eventService.getEventsByOrganizer(this.organizerId).subscribe((res) => {
       this.events = res;
       // Inicializar el array de estados de expansión

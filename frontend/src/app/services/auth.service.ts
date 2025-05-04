@@ -23,4 +23,24 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, registerRequest, { responseType: 'text' });
   }
   
+  /**
+   * Solicita un correo de recuperación de contraseña
+   * @param request Objeto con el email del usuario
+   */
+  forgotPassword(request: { email: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, request, { responseType: 'text' });
+  }
+  
+  /**
+   * Restablece la contraseña del usuario usando un token
+   * @param request Objeto con el token y la nueva contraseña
+   */
+  resetPassword(request: { token: string, newPassword: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, request, { responseType: 'text' });
+  }
+
+  getDanceStyles(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/dance-styles`);
+  }
+  
 }

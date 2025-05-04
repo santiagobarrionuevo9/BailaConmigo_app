@@ -51,7 +51,8 @@ export class RegisterComponent {
           icon: 'success',
           title: '¡Registro exitoso!',
           text: 'Tu cuenta fue creada correctamente.',
-          confirmButtonText: 'Ir al login'
+          confirmButtonText: 'Ir al login',
+          confirmButtonColor: '#b34700'
         }).then(() => {
           this.router.navigate(['/login']);
         });

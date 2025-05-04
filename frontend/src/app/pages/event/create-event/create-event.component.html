@@ -49,7 +49,8 @@
           <select id="eventType" class="form-select" formControlName="eventType">
             <option value="CLASE">Clase</option>
             <option value="COMPETENCIA">Baile Libre</option>
-            <option value="FESTIVAL">Exhibición</option>
+            <option value="FESTIVAL">Festival</option>
+            <option value="SOCIAL">Social</option>
           </select>
         </div>
       </div>
@@ -84,7 +85,12 @@
         <input type="hidden" formControlName="danceStyles">
       </div>
       
-      <button type="submit" class="btn btn-dark w-100" [disabled]="form.invalid">Crear Evento</button>
+      <div class="d-flex gap-2 mt-3">
+        <button type="button" class="btn btn-outline-dark flex-grow-1" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Volver
+        </button>
+        <button type="submit" class="btn btn-dark flex-grow-1" [disabled]="form.invalid">Crear Evento</button>
+      </div>
     </form>
   </div>
 </div>

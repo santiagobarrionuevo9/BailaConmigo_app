@@ -6,7 +6,7 @@ body {
   
   /* Card estilizado */
   .card {
-    border: 1px solid #cc5500;
+    border: 2px solid #cc5500;
     border-radius: 16px;
     background-color: #fffdfb;
   }

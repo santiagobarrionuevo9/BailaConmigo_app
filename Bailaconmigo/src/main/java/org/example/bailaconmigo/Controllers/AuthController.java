@@ -1,6 +1,7 @@
 package org.example.bailaconmigo.Controllers;
 
 import org.example.bailaconmigo.DTOs.*;
+import org.example.bailaconmigo.Entities.Enum.DanceStyle;
 import org.example.bailaconmigo.Services.AuthService;
 import org.example.bailaconmigo.Services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +97,10 @@ public class AuthController {
         return ResponseEntity.ok(profiles);
     }
 
+    @GetMapping("/dance-styles")
+    public ResponseEntity<DanceStyle[]> getAllDanceStyles() {
+        return ResponseEntity.ok(DanceStyle.values());
+    }
 
 
 }

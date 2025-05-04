@@ -39,6 +39,7 @@ export class AppComponent {
   
 
   logout() {
+    localStorage.clear();
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     this.authState.updateAuthState(false, '');

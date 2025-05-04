@@ -18,8 +18,9 @@ export class EventService {
   }
 
   createEvent(organizerId: number, event: CreateEventRequestDto): Observable<string> {
-    // CORRECCIÓN: Usar parámetro de consulta en lugar de parámetro de ruta
-    // Devuelve el mensaje de éxito que envía el backend
-    return this.http.post<string>(`${this.apiUrl}/create?organizerId=${organizerId}`, event);
+    return this.http.post(`${this.apiUrl}/create?organizerId=${organizerId}`, event, {
+      responseType: 'text'
+    });
   }
+  
 }

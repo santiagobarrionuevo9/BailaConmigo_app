@@ -1,102 +1,395 @@
+:root {
+  --primary:  #cc5500;
+  --primary-dark:  #cc5500;
+  --primary-light:  #cc5500;
+  --primary-bg: #fff0e0;
+  --white: #ffffff;
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(255, 102, 0, 0.15);
+}
+
+body {
+  background: linear-gradient(135deg, var(--primary-bg), #fff7f2);
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 550px;
+  margin: 20px auto;
+  padding: 0;
+}
+
+.tinder-card {
+  background-color: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+  border: none;
+}
+
+/* Carrusel estilo Tinder */
+.carousel-container {
+  position: relative;
+  height: 450px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+}
+
 .carousel-media {
-  max-height: 400px;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
+  height: 450px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.carousel-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.carousel-left, .carousel-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  cursor: pointer;
+}
+
+.carousel-left:hover, .carousel-right:hover {
+  opacity: 1;
+  background: linear-gradient(90deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 100%);
+}
+
+.carousel-right:hover {
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.2) 100%);
+}
+
+.carousel-control-icon {
+  color: white;
+  font-size: 2rem;
+  text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.carousel-indicators {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.carousel-indicator {
+  height: 3px;
+  background-color: rgba(255,255,255,0.4);
+  border-radius: 3px;
+  flex: 1;
+  max-width: 50px;
+  transition: all 0.3s;
+}
+
+.carousel-indicator.active {
+  background-color: var(--white);
+}
+
+/* Contenido del perfil */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.profile-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.profile-age {
+  font-size: 1.8rem;
+  color: #666;
+  margin: 0 0 0 10px;
+}
+
+.profile-rating {
+  background-color: var(--primary);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 50px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rating-star {
+  color: gold;
+}
+
+.profile-content {
+  padding: 15px 20px;
+}
+
+.profile-section {
+  margin-bottom: 15px;
+}
+
+.profile-label {
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-bottom: 5px;
+  display: block;
+}
+
+.profile-value {
+  color: #555;
+  line-height: 1.5;
+}
+
+.dance-style-tag {
+  display: inline-block;
+  background-color: var(--primary-light);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 50px;
+  margin: 0 5px 5px 0;
+  font-size: 0.9rem;
+}
+
+/* Botones e interacciones */
+.profile-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 15px 20px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.action-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.edit-button {
+  background-color: var(--primary);
+  color: white;
+  font-size: 1.5rem;
+}
+
+.edit-button:hover {
+  background-color: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+/* Formulario de edición */
+.edit-form {
+  padding: 15px 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  display: block;
+  color: var(--primary-dark);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
   border-radius: 8px;
+  font-size: 1rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.2);
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff6600' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 15px;
+}
+
+.style-select-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.style-select {
+  flex: 1;
+}
+
+.style-add-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 15px;
+  cursor: pointer;
 }
 
 .selected-styles {
-  min-height: 40px;
-  padding: 5px;
-  border-radius: 4px;
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
+  min-height: 50px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
-.selected-styles .badge {
-  display: inline-flex;
+.style-badge {
+  background-color: var(--primary);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  display: flex;
   align-items: center;
-  font-size: 14px;
+  gap: 5px;
 }
 
-.selected-styles .badge .btn-close {
-  font-size: 10px;
-  padding: 2px;
-}
-
-/* Estilo para el botón con icono */
-.bi-plus-lg::before {
-  content: "+";
-  font-weight: bold;
-}
-
-/* Fondo suave con efecto cálido */
-body {
-  background: linear-gradient(to right, #fff0e0, #fff7f2);
-  font-family: 'Segoe UI', sans-serif;
-}
-
-/* Card estilizado */
-.card {
-  border: 1px solid #cc5500;
-  border-radius: 16px;
-  background-color: #fffdfb;
-}
-
-/* Título principal */
-.card h2 {
-  color: #cc5500;
-  font-weight: bold;
-}
-
-/* Labels */
-.form-label {
-  color: #b34700;
-  font-weight: 600;
-}
-
-/* Inputs */
-.form-control,
-.form-select {
-  border-radius: 10px;
-}
-
-/* Botón de registro en naranja oscuro */
-.btn-dark {
-  background-color: #cc5500;
+.badge-remove {
+  background: rgba(255,255,255,0.3);
   border: none;
-  transition: background-color 0.3s ease;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
 }
 
-.btn-dark:hover {
-  background-color: #a84300;
+.file-input-container {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
 }
 
-/* Enlace de login */
-a.text-decoration-none {
-  color: #cc5500;
-  font-weight: 500;
+.file-input-label {
+  background-color: var(--primary);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  display: block;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-a.text-decoration-none:hover {
-  text-decoration: underline;
-  color: #a84300;
+.file-input-label:hover {
+  background-color: var(--primary-dark);
 }
 
-/* Validaciones */
-.is-invalid {
-  border-color: #e74c3c;
+.file-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 }
 
-.invalid-feedback {
-  font-size: 0.875rem;
+.save-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  margin-top: 10px;
 }
 
-.text-muted {
-  color: #cc5500 !important;
-  font-style: italic;
+.save-button:hover {
+  background-color: var(--primary-dark);
 }
 
+.cancel-button {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+  margin-top: 10px;
+}
 
+.cancel-button:hover {
+  background-color: #e9e9e9;
+}
+
+.buttons-row {
+  display: flex;
+  gap: 10px;
+}
+
+.buttons-row button {
+  flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .container {
+    margin: 0;
+    max-width: 100%;
+  }
   
+  .tinder-card {
+    border-radius: 0;
+  }
+  
+  .carousel-container {
+    height: 400px;
+  }
+}
