@@ -131,4 +131,41 @@ public class EmailService {
             System.out.println("Error al enviar el email de recuperación: " + e.getMessage());
         }
     }
+
+    public void sendMatchNotificationEmail(String to, String fullName, String matchedWithName) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject("¡Nuevo match en Baila Conmigo!");
+
+            String htmlContent = """
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #28a745;">💃 ¡Es un match! 🕺</h2>
+              <p>Hola <strong>%s</strong>,</p>
+              
+              <p>¡Tenemos buenas noticias! <strong>%s</strong> también te dio like en <strong>Baila Conmigo</strong>. Ya pueden empezar a conectar y compartir su pasión por la danza.</p>
+
+              <p>Iniciá sesión en la app para ver el perfil y empezar a chatear 🎉</p>
+
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>El equipo de Baila Conmigo</strong></p>
+              
+              <hr />
+              <small style="color: #aaa;">
+                Este es un correo automático. Por favor, no respondas a este mensaje.
+              </small>
+            </body>
+            </html>
+        """.formatted(fullName, matchedWithName);
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            System.out.println("Error al enviar el email de match: " + e.getMessage());
+        }
+    }
+
 }

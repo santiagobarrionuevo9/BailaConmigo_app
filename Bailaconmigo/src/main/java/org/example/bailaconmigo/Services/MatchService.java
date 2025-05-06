@@ -35,6 +35,10 @@ public class MatchService {
     @Autowired
     private MatchRepository matchRepository;
 
+    @Autowired
+    private EmailService emailService;
+
+
     // Límite diario para BASICO
     private static final int DAILY_MATCH_LIMIT_BASIC = 3;
     private static final int DAILY_LIKE_LIMIT_BASIC = 20;
@@ -119,6 +123,12 @@ public class MatchService {
             Match reciprocalMatch = reciprocal.get();
             reciprocalMatch.setMatched(true);
             matchRepository.save(reciprocalMatch);
+            // Notificar por email al usuario que había dado like antes
+            String toEmail = likedUser.getEmail(); // este es el que dio like primero
+            String fullName = likedUser.getFullName();
+            String likerName = liker.getFullName();
+
+            emailService.sendMatchNotificationEmail(toEmail, fullName, likerName);
         } else {
             Match newMatch = new Match();
             newMatch.setLiker(liker);
