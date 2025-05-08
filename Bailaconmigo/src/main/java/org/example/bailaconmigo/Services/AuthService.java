@@ -1,5 +1,17 @@
 package org.example.bailaconmigo.Services;
 
+import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.payment.PaymentClient;
+import com.mercadopago.client.preference.*;
+
+
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
+import com.mercadopago.resources.preference.Preference;
+import com.mercadopago.resources.preference.PreferenceItem;
+import com.mercadopago.resources.preference.PreferencePayer;
+import jakarta.annotation.PostConstruct;
 import org.example.bailaconmigo.Configs.JwtTokenUtil;
 import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.*;
@@ -9,18 +21,20 @@ import org.example.bailaconmigo.Repositories.DancerProfileRepository;
 import org.example.bailaconmigo.Repositories.OrganizerProfileRepository;
 import org.example.bailaconmigo.Repositories.RatingRepository;
 import org.example.bailaconmigo.Repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +59,14 @@ public class AuthService {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    @Value("${mercadopago.access.token}")
+    private String mercadoPagoAccessToken;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     /**
      * Registra un nuevo usuario en la base de datos.
@@ -304,6 +326,109 @@ public class AuthService {
 
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    @PostConstruct
+    public void initMercadoPago() {
+        MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    public String generarLinkPagoPro(String email) throws MPException, MPApiException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Crear referencia única para este pago
+        String referenceId = "pro_sub_" + user.getId() + "_" + System.currentTimeMillis();
+
+        PreferenceItemRequest item = PreferenceItemRequest.builder()
+                .title("Suscripción PRO - Baila Conmigo")
+                .description("Acceso a funcionalidades premium por 3 meses")
+                .quantity(1)
+                .unitPrice(new BigDecimal("1499.00"))
+                .id(referenceId)
+                .build();
+
+        PreferencePayerRequest payer = PreferencePayerRequest.builder()
+                .email(email)
+                .name(user.getFullName())
+                .build();
+
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                .success(frontendUrl + "/perfil?status=success")
+                .failure(frontendUrl + "/perfil?status=failure")
+                .pending(frontendUrl + "/perfil?status=pending")
+                .build();
+
+        // Metadata para identificar la transacción
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("user_id", user.getId());
+        metadata.put("subscription_type", "PRO");
+        metadata.put("reference_id", referenceId);
+
+        PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                .items(List.of(item))
+                .payer(payer)
+                .backUrls(backUrls)
+                .autoReturn("approved")
+                .externalReference(referenceId)
+                .metadata(metadata)
+                .notificationUrl(frontendUrl + "/api/auth/mercadopago/webhook")
+                .build();
+
+        PreferenceClient client = new PreferenceClient();
+        Preference preference = client.create(preferenceRequest);
+
+        // Guardar referencia para validación posterior
+        user.setLastPaymentReference(referenceId);
+        userRepository.save(user);
+
+        return preference.getInitPoint();
+    }
+
+    public void procesarNotificacionPago(Map<String, Object> payload) {
+        String type = (String) payload.get("type");
+
+        // Solo procesar notificaciones de pagos
+        if ("payment".equals(type)) {
+            String id = (String) payload.get("data.id");
+
+            // Obtener detalles del pago desde Mercado Pago
+            try {
+                PaymentClient client = new PaymentClient();
+                Payment payment = client.get(Long.valueOf(id));
+
+                // Verificar estado del pago
+                if ("approved".equals(payment.getStatus())) {
+                    String referenceId = payment.getExternalReference();
+
+                    // Buscar usuario por referencia de pago
+                    Optional<User> userOpt = userRepository.findByLastPaymentReference(referenceId);
+                    if (userOpt.isPresent()) {
+                        User user = userOpt.get();
+
+                        // Activar suscripción PRO
+                        user.setSubscriptionType(SubscriptionType.PRO);
+                        user.setSubscriptionExpiration(LocalDate.now().plusMonths(3));
+                        user.setLastPaymentReference(null); // Limpiar referencia
+                        userRepository.save(user);
+
+                        // Notificar al usuario
+                        emailService.sendSubscriptionConfirmationEmail(
+                                user.getEmail(),
+                                user.getFullName(),
+                                user.getSubscriptionExpiration()
+                        );
+                    }
+                }
+            } catch (Exception e) {
+                // Registrar error pero no reenviar excepción para evitar reintento de MP
+                logger.error("Error procesando pago: " + e.getMessage(), e);
+            }
+        }
     }
 
 

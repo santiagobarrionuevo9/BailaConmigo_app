@@ -28,6 +28,7 @@ public class User {
     private String gender;
     private LocalDate birthdate;
     private String city;
+    private String lastPaymentReference;
 
     @Enumerated(EnumType.STRING)
     private Role role;

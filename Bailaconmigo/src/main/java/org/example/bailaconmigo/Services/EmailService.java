@@ -8,6 +8,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class EmailService {
 
@@ -165,6 +168,66 @@ public class EmailService {
             javaMailSender.send(message);
         } catch (MessagingException e) {
             System.out.println("Error al enviar el email de match: " + e.getMessage());
+        }
+    }
+
+    public void sendSubscriptionConfirmationEmail(String to, String fullName, LocalDate expirationDate) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject("¡Tu membresía PRO está activa! - Baila Conmigo");
+
+            String formattedExpirationDate = expirationDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+            String htmlContent = """
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #d63384;">¡Membresía PRO Activada!</h2>
+              <p>Hola <strong>%s</strong>,</p>
+              
+              <p>
+                ¡Tu pago ha sido procesado correctamente y tu membresía PRO ya está activa en <strong>Baila Conmigo</strong>!
+              </p>
+              
+              <h3>Detalles de tu suscripción:</h3>
+              <ul>
+                <li>✅ Tipo de membresía: <strong>PRO</strong></li>
+                <li>📅 Fecha de vencimiento: <strong>%s</strong></li>
+                <li>⭐ Estado: <strong>Activa</strong></li>
+              </ul>
+              
+              <h3>Ahora disfrutas de estos beneficios:</h3>
+              <ul>
+                <li>🔍 Mayor visibilidad en las búsquedas</li>
+                <li>💬 Mensajes ilimitados con otros bailarines</li>
+                <li>🌟 Perfil destacado en la comunidad</li>
+                <li>📊 Estadísticas avanzadas de tu perfil</li>
+                <li>🎯 Acceso a eventos exclusivos</li>
+              </ul>
+              
+              <p>
+                ¡Gracias por confiar en nosotros! Esperamos que disfrutes al máximo de tu experiencia premium.
+              </p>
+              
+              <p style="margin-top: 30px;">Si tienes alguna pregunta sobre tu membresía, no dudes en contactarnos.</p>
+              
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>El equipo de Baila Conmigo</strong></p>
+              
+              <hr />
+              <small style="color: #aaa;">
+                Este es un correo automático. Por favor, no respondas a este mensaje.
+              </small>
+            </body>
+            </html>
+            """.formatted(fullName, formattedExpirationDate);
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            System.out.println("Error al enviar el email de confirmación de suscripción: " + e.getMessage());
         }
     }
 
