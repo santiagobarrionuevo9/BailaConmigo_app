@@ -1,8 +1,6 @@
 package org.example.bailaconmigo.Controllers;
 
-import org.example.bailaconmigo.DTOs.CreateEventRequestDto;
-import org.example.bailaconmigo.DTOs.EventRatingRequestDto;
-import org.example.bailaconmigo.DTOs.EventResponseDto;
+import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +28,21 @@ public class EventController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al crear el evento: " + e.getMessage());
         }
+    }
+
+    @PutMapping("/{eventId}/edit")
+    public void editEvent(@PathVariable Long eventId,
+                          @RequestParam Long organizerId,
+                          @RequestBody EditEventRequestDto dto) {
+        eventService.editEvent(eventId, organizerId, dto);
+    }
+
+    // PUT para cancelar evento
+    @PutMapping("/{eventId}/cancel")
+    public void cancelEvent(@PathVariable Long eventId,
+                            @RequestParam Long organizerId,
+                            @RequestBody CancelEventRequestDto dto) {
+        eventService.cancelEvent(eventId, organizerId, dto);
     }
 
     @GetMapping("/all")

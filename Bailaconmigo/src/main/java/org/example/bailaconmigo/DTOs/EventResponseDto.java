@@ -2,6 +2,7 @@ package org.example.bailaconmigo.DTOs;
 
 import lombok.Data;
 import org.example.bailaconmigo.Entities.Enum.DanceStyle;
+import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.EventType;
 
 import java.time.LocalDateTime;
@@ -24,4 +25,6 @@ public class EventResponseDto {
     private Long organizerId;
     private Double averageRating;
     private EventType eventType;
+    private EventStatus status;
+    private String cancellationReason;
 }

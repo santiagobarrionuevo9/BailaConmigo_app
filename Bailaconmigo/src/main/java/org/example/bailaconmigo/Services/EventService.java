@@ -1,9 +1,8 @@
 package org.example.bailaconmigo.Services;
 
-import org.example.bailaconmigo.DTOs.CreateEventRequestDto;
-import org.example.bailaconmigo.DTOs.EventRatingRequestDto;
-import org.example.bailaconmigo.DTOs.EventResponseDto;
+import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.*;
+import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Repositories.EventRatingRepository;
@@ -56,8 +55,10 @@ public class EventService {
         event.setPrice(dto.getPrice());
         event.setDanceStyles(dto.getDanceStyles());
         event.setAdditionalInfo(dto.getAdditionalInfo());
-        event.setEventType(dto.getEventType()); // Establecer el tipo de evento
+        event.setEventType(dto.getEventType());
         event.setOrganizer(organizerProfile);
+        event.setStatus(EventStatus.ACTIVO);
+        event.setCancellationReason(null);
 
         // Procesar las URLs de media
         List<EventMedia> mediaList = new ArrayList<>();
@@ -76,6 +77,49 @@ public class EventService {
 
         eventRepository.save(event);
     }
+
+    public void editEvent(Long eventId, Long organizerId, EditEventRequestDto dto) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+
+        if (!event.getOrganizer().getUser().getId().equals(organizerId)) {
+            throw new RuntimeException("No autorizado para editar este evento.");
+        }
+
+        if (event.getStatus() == EventStatus.CANCELADO) {
+            throw new RuntimeException("No se puede editar un evento cancelado.");
+        }
+
+        // Solo campos editables
+        if (dto.getName() != null) event.setName(dto.getName());
+        if (dto.getDescription() != null) event.setDescription(dto.getDescription());
+        if (dto.getDateTime() != null) event.setDateTime(dto.getDateTime());
+        if (dto.getLocation() != null) event.setLocation(dto.getLocation());
+        if (dto.getCapacity() != null) event.setCapacity(dto.getCapacity());
+        if (dto.getPrice() != null) event.setPrice(dto.getPrice());
+        if (dto.getDanceStyles() != null) event.setDanceStyles(dto.getDanceStyles());
+        if (dto.getAdditionalInfo() != null) event.setAdditionalInfo(dto.getAdditionalInfo());
+
+        eventRepository.save(event);
+    }
+
+    public void cancelEvent(Long eventId, Long organizerId, CancelEventRequestDto dto) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+
+        if (!event.getOrganizer().getUser().getId().equals(organizerId)) {
+            throw new RuntimeException("No autorizado para cancelar este evento.");
+        }
+
+        if (event.getStatus() == EventStatus.CANCELADO) {
+            throw new RuntimeException("Este evento ya fue cancelado.");
+        }
+
+        event.setStatus(EventStatus.CANCELADO);
+        event.setCancellationReason(dto.getCancellationReason());
+        eventRepository.save(event);
+    }
+
 
     /**
      * Obtiene todos los eventos
@@ -162,7 +206,10 @@ public class EventService {
         dto.setPrice(event.getPrice());
         dto.setDanceStyles(event.getDanceStyles());
         dto.setAdditionalInfo(event.getAdditionalInfo());
-        dto.setEventType(event.getEventType()); // Incluir el tipo de evento en la respuesta
+        dto.setEventType(event.getEventType());
+        dto.setStatus(event.getStatus());
+        dto.setCancellationReason(event.getCancellationReason());
+
 
         // Información del organizador
         dto.setOrganizerId(event.getOrganizer().getId());

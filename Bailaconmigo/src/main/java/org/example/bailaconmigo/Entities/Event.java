@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.bailaconmigo.Entities.Enum.DanceStyle;
+import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.EventType;
 
 import java.time.LocalDateTime;
@@ -51,6 +52,14 @@ public class Event {
 
     @Column(length = 500)
     private String additionalInfo;
+
+    @Column(name = "cancellation_reason", length = 1000)
+    private String cancellationReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private EventStatus status = EventStatus.ACTIVO;
+
 
     // Organizador que crea el evento
     // Cambiar el tipo de User a OrganizerProfile
