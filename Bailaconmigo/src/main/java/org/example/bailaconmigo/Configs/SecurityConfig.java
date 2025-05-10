@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/mercadopago/generar-pago-pro",
+                                "/api/mercadopago/webhook",
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/auth/forgot-password",

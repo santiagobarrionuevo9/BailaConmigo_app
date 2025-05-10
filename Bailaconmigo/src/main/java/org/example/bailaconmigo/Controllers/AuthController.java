@@ -108,44 +108,5 @@ public class AuthController {
         return ResponseEntity.ok(DanceStyle.values());
     }
 
-    @GetMapping("/generar-pago-pro")
-    public ResponseEntity<?> generarLinkPago(@RequestParam String email) {
-        try {
-            // Verificar que el usuario existe y es un bailarín con suscripción BASICO
-            User user = authService.getUserByEmail(email);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "Usuario no encontrado"));
-            }
-
-            if (user.getRole() != Role.BAILARIN) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "Solo los bailarines pueden tener membresía PRO"));
-            }
-
-            if (user.getSubscriptionType() == SubscriptionType.PRO) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "El usuario ya tiene membresía PRO"));
-            }
-
-            String link = authService.generarLinkPagoPro(email);
-            return ResponseEntity.ok(Map.of("init_point", link));
-        } catch (MPException | MPApiException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "No se pudo generar el link de pago: " + e.getMessage()));
-        }
-    }
-
-    @PostMapping("/mercadopago/webhook")
-    public ResponseEntity<?> webhookMercadoPago(@RequestBody Map<String, Object> payload) {
-        try {
-            authService.procesarNotificacionPago(payload);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error procesando la notificación: " + e.getMessage()));
-        }
-    }
-
 
 }
