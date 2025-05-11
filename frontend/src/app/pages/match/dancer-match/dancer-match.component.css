@@ -1,0 +1,155 @@
+/* src/app/components/dancer-match/dancer-match.component.scss */
+.dancer-match-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dancer-card-container {
+  perspective: 1000px;
+}
+
+.dancer-card {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background-color: white;
+  transition: transform 0.5s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+  
+  .carousel-item img {
+    height: 400px;
+    object-fit: cover;
+    width: 100%;
+  }
+  
+  .dancer-info {
+    padding: 15px;
+    
+    h3 {
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    
+    .location {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 10px;
+      
+      i {
+        color: #f44336;
+      }
+    }
+    
+    .rating {
+      .stars {
+        color: gold;
+        margin-right: 5px;
+      }
+      
+      .rating-value {
+        font-weight: 600;
+      }
+    }
+    
+    .dance-styles {
+      margin: 10px 0;
+      
+      .badge {
+        margin-right: 5px;
+        padding: 5px 10px;
+      }
+    }
+    
+    .about-me {
+      h5 {
+        margin-bottom: 5px;
+      }
+      
+      p {
+        font-size: 14px;
+        color: #333;
+      }
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+  
+  .btn-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+    
+    &.btn-outline-danger {
+      border-width: 2px;
+      
+      &:hover {
+        background-color: #dc3545;
+        color: white;
+      }
+    }
+    
+    &.btn-outline-success {
+      border-width: 2px;
+      
+      &:hover {
+        background-color: #28a745;
+        color: white;
+      }
+    }
+  }
+}
+
+.match-alert {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  min-width: 300px;
+  animation: fadeInOut 3s ease-in-out;
+  
+  .alert {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: none;
+    
+    h3 {
+      margin-bottom: 10px;
+    }
+  }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.filter-container {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}

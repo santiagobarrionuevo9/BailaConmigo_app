@@ -1,4 +1,5 @@
 export interface DancerProfileResponseDto {
+    userId: number;
     fullName: string;
     age: number;
     city: string;
@@ -7,6 +8,8 @@ export interface DancerProfileResponseDto {
     aboutMe: string;
     availability: string;
     mediaUrls: string[];
-    averageRating?: number;
+    averageRating: number;
   }
+
+  
   

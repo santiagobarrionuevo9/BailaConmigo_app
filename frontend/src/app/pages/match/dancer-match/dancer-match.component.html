@@ -1,0 +1,133 @@
+<!-- src/app/components/dancer-match/dancer-match.component.html -->
+<div class="dancer-match-container">
+  <h2 class="text-center mb-4">Encuentra tu compañero/a de baile</h2>
+
+  <!-- Filtros de búsqueda (simplificados) -->
+  <div class="filter-container mb-4">
+    <div class="row">
+      <div class="col-md-4">
+        <input type="text" class="form-control" placeholder="Ciudad" 
+               [(ngModel)]="searchParams.city">
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary w-100" (click)="loadProfiles()">
+          Buscar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerta de match -->
+  <div *ngIf="showMatchAlert" class="match-alert">
+    <div class="alert alert-success text-center">
+      <h3>¡Es un match! 🎉</h3>
+      <p>¡Felicidades! Han mostrado interés mutuo.</p>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="isLoading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Buscando bailarines...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <!-- Sin más perfiles -->
+  <div *ngIf="noMoreProfiles && !isLoading" class="text-center my-5">
+    <div class="alert alert-info">
+      <h4>No hay más perfiles disponibles</h4>
+      <p>Prueba a cambiar tus criterios de búsqueda</p>
+      <button (click)="restartSearch()" class="btn btn-primary mt-2">
+        Buscar de nuevo
+      </button>
+    </div>
+  </div>
+
+  <!-- Perfil actual -->
+  <div *ngIf="currentProfile && !isLoading" class="dancer-card-container">
+    <div class="dancer-card">
+      <!-- Imágenes con carrusel si hay más de una -->
+      <div id="profileCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <div *ngFor="let mediaUrl of currentProfile.mediaUrls; let i = index" 
+               class="carousel-item" [class.active]="i === 0">
+            <img [src]="mediaUrl" class="d-block w-100" alt="Foto de perfil">
+          </div>
+          <!-- Si no hay imágenes, mostrar una por defecto -->
+          <div *ngIf="!currentProfile.mediaUrls || currentProfile.mediaUrls.length === 0" class="carousel-item active">
+            <img src="assets/images/default-profile.jpg" class="d-block w-100" alt="Foto de perfil por defecto">
+          </div>
+        </div>
+        <button *ngIf="currentProfile.mediaUrls && currentProfile.mediaUrls.length > 1" 
+                class="carousel-control-prev" type="button" 
+                data-bs-target="#profileCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Anterior</span>
+        </button>
+        <button *ngIf="currentProfile.mediaUrls && currentProfile.mediaUrls.length > 1" 
+                class="carousel-control-next" type="button" 
+                data-bs-target="#profileCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Siguiente</span>
+        </button>
+      </div>
+
+      <!-- Información del perfil -->
+      <div class="dancer-info p-3">
+        <h3>{{ currentProfile.fullName }}, {{ currentProfile.age }}</h3>
+        <p class="location">
+          <i class="bi bi-geo-alt-fill"></i> {{ currentProfile.city }}
+        </p>
+        
+        <div class="rating mb-2">
+          <span class="stars">
+            <i *ngFor="let i of [1,2,3,4,5]" 
+               class="bi" 
+               [class.bi-star-fill]="i <= currentProfile.averageRating "
+               [class.bi-star]="i > currentProfile.averageRating"></i>
+          </span>
+          <span class="rating-value">{{ currentProfile.averageRating| number:'1.1-1' }}</span>
+        </div>
+
+        <!-- Estilos de baile -->
+        <div class="dance-styles mb-2">
+          <span class="badge bg-primary me-1" *ngFor="let style of currentProfile.danceStyles">
+            {{ style }}
+          </span>
+        </div>
+
+        <!-- Nivel -->
+        <p class="mb-2">
+          <strong>Nivel:</strong> {{ currentProfile.level }}
+        </p>
+
+        <!-- Disponibilidad -->
+        <p class="mb-2">
+          <strong>Disponibilidad:</strong> {{ currentProfile.availability }}
+        </p>
+
+        <!-- Sobre mí -->
+        <div class="about-me mb-3">
+          <h5>Sobre mí:</h5>
+          <p>{{ currentProfile.aboutMe }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="action-buttons mt-3">
+      <button class="btn btn-outline-danger btn-lg btn-circle" (click)="onDislike()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <button class="btn btn-outline-success btn-lg btn-circle" (click)="onLike()">
+        <i class="bi bi-check-lg"></i>
+      </button>
+    </div>
+  </div>
+</div>

@@ -5,6 +5,7 @@ import { LoginResponseDto } from '../models/login-response';
 import { LoginRequestDto } from '../models/login-request';
 import { RegisterRequestDto } from '../models/register-request';
 import { catchError, map } from 'rxjs';
+import { DancerProfileResponseDto } from '../models/dancerprofileresponse';
 
 @Injectable({
   providedIn: 'root'
@@ -42,5 +43,10 @@ export class AuthService {
   getDanceStyles(): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}/dance-styles`);
   }
+
+  getProfileById(userId: number): Observable<DancerProfileResponseDto> {
+  return this.http.get<DancerProfileResponseDto>(`${this.apiUrl}/${userId}`);
+  }
+
   
 }
