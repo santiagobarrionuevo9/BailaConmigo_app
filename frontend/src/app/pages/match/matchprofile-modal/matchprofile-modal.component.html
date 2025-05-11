@@ -1,0 +1,32 @@
+<div class="modal-backdrop">
+  <div class="modal-content">
+    <button class="close-btn" (click)="closeModal()">×</button>
+
+    <h2>{{ dancer.fullName }}, {{ dancer.age }}</h2>
+    <p><i class="bi bi-geo-alt-fill"></i> {{ dancer.city }}</p>
+    <p><strong>Estilos:</strong> {{ dancer.danceStyles.join(', ') }}</p>
+    <p><strong>Nivel:</strong> {{ dancer.level }}</p>
+    <p><strong>Sobre mí:</strong> {{ dancer.aboutMe }}</p>
+    <p><strong>Disponibilidad:</strong> {{ dancer.availability }}</p>
+
+    <div class="rating-section" *ngIf="!submitted">
+      <h5>Dejar valoración</h5>
+      <div class="stars">
+        <i *ngFor="let i of [1,2,3,4,5]"
+           class="bi"
+           [ngClass]="i <= ratingStars ? 'bi-star-fill' : 'bi-star'"
+           (click)="setRating(i)">
+        </i>
+      </div>
+
+      <textarea [(ngModel)]="comment" rows="3" placeholder="Escribe un comentario..." class="form-control mt-2"></textarea>
+
+      <button class="btn btn-primary mt-2" (click)="submitRating()">Enviar valoración</button>
+    </div>
+
+    <div *ngIf="submitted" class="alert alert-success mt-3">
+      ¡Gracias por tu valoración!
+    </div>
+  </div>
+</div>
+

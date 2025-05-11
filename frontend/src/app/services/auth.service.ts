@@ -6,6 +6,7 @@ import { LoginRequestDto } from '../models/login-request';
 import { RegisterRequestDto } from '../models/register-request';
 import { catchError, map } from 'rxjs';
 import { DancerProfileResponseDto } from '../models/dancerprofileresponse';
+import { EventResponseDto } from '../models/eventresponse';
 
 @Injectable({
   providedIn: 'root'
@@ -48,5 +49,10 @@ export class AuthService {
   return this.http.get<DancerProfileResponseDto>(`${this.apiUrl}/${userId}`);
   }
 
+  // src/app/services/auth.service.ts
+  rateProfile(raterId: number, rating: { profileId: number, stars: number, comment: string }): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/rate?raterId=${raterId}`, rating);
+  }
+  
   
 }

@@ -1,21 +1,17 @@
-<!-- src/app/components/my-matches/my-matches.component.html -->
 <div class="matches-container">
   <h2 class="text-center mb-4">Mis Matches</h2>
-  
-  <!-- Estado de carga -->
+
   <div *ngIf="isLoading" class="text-center my-5">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Cargando...</span>
     </div>
     <p class="mt-2">Cargando tus matches...</p>
   </div>
-  
-  <!-- Error -->
+
   <div *ngIf="error" class="alert alert-danger">
     {{ error }}
   </div>
-  
-  <!-- Sin matches -->
+
   <div *ngIf="matches.length === 0 && !isLoading" class="text-center my-5">
     <div class="alert alert-info">
       <h4>Aún no tienes matches</h4>
@@ -25,53 +21,54 @@
       </button>
     </div>
   </div>
-  
-  <!-- Lista de matches -->
+
   <div *ngIf="matches.length > 0" class="row">
     <div *ngFor="let match of matches" class="col-md-6 col-lg-4 mb-4">
       <div class="match-card">
-        <!-- Imagen del match -->
         <div class="match-img">
           <img [src]="match.mediaUrls && match.mediaUrls.length > 0 ? match.mediaUrls[0] : 'assets/images/default-profile.jpg'"
                alt="Foto de perfil">
         </div>
-        
-        <!-- Información del match -->
+
         <div class="match-info p-3">
           <h3>{{ match.fullName }}, {{ match.age }}</h3>
           <p class="location">
             <i class="bi bi-geo-alt-fill"></i> {{ match.city }}
           </p>
-          
-          <!-- Estilos de baile -->
+
           <div class="dance-styles mb-2">
             <span class="badge bg-primary me-1" *ngFor="let style of match.danceStyles">
               {{ style }}
             </span>
           </div>
-          
-          <!-- Rating -->
+
           <div class="rating mb-2">
             <span class="stars">
-              <i *ngFor="let i of [1,2,3,4,5]" 
-                class="bi" 
-                [class.bi-star-fill]="i <= match.averageRating"
-                [class.bi-star]="i > match.averageRating"></i>
+              <i *ngFor="let i of [1,2,3,4,5]"
+                 class="bi"
+                 [class.bi-star-fill]="i <= match.averageRating"
+                 [class.bi-star]="i > match.averageRating"></i>
             </span>
             <span class="rating-value">{{ match.averageRating | number:'1.1-1' }}</span>
           </div>
-          
-          <!-- Botón para ver perfil completo -->
-          <button class="btn btn-outline-primary w-100 mt-2" [routerLink]="['/profile', match.userId]">
+
+          <button class="btn btn-outline-primary w-100 mt-2" (click)="openProfileModal(match)">
             Ver perfil completo
           </button>
-          
-          <!-- Botón para enviar mensaje (si implementas chat) -->
-          <button class="btn btn-success w-100 mt-2">
-            <i class="bi bi-chat-dots"></i> Enviar mensaje
+
+          <button class="btn btn-success w-100 mt-2" (click)="navigateToChat(match.userId)">
+            <i class="bi bi-chat-dots"></i> Chat
           </button>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Modal del perfil -->
+  <app-matchprofile-modal
+    *ngIf="showProfileModal"
+    [dancer]="selectedMatch!"
+    [currentUserId]="userId"
+    (close)="closeProfileModal()">
+  </app-matchprofile-modal>
 </div>

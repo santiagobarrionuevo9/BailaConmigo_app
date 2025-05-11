@@ -1,0 +1,65 @@
+.text-orange {
+  color: #FF5722;
+}
+
+.bg-orange {
+  background-color: #FF5722;
+}
+
+.bg-dark-orange {
+  background-color: #E64A19;
+}
+
+.border-orange {
+  border-color: #FF5722 !important;
+}
+
+.btn-orange {
+  background-color: #FF5722;
+  color: white;
+}
+
+.btn-orange:hover {
+  background-color: #E64A19;
+  color: white;
+}
+
+.btn-outline-orange {
+  border-color: #FF5722;
+  color: #FF5722;
+}
+
+.btn-outline-orange:hover {
+  background-color: #FF5722;
+  color: white;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.card {
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.badge {
+  transition: all 0.3s;
+}
+
+.badge:hover {
+  opacity: 0.9;
+}
+
+#filter-notification {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.alert-success {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+  border-color: #4CAF50;
+}

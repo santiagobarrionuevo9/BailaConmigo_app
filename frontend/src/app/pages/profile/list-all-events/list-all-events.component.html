@@ -1,0 +1,130 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-orange">Eventos de Baile</h2>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4 shadow-sm border-orange">
+    <div class="card-header bg-orange text-white">
+      <h5 class="mb-0">Filtros</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <!-- Filtro por estilos de baile (cambiado a select) -->
+        <div class="col-md-4 mb-3">
+          <label class="form-label fw-bold">Estilo de baile:</label>
+          <select class="form-select" [(ngModel)]="selectedStyle" (change)="applyFilters()">
+            <option [ngValue]="null">Todos los estilos</option>
+            <option *ngFor="let style of danceStyles" [ngValue]="style">
+                {{ style }}
+            </option>
+            </select>
+          <div *ngIf="danceStyles.length === 0" class="text-muted small mt-1">
+            Cargando estilos de baile...
+          </div>
+        </div>
+        
+        <!-- Filtro por ubicación -->
+        <div class="col-md-4 mb-3">
+          <label class="form-label fw-bold">Ubicación:</label>
+          <select class="form-select" [(ngModel)]="selectedLocation" (change)="applyFilters()">
+            <option value="">Todas las ubicaciones</option>
+            <option *ngFor="let location of locations" [value]="location">{{ location }}</option>
+          </select>
+        </div>
+        
+        <!-- Filtro por tipo de evento (nuevo) -->
+        <div class="col-md-4 mb-3">
+          <label class="form-label fw-bold">Tipo de evento:</label>
+          <select class="form-select" [(ngModel)]="selectedEventType" (change)="applyFilters()">
+            <option value="">Todos los tipos</option>
+            <option *ngFor="let type of eventTypes" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Botón para resetear filtros -->
+      <div class="text-end">
+        <button class="btn btn-outline-orange" (click)="resetFilters()">
+          <i class="bi bi-x-circle me-2"></i>Limpiar filtros
+        </button>
+        <div id="filter-notification" class="alert alert-success mt-2 d-none">
+          <i class="bi bi-check-circle me-2"></i>Filtros restablecidos correctamente
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de eventos -->
+  <div class="row">
+    <div class="col-md-6 col-lg-4 mb-4" *ngFor="let event of filteredEvents; let i = index">
+      <div class="card h-100 shadow border-orange">
+        <div class="card-body">
+          <h5 class="card-title text-orange fw-semibold">{{ event.name }}</h5>
+          <p class="text-muted mb-2">
+            <i class="bi bi-calendar-event me-2 text-orange"></i>
+            {{ event.dateTime | date:'fullDate' }} - {{ event.dateTime | date:'shortTime' }}
+          </p>
+          
+          <div *ngIf="event.danceStyles?.length" class="d-flex flex-wrap gap-2 mb-2">
+            <span *ngFor="let style of event.danceStyles" class="badge bg-orange text-white shadow-sm px-3 py-2 rounded-pill">
+              {{ style }}
+            </span>
+          </div>
+          
+          <p *ngIf="event.location" class="mb-2 small">
+            <i class="bi bi-geo-alt-fill text-orange me-1"></i> {{ event.location }}
+          </p>
+          
+          <p *ngIf="event.eventType" class="mb-2 small">
+            <i class="bi bi-tags-fill text-orange me-1"></i> {{ event.eventType }}
+          </p>
+          
+          <div *ngIf="expandedEvents[i]" class="mt-3">
+            <p *ngIf="event.description" class="mb-3">
+              {{ event.description }}
+            </p>
+            
+            <ul class="list-group list-group-flush small">
+              <li class="list-group-item" *ngIf="event.location">
+                <i class="bi bi-geo-alt-fill text-orange me-2"></i><strong>Ubicación:</strong> {{ event.location }}
+              </li>
+              <li class="list-group-item" *ngIf="event.address">
+                <i class="bi bi-map-fill text-orange me-2"></i><strong>Dirección:</strong> {{ event.address }}
+              </li>
+              <li class="list-group-item" *ngIf="event.capacity">
+                <i class="bi bi-people-fill text-orange me-2"></i><strong>Cupo:</strong> {{ event.capacity }}
+              </li>
+              <li class="list-group-item" *ngIf="event.price !== undefined">
+                <i class="bi bi-cash-stack text-orange me-2"></i><strong>Precio:</strong> ${{ event.price }}
+              </li>
+              <li class="list-group-item">
+                <i class="bi bi-tags-fill text-orange me-2"></i><strong>Tipo:</strong> {{ event.eventType }}
+              </li>
+              <li class="list-group-item" *ngIf="event.organizerName">
+                <i class="bi bi-person-fill text-orange me-2"></i><strong>Organizador:</strong> {{ event.organizerName }}
+              </li>
+            </ul>
+          </div>
+          
+          <div class="d-grid gap-2 mt-3">
+            <button class="btn btn-outline-orange btn-sm" (click)="toggleExpand(i)">
+              <i class="bi" [ngClass]="expandedEvents[i] ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+              {{ expandedEvents[i] ? 'Ver menos' : 'Ver más' }}
+            </button>
+            <button class="btn btn-orange" (click)="registrarseEvento(event.id)">
+              <i class="bi bi-calendar-check me-2"></i>Inscribirse
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Mensaje cuando no hay eventos -->
+  <div class="alert alert-info" *ngIf="filteredEvents.length === 0">
+    <i class="bi bi-info-circle me-2"></i>
+    No se encontraron eventos con los criterios seleccionados.
+  </div>
+</div>
+

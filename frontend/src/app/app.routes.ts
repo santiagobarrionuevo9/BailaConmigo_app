@@ -9,6 +9,8 @@ import { ForgotPasswordComponent } from './pages/auth/forgot-password/forgot-pas
 import { ResetPasswordComponent } from './pages/auth/reset-password/reset-password.component';
 import { MyMatchComponent } from './pages/match/my-match/my-match.component';
 import { DancerMatchComponent } from './pages/match/dancer-match/dancer-match.component';
+import { ChatComponent } from './pages/match/chat/chat.component';
+import { ListAllEventsComponent } from './pages/profile/list-all-events/list-all-events.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -22,5 +24,7 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'find-dancers', component: DancerMatchComponent },
   { path: 'my-matches', component: MyMatchComponent },
+  {path: 'chat/:id', component: ChatComponent},
+  { path: 'all-events', component: ListAllEventsComponent },
   { path: '**', redirectTo: 'home' }
   ];

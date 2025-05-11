@@ -22,5 +22,9 @@ export class EventService {
       responseType: 'text'
     });
   }
+
+  getAllEvents(): Observable<EventResponseDto[]> {
+    return this.http.get<EventResponseDto[]>(`${this.apiUrl}/all`);
+  }
   
 }

@@ -1,0 +1,19 @@
+<div class="modal-backdrop" *ngIf="visible">
+  <div class="modal-content p-4">
+    <h5 class="mb-3">Valorar perfil</h5>
+    
+    <div class="mb-2">
+      <span *ngFor="let i of [1,2,3,4,5]" (click)="setStars(i)">
+        <i class="bi" [class.bi-star-fill]="i <= stars" [class.bi-star]="i > stars"></i>
+      </span>
+    </div>
+
+    <textarea [(ngModel)]="comment" rows="3" class="form-control mb-3" placeholder="Comentario..."></textarea>
+
+    <div class="text-end">
+      <button class="btn btn-secondary me-2" (click)="reset()">Cancelar</button>
+      <button class="btn btn-primary" [disabled]="stars === 0" (click)="sendRating()">Enviar</button>
+    </div>
+  </div>
+</div>
+

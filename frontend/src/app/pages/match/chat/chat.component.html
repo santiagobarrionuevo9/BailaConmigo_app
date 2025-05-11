@@ -1,0 +1,46 @@
+<!-- src/app/components/chat/chat.component.html -->
+<div class="chat-container">
+  <div class="chat-header">
+    <div class="back-button" routerLink="/my-matches">
+      <i class="bi bi-arrow-left"></i>
+    </div>
+    <div class="match-info" *ngIf="matchProfile">
+      <div class="match-avatar">
+        <img [src]="matchProfile.mediaUrls && matchProfile.mediaUrls.length > 0 ? matchProfile.mediaUrls[0] : 'assets/images/default-profile.jpg'" alt="Foto de perfil">
+      </div>
+      <div class="match-name">
+        <h3>{{ matchProfile.fullName }}</h3>
+        <small>{{ matchProfile.city }}</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="messages-container" #messagesContainer>
+    <div *ngIf="isLoading" class="text-center my-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando mensajes...</span>
+      </div>
+    </div>
+
+    <div *ngIf="messages.length === 0 && !isLoading" class="no-messages">
+      <p>Aún no han intercambiado mensajes.</p>
+      <p>¡Envía el primer mensaje ahora!</p>
+    </div>
+
+    <div *ngFor="let message of messages" class="message-bubble" [ngClass]="{'outgoing': message.senderId === currentUserId, 'incoming': message.senderId !== currentUserId}">
+      <div class="message-content">{{ message.content }}</div>
+      <div class="message-timestamp">{{ message.timestamp | date:'short' }}</div>
+    </div>
+  </div>
+
+  <div class="message-input">
+    <textarea 
+      class="form-control" 
+      [(ngModel)]="newMessage" 
+      placeholder="Escribe tu mensaje..." 
+      (keydown.enter)="onEnterPress($event)"></textarea>
+    <button class="send-button" [disabled]="!newMessage.trim()" (click)="sendMessage()">
+      <i class="bi bi-send-fill"></i>
+    </button>
+  </div>
+</div>

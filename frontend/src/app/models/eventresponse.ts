@@ -3,7 +3,7 @@ export interface EventResponseDto {
   name: string;
   description?: string;
   dateTime: string;
-  location?: string;
+  location: string;
   address?: string;
   capacity?: number;
   price?: number;

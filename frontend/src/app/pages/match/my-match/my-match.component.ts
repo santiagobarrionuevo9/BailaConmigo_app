@@ -3,13 +3,14 @@ import { DancerProfileResponseDto } from '../../../models/dancerprofileresponse'
 import { MatchService } from '../../../services/match.service';
 import { UserContextService } from '../../../services/user-context.service';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ChatService } from '../../../services/chat.service';
+import { MatchprofileModalComponent } from "../matchprofile-modal/matchprofile-modal.component";
 
 @Component({
   selector: 'app-my-match',
   standalone: true,
-  imports: [CommonModule,RouterLink],
+  imports: [CommonModule, RouterLink, MatchprofileModalComponent],
   templateUrl: './my-match.component.html',
   styleUrl: './my-match.component.css'
 })
@@ -18,18 +19,18 @@ export class MyMatchComponent implements OnInit {
   isLoading: boolean = false;
   error: string | null = null;
   userId!: number;
-  activeRecipientId: number | null = null;
-  messageContent: string = '';
+
+  selectedMatch?: DancerProfileResponseDto;
+  showProfileModal: boolean = false;
 
   constructor(
     private matchService: MatchService,
     private contextService: UserContextService,
-    private chatService: ChatService
-  ) { }
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.userId = this.contextService.userId!;
-    // Cargar los matches al iniciar el componente);
     this.loadMatches();
   }
 
@@ -50,5 +51,21 @@ export class MyMatchComponent implements OnInit {
     });
   }
 
-  
+  navigateToChat(matchUserId: number): void {
+    if (matchUserId != null) {
+      this.router.navigate(['/chat', matchUserId]);
+    } else {
+      console.error('Error: matchUserId es null o undefined. No se puede navegar.');
+    }
+  }
+
+  openProfileModal(match: DancerProfileResponseDto): void {
+    this.selectedMatch = match;
+    this.showProfileModal = true;
+  }
+
+  closeProfileModal(): void {
+    this.showProfileModal = false;
+  }
+
 }

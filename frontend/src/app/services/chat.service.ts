@@ -13,14 +13,16 @@ export class ChatService {
 
   constructor(private http: HttpClient) {}
 
-  sendMessage(message: MessageDto): Observable<any> {
-    return this.http.post(`${this.apiUrl}/send`, message);
+  sendMessage(messageDto: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/send`, messageDto);
   }
 
   getChatHistory(user1Id: number, user2Id: number): Observable<ChatMessageDto[]> {
-    const params = new HttpParams()
-      .set('user1Id', user1Id)
-      .set('user2Id', user2Id);
-    return this.http.get<ChatMessageDto[]>(`${this.apiUrl}/history`, { params });
+    return this.http.get<ChatMessageDto[]>(`${this.apiUrl}/history`, {
+      params: {
+        user1Id: user1Id.toString(),
+        user2Id: user2Id.toString()
+      }
+    });
   }
 }

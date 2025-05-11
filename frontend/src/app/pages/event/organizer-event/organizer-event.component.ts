@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { EventResponseDto } from '../../../models/eventresponse';
 import { EventService } from '../../../services/event.service';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+
 import { UserContextService } from '../../../services/user-context.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-organizer-event',

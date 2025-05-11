@@ -4,5 +4,5 @@ export interface ChatMessageDto {
   recipientId: number;
   recipientName: string;
   content: string;
-  timestamp: string;
+  timestamp: Date;
 }

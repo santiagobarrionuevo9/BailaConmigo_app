@@ -164,7 +164,7 @@ public class MatchService {
                 .orElseThrow(() -> new RuntimeException("Perfil de bailarín no encontrado para el usuario con ID: " + user.getId()));
 
         DancerProfileResponseDto dto = new DancerProfileResponseDto();
-
+        dto.setUserId(user.getId());
         dto.setFullName(user.getFullName());
         dto.setAge(profile.getAge());
         dto.setCity(user.getCity());
