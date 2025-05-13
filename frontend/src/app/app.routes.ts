@@ -11,6 +11,7 @@ import { MyMatchComponent } from './pages/match/my-match/my-match.component';
 import { DancerMatchComponent } from './pages/match/dancer-match/dancer-match.component';
 import { ChatComponent } from './pages/match/chat/chat.component';
 import { ListAllEventsComponent } from './pages/profile/list-all-events/list-all-events.component';
+import { EditEventComponent } from './pages/event/edit-event/edit-event.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -25,6 +26,7 @@ export const routes: Routes = [
   { path: 'find-dancers', component: DancerMatchComponent },
   { path: 'my-matches', component: MyMatchComponent },
   {path: 'chat/:id', component: ChatComponent},
+  { path: 'edit-event/:id', component: EditEventComponent },
   { path: 'all-events', component: ListAllEventsComponent },
   { path: '**', redirectTo: 'home' }
   ];

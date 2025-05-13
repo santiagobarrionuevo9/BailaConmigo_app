@@ -26,7 +26,19 @@
             <p *ngIf="event.description" class="mb-3">
               {{ event.description }}
             </p>
+            <p class="mb-2">
+            <i class="bi bi-exclamation-circle-fill me-2 text-orange"></i>
+            <strong>Estado:</strong>
+            <span [ngClass]="{
+              'text-success': event.status === eventStatusEnum.ACTIVO,
+              'text-danger': event.status === eventStatusEnum.CANCELADO,
+              'text-secondary': event.status !== eventStatusEnum.ACTIVO && event.status !== eventStatusEnum.CANCELADO
+            }">
+              {{ event.status }}
+            </span>
 
+          </p>
+          
             <ul class="list-group list-group-flush small">
               <li class="list-group-item" *ngIf="event.location">
                 <i class="bi bi-geo-alt-fill text-orange me-2"></i><strong>Ubicación:</strong> {{ event.location }}
@@ -51,6 +63,15 @@
               <i class="bi" [ngClass]="expandedEvents[i] ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
               {{ expandedEvents[i] ? 'Ver menos' : 'Ver más' }}
             </button>
+            <div class="d-flex justify-content-between mt-2">
+            <button class="btn btn-sm btn-outline-primary" (click)="onEditEvent(event.id)">
+              <i class="bi bi-pencil-fill me-1"></i> Editar
+            </button>
+
+            <button class="btn btn-sm btn-outline-danger" (click)="onCancelEvent(event.id)" [disabled]="event.status === 'CANCELADO'">
+              <i class="bi bi-x-circle-fill me-1"></i> Cancelar
+            </button>
+          </div>
           </div>
         </div>
       </div>

@@ -11,5 +11,6 @@ export interface CreateEventRequestDto {
     danceStyles?: string[]; // Conjunto de estilos de baile
     additionalInfo?: string; // Información adicional
     mediaUrls?: string[]; // URLs de medios
+    
   }
   

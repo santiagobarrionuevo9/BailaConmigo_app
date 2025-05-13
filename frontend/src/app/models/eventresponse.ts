@@ -1,3 +1,5 @@
+import { EventStatus } from "./EventStatus";
+
 export interface EventResponseDto {
   id: number;
   name: string;
@@ -14,4 +16,6 @@ export interface EventResponseDto {
   mediaUrls?: string[];
   organizerName?: string;
   averageRating?: number;
+  status: EventStatus;
 }
+
