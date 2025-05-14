@@ -10,7 +10,7 @@
     </div>
     <div class="card-body">
       <div class="row">
-        <!-- Filtro por estilos de baile (cambiado a select) -->
+        <!-- Filtro por estilos de baile -->
         <div class="col-md-4 mb-3">
           <label class="form-label fw-bold">Estilo de baile:</label>
           <select class="form-select" [(ngModel)]="selectedStyle" (change)="applyFilters()">
@@ -18,7 +18,7 @@
             <option *ngFor="let style of danceStyles" [ngValue]="style">
                 {{ style }}
             </option>
-            </select>
+          </select>
           <div *ngIf="danceStyles.length === 0" class="text-muted small mt-1">
             Cargando estilos de baile...
           </div>
@@ -33,7 +33,7 @@
           </select>
         </div>
         
-        <!-- Filtro por tipo de evento (nuevo) -->
+        <!-- Filtro por tipo de evento -->
         <div class="col-md-4 mb-3">
           <label class="form-label fw-bold">Tipo de evento:</label>
           <select class="form-select" [(ngModel)]="selectedEventType" (change)="applyFilters()">
@@ -80,6 +80,12 @@
             <i class="bi bi-tags-fill text-orange me-1"></i> {{ event.eventType }}
           </p>
           
+          <!-- Mostrar calificación promedio si existe -->
+          <div *ngIf="event.averageRating" class="mb-2 small">
+            <i class="bi bi-star-fill text-warning me-1"></i> 
+            <strong>Calificación:</strong> {{ event.averageRating | number:'1.1-1' }}/5
+          </div>
+          
           <div *ngIf="expandedEvents[i]" class="mt-3">
             <p *ngIf="event.description" class="mb-3">
               {{ event.description }}
@@ -112,9 +118,14 @@
               <i class="bi" [ngClass]="expandedEvents[i] ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
               {{ expandedEvents[i] ? 'Ver menos' : 'Ver más' }}
             </button>
-            <button class="btn btn-orange" (click)="registrarseEvento(event.id)">
-              <i class="bi bi-calendar-check me-2"></i>Inscribirse
-            </button>
+            <div class="d-flex gap-2">
+              <button class="btn btn-orange flex-grow-1" (click)="registrarseEvento(event.id)">
+                <i class="bi bi-calendar-check me-2"></i>Inscribirse
+              </button>
+              <button class="btn btn-outline-warning" (click)="openRatingModal(event)">
+                <i class="bi bi-star-fill"></i> Calificar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -128,3 +139,70 @@
   </div>
 </div>
 
+<!-- Modal de calificación con implementación corregida -->
+<div class="modal fade" [ngClass]="{'show': showRatingModal}" tabindex="-1" [style.display]="showRatingModal ? 'block' : 'none'" role="dialog" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-orange text-white">
+        <h5 class="modal-title">Calificar evento: {{ selectedEventName }}</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeRatingModal()" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Mensaje de éxito -->
+        <div class="alert alert-success" *ngIf="ratingSuccess">
+          <i class="bi bi-check-circle me-2"></i>
+          ¡Calificación guardada exitosamente!
+        </div>
+        
+        <!-- Mensaje de error -->
+        <div class="alert alert-danger" *ngIf="ratingError">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ ratingError }}
+        </div>
+        
+        <form *ngIf="!ratingSuccess">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Puntuación:</label>
+            <div class="d-flex align-items-center">
+              <div class="star-rating">
+                <span *ngFor="let i of [1, 2, 3, 4, 5]" 
+                      (click)="rating.stars = i" 
+                      class="fs-3 me-1 star-item" 
+                      [class.text-warning]="i <= rating.stars"
+                      [class.text-muted]="i > rating.stars">
+                  <i class="bi" [ngClass]="i <= rating.stars ? 'bi-star-fill' : 'bi-star'"></i>
+                </span>
+              </div>
+              <span class="ms-3 fs-5">{{ rating.stars }} de 5</span>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="commentInput" class="form-label fw-bold">Comentario (opcional):</label>
+            <textarea class="form-control" 
+                      id="commentInput" 
+                      rows="3" 
+                      placeholder="Comparte tu experiencia..."
+                      [(ngModel)]="rating.comment"
+                      name="comment"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeRatingModal()">
+          Cancelar
+        </button>
+        <button type="button" 
+                class="btn btn-orange" 
+                (click)="submitRating()" 
+                [disabled]="ratingSuccess">
+          <i class="bi bi-star-fill me-2"></i>
+          Enviar calificación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop separado para el modal -->
+<div class="modal-backdrop fade" [ngClass]="{'show': showRatingModal}" *ngIf="showRatingModal"></div>

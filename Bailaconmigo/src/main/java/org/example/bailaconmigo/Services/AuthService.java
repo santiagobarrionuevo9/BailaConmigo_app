@@ -169,7 +169,10 @@ public class AuthService {
                 token,
                 user.getId(),
                 user.getFullName(),
-                user.getRole().toString()
+                user.getRole().toString(),
+                user.getSubscriptionType().toString(),     // Asegurate de que no sea null
+                user.getSubscriptionExpiration(),
+                user.getEmail()
         );
     }
 
@@ -291,6 +294,8 @@ public class AuthService {
         dto.setLevel(profile.getLevel());
         dto.setAboutMe(profile.getAboutMe());
         dto.setAvailability(profile.getAvailability());
+        dto.setSubscriptionType(profile.getUser().getSubscriptionType());
+
 
         List<String> mediaUrls = profile.getMedia().stream()
                 .map(Media::getUrl)

@@ -30,6 +30,12 @@
         <li class="nav-item" *ngIf="userRole === 'BAILARIN'">
           <a class="nav-link" routerLink="/all-events" *ngIf="isLoggedIn">Eventos</a>
         </li>
+        <!-- Opción exclusiva para usuarios PRO -->
+        <li class="nav-item" *ngIf="userRole === 'BAILARIN' && isProActive">
+          <a class="nav-link" routerLink="/pro-features" *ngIf="isLoggedIn">
+            <i class="bi bi-star-fill me-1 text-warning"></i>Funciones PRO
+          </a>
+        </li>
         <li class="nav-item" *ngIf="userRole === 'ORGANIZADOR'">
           <a class="nav-link" routerLink="/events" *ngIf="isLoggedIn">Eventos</a>
         </li>
@@ -37,8 +43,23 @@
           <a class="nav-link" routerLink="/login" *ngIf="!isLoggedIn">Login</a>
         </li>
       </ul>
-      <div class="d-flex align-items-center text-white" *ngIf="isLoggedIn">
-        <span class="me-3">Rol: {{ userRole }}</span>
+      <div class="d-flex align-items-center" *ngIf="isLoggedIn">
+        <!-- Botón para actualizar a PRO -->
+        <button 
+          *ngIf="shouldShowUpgradeToPro()" 
+          class="btn btn-warning btn-sm me-3" 
+          (click)="upgradeToPro()">
+          Actualizar a PRO
+        </button>
+
+        <!-- Insignia PRO para usuarios con suscripción activa -->
+        <span 
+          *ngIf="shouldShowProBadge()" 
+          class="badge bg-warning text-dark me-3 py-2 px-3">
+          <i class="bi bi-star-fill me-1"></i>MEMBRESÍA PRO
+        </span>
+
+        <span class="me-3 text-white">Rol: {{ userRole }}</span>
         <button class="btn btn-outline-light btn-sm" (click)="logout()">Cerrar sesión</button>
       </div>
     </div>

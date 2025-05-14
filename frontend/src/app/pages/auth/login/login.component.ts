@@ -46,6 +46,9 @@ export class LoginComponent {
         localStorage.setItem('userId', response.userId.toString());
         localStorage.setItem('fullName', response.fullName);
         localStorage.setItem('role', response.role);
+        localStorage.setItem('subscriptionType', response.subscriptionType);
+        localStorage.setItem('subscriptionExpiration', response.subscriptionExpiration);
+        localStorage.setItem('email', response.email);
         this.authState.updateAuthState(true, response.role);
         console.log('Login exitoso', response);
   

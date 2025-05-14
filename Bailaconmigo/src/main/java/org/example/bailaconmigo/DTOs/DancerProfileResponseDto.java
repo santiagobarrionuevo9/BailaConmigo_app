@@ -3,6 +3,7 @@ package org.example.bailaconmigo.DTOs;
 import lombok.Data;
 import org.example.bailaconmigo.Entities.Enum.DanceStyle;
 import org.example.bailaconmigo.Entities.Enum.Level;
+import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
 
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,7 @@ public class DancerProfileResponseDto {
     private String availability;
     private List<String> mediaUrls;
     private double averageRating;
+    private SubscriptionType subscriptionType;
 
 }
 

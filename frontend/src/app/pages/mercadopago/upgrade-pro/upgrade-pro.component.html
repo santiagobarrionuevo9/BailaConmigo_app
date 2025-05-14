@@ -1,0 +1,71 @@
+<div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+              <h3 class="mb-0">Actualiza a Membresía PRO</h3>
+            </div>
+            <div class="card-body">
+              <div class="text-center mb-4">
+                <i class="bi bi-star-fill display-1 text-warning"></i>
+              </div>
+              
+              <h4 class="mb-4 text-center">¡Lleva tu experiencia de baile al siguiente nivel!</h4>
+              
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card h-100">
+                    <div class="card-header text-center">BÁSICO</div>
+                    <div class="card-body">
+                      <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Perfil básico</li>
+                        <li class="list-group-item">Encuentra bailarines</li>
+                        <li class="list-group-item">Ver eventos</li>
+                        <li class="list-group-item">Máximo 3 matches</li>
+                      </ul>
+                    </div>
+                    <div class="card-footer text-center text-muted">
+                      Tu plan actual
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card h-100 border-warning">
+                    <div class="card-header text-center bg-warning text-dark">PRO</div>
+                    <div class="card-body">
+                      <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Todo lo de BÁSICO +</strong></li>
+                        <li class="list-group-item">Perfil destacado en búsquedas</li>
+                        <li class="list-group-item">Matches ilimitados</li>
+                        <li class="list-group-item">Prioridad en eventos</li>
+                        <li class="list-group-item">Herramientas avanzadas</li>
+                      </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                      <strong>$1.00 por 3 meses</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="alert alert-info mb-4">
+                <i class="bi bi-info-circle me-2"></i>
+                Al hacer clic en "Actualizar ahora", serás redirigido a MercadoPago para completar el pago.
+                Tu membresía PRO se activará automáticamente una vez que se confirme el pago.
+              </div>
+              
+              <div class="text-center">
+                <button class="btn btn-warning btn-lg" (click)="initiateProSubscription()" [disabled]="isLoading">
+                  <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  {{ isLoading ? 'Procesando...' : 'Actualizar ahora' }}
+                </button>
+              </div>
+              
+              <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+                {{ errorMessage }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

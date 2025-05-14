@@ -5,6 +5,7 @@ import { EventResponseDto } from '../models/eventresponse';
 import { CreateEventRequestDto } from '../models/createeventrequest';
 import { EditEventRequestDto } from '../models/EditEventRequestDto';
 import { CancelEventRequestDto } from '../models/CancelEventRequestDto';
+import { RatingEventDto } from '../models/RatingeventDto';
 
 @Injectable({
   providedIn: 'root'
@@ -45,4 +46,9 @@ export class EventService {
     return this.http.get<EventResponseDto>(`${this.apiUrl}/${eventId}`);
   }
   
+  rateEvent(raterId: number, rating: RatingEventDto): Observable<string> {
+    return this.http.post(`${this.apiUrl}/rate?raterId=${raterId}`, rating, {
+      responseType: 'text'
+    });
+  }
 }

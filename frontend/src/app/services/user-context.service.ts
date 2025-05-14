@@ -22,6 +22,16 @@ export class UserContextService {
     return localStorage.getItem('token');
   }
 
+  get SubscriptionType(): string | null {
+    return localStorage.getItem('subscriptionType');
+  }
+  get SubscriptionExpiration(): string | null {
+    return localStorage.getItem('subscriptionExpiration');
+  }
+  get Email(): string | null {
+    return localStorage.getItem('email');
+  }
+
   clear(): void {
     localStorage.removeItem('userId');
     localStorage.removeItem('role');
