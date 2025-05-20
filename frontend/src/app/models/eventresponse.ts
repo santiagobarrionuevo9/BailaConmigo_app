@@ -17,5 +17,6 @@ export interface EventResponseDto {
   organizerName?: string;
   averageRating?: number;
   status: EventStatus;
+  availableCapacity?: number;
 }
 

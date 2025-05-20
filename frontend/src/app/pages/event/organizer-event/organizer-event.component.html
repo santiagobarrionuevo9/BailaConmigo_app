@@ -46,8 +46,8 @@
               <li class="list-group-item" *ngIf="event.address">
                 <i class="bi bi-map-fill text-orange me-2"></i><strong>Dirección:</strong> {{ event.address }}
               </li>
-              <li class="list-group-item" *ngIf="event.capacity">
-                <i class="bi bi-people-fill text-orange me-2"></i><strong>Cupo:</strong> {{ event.capacity }}
+              <li class="list-group-item" *ngIf="event.availableCapacity">
+                <i class="bi bi-people-fill text-orange me-2"></i><strong>Cupo:</strong> {{ event.availableCapacity }}
               </li>
               <li class="list-group-item" *ngIf="event.price !== undefined">
                 <i class="bi bi-cash-stack text-orange me-2"></i><strong>Precio:</strong> ${{ event.price }}
