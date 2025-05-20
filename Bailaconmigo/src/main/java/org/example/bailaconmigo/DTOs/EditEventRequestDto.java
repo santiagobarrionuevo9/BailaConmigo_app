@@ -19,6 +19,8 @@ public class EditEventRequestDto {
 
     private Integer capacity;
 
+    private String address;
+
     private Double price;
 
     private Set<DanceStyle> danceStyles;

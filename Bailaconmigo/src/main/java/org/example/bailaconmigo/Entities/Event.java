@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.example.bailaconmigo.Entities.Enum.DanceStyle;
 import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.EventType;
+import org.example.bailaconmigo.Entities.Enum.RegistrationStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -60,12 +61,10 @@ public class Event {
     @Column(name = "status")
     private EventStatus status = EventStatus.ACTIVO;
 
-
     // Organizador que crea el evento
-    // Cambiar el tipo de User a OrganizerProfile
     @ManyToOne
     @JoinColumn(name = "organizer_id", nullable = false)
-    private OrganizerProfile organizer; // Cambiado a OrganizerProfile
+    private OrganizerProfile organizer;
 
     // Imágenes o media del evento
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -75,12 +74,33 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventRating> ratings = new ArrayList<>();
 
+    // Inscripciones al evento
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventRegistration> registrations = new ArrayList<>();
+
     // Método auxiliar para obtener el promedio de estrellas
     public double getAverageRating() {
         if (ratings == null || ratings.isEmpty()) {
             return 0.0;
         }
         return ratings.stream().mapToInt(EventRating::getStars).average().orElse(0.0);
+    }
+
+    // Método para obtener las plazas disponibles
+    public int getAvailableCapacity() {
+        if (registrations == null) {
+            return capacity;
+        }
+        // Contar solo las inscripciones confirmadas
+        long confirmedRegistrations = registrations.stream()
+                .filter(reg -> reg.getStatus() == RegistrationStatus.CONFIRMADO)
+                .count();
+        return capacity - (int) confirmedRegistrations;
+    }
+
+    // Método para verificar si hay cupo disponible
+    public boolean hasAvailableCapacity() {
+        return getAvailableCapacity() > 0;
     }
 
 

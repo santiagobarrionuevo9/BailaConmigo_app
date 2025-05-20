@@ -27,4 +27,5 @@ public class EventResponseDto {
     private EventType eventType;
     private EventStatus status;
     private String cancellationReason;
+    private int availableCapacity;
 }

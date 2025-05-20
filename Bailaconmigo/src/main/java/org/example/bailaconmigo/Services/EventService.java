@@ -1,17 +1,16 @@
 package org.example.bailaconmigo.Services;
 
+import jakarta.transaction.Transactional;
 import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.*;
 import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Entities.Enum.Role;
-import org.example.bailaconmigo.Repositories.EventRatingRepository;
-import org.example.bailaconmigo.Repositories.EventRepository;
-import org.example.bailaconmigo.Repositories.OrganizerProfileRepository;
-import org.example.bailaconmigo.Repositories.UserRepository;
+import org.example.bailaconmigo.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +29,9 @@ public class EventService {
 
     @Autowired
     private OrganizerProfileRepository organizerProfileRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     /**
      * Crea un nuevo evento por un organizador
@@ -78,6 +80,7 @@ public class EventService {
         eventRepository.save(event);
     }
 
+    @Transactional
     public void editEvent(Long eventId, Long organizerId, EditEventRequestDto dto) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
@@ -90,19 +93,49 @@ public class EventService {
             throw new RuntimeException("No se puede editar un evento cancelado.");
         }
 
+        // Guardar datos originales para comparar cambios
+        String oldLocation = event.getLocation();
+        String oldAddress = event.getAddress();
+        LocalDateTime oldDateTime = event.getDateTime();
+
         // Solo campos editables
         if (dto.getName() != null) event.setName(dto.getName());
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
         if (dto.getDateTime() != null) event.setDateTime(dto.getDateTime());
         if (dto.getLocation() != null) event.setLocation(dto.getLocation());
+        if (dto.getAddress() != null) event.setAddress(dto.getAddress());
         if (dto.getCapacity() != null) event.setCapacity(dto.getCapacity());
         if (dto.getPrice() != null) event.setPrice(dto.getPrice());
         if (dto.getDanceStyles() != null) event.setDanceStyles(dto.getDanceStyles());
         if (dto.getAdditionalInfo() != null) event.setAdditionalInfo(dto.getAdditionalInfo());
 
         eventRepository.save(event);
+
+        // Construir mensaje con los cambios realizados
+        StringBuilder changes = new StringBuilder();
+        if (dto.getDateTime() != null && !dto.getDateTime().equals(oldDateTime)) {
+            changes.append("- Fecha y hora: ").append(dto.getDateTime()).append("\n");
+        }
+        if (dto.getLocation() != null && !dto.getLocation().equals(oldLocation)) {
+            changes.append("- Ubicación: ").append(dto.getLocation()).append("\n");
+        }
+        if (dto.getAddress() != null && !dto.getAddress().equals(oldAddress)) {
+            changes.append("- Dirección: ").append(dto.getAddress()).append("\n");
+        }
+        if (dto.getCapacity() != null) {
+            changes.append("- Capacidad: ").append(dto.getCapacity()).append("\n");
+        }
+        if (dto.getPrice() != null) {
+            changes.append("- Precio: ").append(dto.getPrice()).append("\n");
+        }
+
+        // Notificar cambios a los inscritos si hay cambios importantes
+        if (changes.length() > 0) {
+            emailService.notifyEventUpdate(event, changes.toString());
+        }
     }
 
+    @Transactional
     public void cancelEvent(Long eventId, Long organizerId, CancelEventRequestDto dto) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
@@ -118,8 +151,10 @@ public class EventService {
         event.setStatus(EventStatus.CANCELADO);
         event.setCancellationReason(dto.getCancellationReason());
         eventRepository.save(event);
-    }
 
+        // Notificar a los inscritos sobre la cancelación
+        emailService.notifyEventCancellation(event, dto.getCancellationReason());
+    }
 
     /**
      * Obtiene todos los eventos
@@ -203,13 +238,13 @@ public class EventService {
         dto.setLocation(event.getLocation());
         dto.setAddress(event.getAddress());
         dto.setCapacity(event.getCapacity());
+        dto.setAvailableCapacity(event.getAvailableCapacity()); // Añadido para mostrar cupo disponible
         dto.setPrice(event.getPrice());
         dto.setDanceStyles(event.getDanceStyles());
         dto.setAdditionalInfo(event.getAdditionalInfo());
         dto.setEventType(event.getEventType());
         dto.setStatus(event.getStatus());
         dto.setCancellationReason(event.getCancellationReason());
-
 
         // Información del organizador
         dto.setOrganizerId(event.getOrganizer().getId());

@@ -2,6 +2,9 @@ package org.example.bailaconmigo.Services;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.example.bailaconmigo.Entities.Event;
+import org.example.bailaconmigo.Entities.EventRegistration;
+import org.example.bailaconmigo.Entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -228,6 +231,198 @@ public class EmailService {
             javaMailSender.send(message);
         } catch (MessagingException e) {
             System.out.println("Error al enviar el email de confirmación de suscripción: " + e.getMessage());
+        }
+    }
+
+    public void sendRegistrationConfirmationToDancer(EventRegistration registration) {
+        User dancer = registration.getDancer();
+        Event event = registration.getEvent();
+
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(dancer.getEmail());
+            helper.setSubject("Confirmación de inscripción - " + event.getName());
+
+            String htmlContent = """
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #d63384;">¡Inscripción confirmada!</h2>
+              <p>Hola <strong>%s</strong>,</p>
+              
+              <p>Tu inscripción al evento <strong>"%s"</strong> ha sido confirmada.</p>
+              
+              <h3>Detalles del evento:</h3>
+              <ul>
+                <li><strong>Fecha y hora:</strong> %s</li>
+                <li><strong>Lugar:</strong> %s</li>
+                <li><strong>Dirección:</strong> %s</li>
+              </ul>
+              
+              <p>¡Esperamos verte allí!</p>
+              
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>Equipo de Baila Conmigo</strong></p>
+              <hr />
+              <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+            </body>
+            </html>
+            """.formatted(
+                    dancer.getFullName(),
+                    event.getName(),
+                    event.getDateTime(),
+                    event.getLocation(),
+                    event.getAddress()
+            );
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            System.out.println("Error al enviar confirmación: " + e.getMessage());
+        }
+    }
+
+    public void sendRegistrationNotificationToOrganizer(EventRegistration registration) {
+        Event event = registration.getEvent();
+        User dancer = registration.getDancer();
+        String organizerEmail = event.getOrganizer().getContactEmail();
+
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(organizerEmail);
+            helper.setSubject("Nueva inscripción - " + event.getName());
+
+            String htmlContent = """
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #17a2b8;">Nueva inscripción recibida</h2>
+              <p>Hola <strong>%s</strong>,</p>
+              
+              <p>Un nuevo bailarín se ha inscrito a tu evento <strong>"%s"</strong>.</p>
+              
+              <h3>Datos del bailarín:</h3>
+              <ul>
+                <li><strong>Nombre:</strong> %s</li>
+                <li><strong>Email:</strong> %s</li>
+              </ul>
+              
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>Equipo de Baila Conmigo</strong></p>
+              <hr />
+              <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+            </body>
+            </html>
+            """.formatted(
+                    event.getOrganizer().getOrganizationName(),
+                    event.getName(),
+                    dancer.getFullName(),
+                    dancer.getEmail()
+            );
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            System.out.println("Error al notificar al organizador: " + e.getMessage());
+        }
+    }
+
+    public void notifyEventUpdate(Event event, String updateDetails) {
+        for (EventRegistration registration : event.getRegistrations()) {
+            User dancer = registration.getDancer();
+
+            try {
+                MimeMessage message = javaMailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                helper.setTo(dancer.getEmail());
+                helper.setSubject("Actualización del evento - " + event.getName());
+
+                String htmlContent = """
+                <html>
+                <body style="font-family: Arial, sans-serif; color: #333;">
+                  <h2 style="color: #ffc107;">Actualización importante</h2>
+                  <p>Hola <strong>%s</strong>,</p>
+                  
+                  <p>El evento <strong>"%s"</strong> al que estás inscrito ha sido actualizado.</p>
+                  
+                  <h3>Detalles de la actualización:</h3>
+                  <p>%s</p>
+                  
+                  <h3>Información actualizada del evento:</h3>
+                  <ul>
+                    <li><strong>Fecha y hora:</strong> %s</li>
+                    <li><strong>Lugar:</strong> %s</li>
+                    <li><strong>Dirección:</strong> %s</li>
+                  </ul>
+                  
+                  <p>Si tenés alguna pregunta, por favor contactá al organizador.</p>
+                  
+                  <p style="color: #888;">Con ritmo,</p>
+                  <p><strong>Equipo de Baila Conmigo</strong></p>
+                  <hr />
+                  <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+                </body>
+                </html>
+                """.formatted(
+                        dancer.getFullName(),
+                        event.getName(),
+                        updateDetails,
+                        event.getDateTime(),
+                        event.getLocation(),
+                        event.getAddress()
+                );
+
+                helper.setText(htmlContent, true);
+                javaMailSender.send(message);
+            } catch (MessagingException e) {
+                System.out.println("Error al notificar actualización: " + e.getMessage());
+            }
+        }
+    }
+
+    public void notifyEventCancellation(Event event, String cancellationReason) {
+        for (EventRegistration registration : event.getRegistrations()) {
+            User dancer = registration.getDancer();
+
+            try {
+                MimeMessage message = javaMailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                helper.setTo(dancer.getEmail());
+                helper.setSubject("Cancelación del evento - " + event.getName());
+
+                String htmlContent = """
+                <html>
+                <body style="font-family: Arial, sans-serif; color: #333;">
+                  <h2 style="color: #dc3545;">Cancelación del evento</h2>
+                  <p>Hola <strong>%s</strong>,</p>
+                  
+                  <p>Lamentamos informarte que el evento <strong>"%s"</strong> ha sido cancelado.</p>
+                  
+                  <p><strong>Motivo:</strong> %s</p>
+                  
+                  <p>Si tenés alguna pregunta, por favor contactá al organizador.</p>
+                  
+                  <p style="color: #888;">Con ritmo,</p>
+                  <p><strong>Equipo de Baila Conmigo</strong></p>
+                  <hr />
+                  <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+                </body>
+                </html>
+                """.formatted(
+                        dancer.getFullName(),
+                        event.getName(),
+                        cancellationReason
+                );
+
+                helper.setText(htmlContent, true);
+                javaMailSender.send(message);
+            } catch (MessagingException e) {
+                System.out.println("Error al notificar cancelación: " + e.getMessage());
+            }
         }
     }
 
