@@ -38,6 +38,8 @@ public class User {
 
     private LocalDate subscriptionExpiration;
 
+    // 🔐 Token de acceso de Mercado Pago
+    private String mercadoPagoToken;
 
     private String passwordResetToken;
     private LocalDateTime passwordResetTokenExpiry;

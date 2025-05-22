@@ -9,6 +9,7 @@ import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import jakarta.annotation.PostConstruct;
 import org.example.bailaconmigo.Configs.JwtTokenUtil;
+import org.example.bailaconmigo.DTOs.MercadoPagoTokenResponse;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
 import org.example.bailaconmigo.Entities.User;
 import org.example.bailaconmigo.Repositories.DancerProfileRepository;
@@ -19,8 +20,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,6 +46,22 @@ public class MercadoPagoService {
     private EmailService emailService;
 
 
+    private final RestTemplate restTemplate;
+
+    public MercadoPagoService(RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
+    }
+
+    @Value("${mercadopago.client-id}")
+    private String clientId;
+
+    @Value("${mercadopago.client-secret}")
+    private String clientSecret;
+
+    @Value("${mercadopago.redirect-uri}")
+    private String redirectUri;
+
+
     @Value("${mercadopago.access.token}")
     private String mercadoPagoAccessToken;
 
@@ -44,6 +69,28 @@ public class MercadoPagoService {
     private String frontendUrl;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
+
+    public MercadoPagoTokenResponse exchangeCodeForAccessToken(String code) {
+        String url = "https://api.mercadopago.com/oauth/token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("code", code);
+        body.add("redirect_uri", redirectUri);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<MercadoPagoTokenResponse> response = restTemplate.postForEntity(url, request, MercadoPagoTokenResponse.class);
+
+        return response.getBody();
+    }
+
     @PostConstruct
     public void initMercadoPago() {
         MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);

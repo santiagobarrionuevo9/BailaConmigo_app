@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/mercadopago/generar-pago-pro",
                                 "/api/mercadopago/webhook",
+                                "/api/mercadopago/callback",
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/auth/forgot-password",
