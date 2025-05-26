@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.example.bailaconmigo.DTOs.CancelRegistrationRequestDto;
 import org.example.bailaconmigo.DTOs.EventRegistrationRequestDto;
 import org.example.bailaconmigo.DTOs.EventRegistrationResponseDto;
+import org.example.bailaconmigo.DTOs.PaymentInitiationResponseDto;
 import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.RegistrationStatus;
 import org.example.bailaconmigo.Entities.Event;
@@ -15,6 +16,7 @@ import org.example.bailaconmigo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,8 +36,97 @@ public class EventRegistrationService {
     @Autowired
     private EmailService notificationService;
 
+    @Autowired
+    private MercadoPagoService mercadoPagoService;
+
     /**
-     * Registra un bailarín en un evento
+     * Registra un bailarín en un evento con cobro mediante Mercado Pago
+     */
+    @Transactional
+    public PaymentInitiationResponseDto registerDancerForEventWithPayment(Long dancerId, EventRegistrationRequestDto dto) {
+        if (dancerId == null || dto.getEventId() == null) {
+            throw new RuntimeException("IDs inválidos para la inscripción.");
+        }
+
+        User dancer = userRepository.findById(dancerId)
+                .orElseThrow(() -> new RuntimeException("Bailarín no encontrado"));
+
+        Event event = eventRepository.findById(dto.getEventId())
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+
+        // Validaciones
+        if (event.getStatus() != EventStatus.ACTIVO) {
+            throw new RuntimeException("No se puede inscribir a un evento que no está activo.");
+        }
+
+        if (!event.hasAvailableCapacity()) {
+            throw new RuntimeException("El evento no tiene cupo disponible.");
+        }
+
+        if (registrationRepository.existsByEventAndDancer(event, dancer)) {
+            throw new RuntimeException("Ya estás inscrito en este evento.");
+        }
+
+        if (event.getPrice() == null || event.getPrice() <= 0) {
+            throw new RuntimeException("El evento debe tener un precio válido.");
+        }
+
+        // Verificar que el organizador tenga token de Mercado Pago
+        if (event.getOrganizer().getUser().getMercadoPagoToken() == null ||
+                event.getOrganizer().getUser().getMercadoPagoToken().isEmpty()) {
+            throw new RuntimeException("El organizador no tiene configurado su medio de pago.");
+        }
+
+        // Calcular montos
+        BigDecimal eventPrice = BigDecimal.valueOf(event.getPrice());
+        BigDecimal appFee = mercadoPagoService.calculateAppFee(event.getPrice());
+        BigDecimal organizerAmount = mercadoPagoService.calculateOrganizerAmount(event.getPrice());
+
+        // Crear la inscripción con estado PENDIENTE_PAGO
+        EventRegistration registration = new EventRegistration();
+        registration.setDancer(dancer);
+        registration.setEvent(event);
+        registration.setRegistrationDate(LocalDateTime.now());
+        registration.setStatus(RegistrationStatus.PENDIENTE);
+        registration.setPaidAmount(eventPrice);
+        registration.setAppFee(appFee);
+        registration.setOrganizerAmount(organizerAmount);
+        registration.setPaymentStatus("pending");
+
+        // Guardar la inscripción temporal
+        EventRegistration savedRegistration = registrationRepository.save(registration);
+
+        try {
+            // Crear preferencia de pago en Mercado Pago
+            String preferenceId = mercadoPagoService.createSplitPaymentPreference(dancer, event, savedRegistration.getId());
+
+            // Actualizar la inscripción con el ID de preferencia
+            savedRegistration.setPaymentPreferenceId(preferenceId);
+            savedRegistration.setPaymentReference("REG_" + savedRegistration.getId() + "_EVENT_" + event.getId());
+            registrationRepository.save(savedRegistration);
+
+            // Crear respuesta con URL de pago
+            PaymentInitiationResponseDto response = new PaymentInitiationResponseDto();
+            response.setRegistrationId(savedRegistration.getId());
+            response.setPreferenceId(preferenceId);
+            response.setPaymentUrl("https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=" + preferenceId);
+            response.setTotalAmount(eventPrice);
+            response.setAppFee(appFee);
+            response.setOrganizerAmount(organizerAmount);
+            response.setEventName(event.getName());
+            response.setMessage("Redirigiendo a Mercado Pago para completar el pago...");
+
+            return response;
+
+        } catch (Exception e) {
+            // Si falla la creación del pago, eliminar la inscripción temporal
+            registrationRepository.delete(savedRegistration);
+            throw new RuntimeException("Error al procesar el pago: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Método original mantenido para eventos gratuitos
      */
     @Transactional
     public EventRegistrationResponseDto registerDancerForEvent(Long dancerId, EventRegistrationRequestDto dto) {
@@ -62,21 +153,55 @@ public class EventRegistrationService {
             throw new RuntimeException("Ya estás inscrito en este evento.");
         }
 
-        // Crear la inscripción
-        EventRegistration registration = new EventRegistration();
-        registration.setDancer(dancer);
-        registration.setEvent(event);
-        registration.setRegistrationDate(LocalDateTime.now());
-        registration.setStatus(RegistrationStatus.CONFIRMADO);
+        // Para eventos gratuitos o sin precio
+        if (event.getPrice() == null || event.getPrice() <= 0) {
+            EventRegistration registration = new EventRegistration();
+            registration.setDancer(dancer);
+            registration.setEvent(event);
+            registration.setRegistrationDate(LocalDateTime.now());
+            registration.setStatus(RegistrationStatus.CONFIRMADO);
+            registration.setPaidAmount(BigDecimal.ZERO);
 
-        // Guardar la inscripción
-        EventRegistration savedRegistration = registrationRepository.save(registration);
+            EventRegistration savedRegistration = registrationRepository.save(registration);
 
-        // Enviar notificaciones
-        notificationService.sendRegistrationConfirmationToDancer(savedRegistration);
-        notificationService.sendRegistrationNotificationToOrganizer(savedRegistration);
+            // Enviar notificaciones
+            notificationService.sendRegistrationConfirmationToDancer(savedRegistration);
+            notificationService.sendRegistrationNotificationToOrganizer(savedRegistration);
 
-        return convertToDto(savedRegistration);
+            return convertToDto(savedRegistration);
+        } else {
+            throw new RuntimeException("Este evento requiere pago. Use el endpoint de pago correspondiente.");
+        }
+    }
+
+    /**
+     * Confirma el pago y actualiza el estado de la inscripción
+     */
+    @Transactional
+    public void confirmPayment(Long registrationId, String paymentId, String paymentStatus,
+                               String paymentMethod, String paymentDetails) {
+        EventRegistration registration = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new RuntimeException("Inscripción no encontrada"));
+
+        registration.setPaymentId(paymentId);
+        registration.setPaymentStatus(paymentStatus);
+        registration.setPaymentMethod(paymentMethod);
+        registration.setPaymentDetails(paymentDetails);
+        registration.setPaymentDate(LocalDateTime.now());
+
+        if ("approved".equals(paymentStatus)) {
+            registration.setStatus(RegistrationStatus.CONFIRMADO);
+
+            // Enviar notificaciones
+            notificationService.sendRegistrationConfirmationToDancer(registration);
+            notificationService.sendRegistrationNotificationToOrganizer(registration);
+
+        } else if ("rejected".equals(paymentStatus)) {
+            registration.setStatus(RegistrationStatus.CANCELADO);
+            registration.setCancelReason("Pago rechazado");
+        }
+
+        registrationRepository.save(registration);
     }
 
     /**
@@ -93,12 +218,17 @@ public class EventRegistrationService {
         EventRegistration registration = registrationRepository.findByEventAndDancer(event, dancer)
                 .orElseThrow(() -> new RuntimeException("No se encontró inscripción para cancelar"));
 
+        // Si el pago fue confirmado, aquí podrías implementar lógica de reembolso
+        if (RegistrationStatus.CONFIRMADO.equals(registration.getStatus()) &&
+                "approved".equals(registration.getPaymentStatus())) {
+            // TODO: Implementar lógica de reembolso si es necesario
+            // Por ahora solo cancelamos
+        }
+
         // Cancelar inscripción
         registration.setStatus(RegistrationStatus.CANCELADO);
         registration.setCancelReason(dto.getCancelReason());
         registrationRepository.save(registration);
-
-        // No se envía notificación de cancelación de inscripción, pero podría implementarse
     }
 
     /**

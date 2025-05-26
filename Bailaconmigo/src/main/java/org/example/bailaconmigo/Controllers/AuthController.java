@@ -76,7 +76,7 @@ public class AuthController {
         }
     }
 
-    @PutMapping("/edit/{userId}")
+    @PutMapping("/dancer/edit/{userId}")
     public ResponseEntity<?> editProfile(@PathVariable Long userId,
                                          @RequestBody EditDancerProfileDto dto) {
         try {
@@ -87,9 +87,9 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/dancer/{id}")
     public DancerProfileResponseDto getProfileById(@PathVariable Long id) {
-        return authService.getProfileById(id);
+        return authService.getDancerProfileById(id);
     }
 
     @PostMapping("/rate")
@@ -97,9 +97,9 @@ public class AuthController {
         authService.rateProfile(raterId, ratingDto);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/dancer/all")
     public ResponseEntity<List<DancerProfileResponseDto>> getAllProfiles() {
-        List<DancerProfileResponseDto> profiles = authService.getAllProfiles();
+        List<DancerProfileResponseDto> profiles = authService.getAllDancerProfiles();
         return ResponseEntity.ok(profiles);
     }
 
@@ -108,5 +108,50 @@ public class AuthController {
         return ResponseEntity.ok(DanceStyle.values());
     }
 
+    /**
+     * Editar perfil de organizador
+     */
+    @PutMapping("/organizer/edit/{userId}")
+    public ResponseEntity<?> editOrganizerProfile(@PathVariable Long userId,
+                                                  @RequestBody EditOrganizerProfileDto dto) {
+        try {
+            authService.editOrganizerProfile(userId, dto);
+            return ResponseEntity.ok("Perfil de organizador actualizado con éxito.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al actualizar el perfil: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Obtener perfil de organizador por user ID
+     */
+    @GetMapping("/organizer/{userId}")
+    public ResponseEntity<?> getOrganizerProfileById(@PathVariable Long userId) {
+        try {
+            OrganizerProfileResponseDto profile = authService.getOrganizerProfileById(userId);
+            return ResponseEntity.ok(profile);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener el perfil: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Obtener todos los perfiles de organizadores
+     */
+    @GetMapping("/organizer/all")
+    public ResponseEntity<List<OrganizerProfileResponseDto>> getAllOrganizerProfiles() {
+        try {
+            List<OrganizerProfileResponseDto> profiles = authService.getAllOrganizerProfiles();
+            return ResponseEntity.ok(profiles);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
 }

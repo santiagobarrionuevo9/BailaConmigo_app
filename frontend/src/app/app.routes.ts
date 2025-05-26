@@ -16,6 +16,10 @@ import { ExitoComponent } from './pages/mercadopago/exito/exito.component';
 import { RechazadoComponent } from './pages/mercadopago/rechazado/rechazado.component';
 import { PendienteComponent } from './pages/mercadopago/pendiente/pendiente.component';
 import { UpgradeProComponent } from './pages/mercadopago/upgrade-pro/upgrade-pro.component';
+import { FaqPageComponent } from './shared/components/faq-page/faq-page.component';
+import { TermsComponent } from './shared/components/terms/terms.component';
+import { PrivacyComponent } from './shared/components/privacy/privacy.component';
+
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -36,4 +40,7 @@ export const routes: Routes = [
   { path: 'pago-rechazado', component: RechazadoComponent},
   { path: 'pago-pendiente', component: PendienteComponent},
   {path: 'upgrade-pro', component: UpgradeProComponent},
+  { path: 'faq', component: FaqPageComponent },
+  { path: 'terminos', component: TermsComponent },
+  { path: 'privacidad', component: PrivacyComponent }
   ];

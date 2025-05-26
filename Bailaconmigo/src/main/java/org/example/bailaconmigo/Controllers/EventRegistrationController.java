@@ -3,6 +3,7 @@ package org.example.bailaconmigo.Controllers;
 import org.example.bailaconmigo.DTOs.CancelRegistrationRequestDto;
 import org.example.bailaconmigo.DTOs.EventRegistrationRequestDto;
 import org.example.bailaconmigo.DTOs.EventRegistrationResponseDto;
+import org.example.bailaconmigo.DTOs.PaymentInitiationResponseDto;
 import org.example.bailaconmigo.Services.EventRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,26 @@ public class EventRegistrationController {
     @Autowired
     private EventRegistrationService registrationService;
 
+    /**
+     * Registro con pago - Para eventos que requieren pago
+     */
+    @PostMapping("/register-with-payment")
+    public ResponseEntity<?> registerForEventWithPayment(@RequestParam Long dancerId,
+                                                         @RequestBody EventRegistrationRequestDto registrationDto) {
+        try {
+            PaymentInitiationResponseDto response = registrationService.registerDancerForEventWithPayment(dancerId, registrationDto);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar la inscripción con pago: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Registro tradicional - Para eventos gratuitos
+     */
     @PostMapping("/register")
     public ResponseEntity<?> registerForEvent(@RequestParam Long dancerId,
                                               @RequestBody EventRegistrationRequestDto registrationDto) {
@@ -32,6 +53,29 @@ public class EventRegistrationController {
         }
     }
 
+    /**
+     * Confirmar pago - Llamado desde el webhook de Mercado Pago
+     */
+    @PostMapping("/confirm-payment/{registrationId}")
+    public ResponseEntity<?> confirmPayment(@PathVariable Long registrationId,
+                                            @RequestParam String paymentId,
+                                            @RequestParam String paymentStatus,
+                                            @RequestParam(required = false) String paymentMethod,
+                                            @RequestParam(required = false) String paymentDetails) {
+        try {
+            registrationService.confirmPayment(registrationId, paymentId, paymentStatus, paymentMethod, paymentDetails);
+            return ResponseEntity.ok("Pago confirmado exitosamente");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al confirmar el pago: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Cancelar inscripción
+     */
     @PutMapping("/{eventId}/cancel")
     public ResponseEntity<?> cancelRegistration(@RequestParam Long dancerId,
                                                 @PathVariable Long eventId,

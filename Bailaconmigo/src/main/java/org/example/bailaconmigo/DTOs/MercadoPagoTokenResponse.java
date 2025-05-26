@@ -6,7 +6,7 @@ import lombok.Data;
 public class MercadoPagoTokenResponse {
     private String access_token;
     private String token_type;
-    private String expires_in;
+    private Integer expires_in;
     private String scope;
-    private String user_id;
+    private Long user_id;
 }

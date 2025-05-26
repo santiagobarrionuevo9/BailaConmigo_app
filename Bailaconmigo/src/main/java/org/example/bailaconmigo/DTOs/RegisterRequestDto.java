@@ -16,7 +16,8 @@ public class RegisterRequestDto {
     private String password;
     private String gender;
     private LocalDate birthdate;
-    private String city;
+    private Long cityId;        // En lugar de String city
+    private Long countryId;     // Nuevo campo
 
     private Role role;
     private SubscriptionType subscriptionType;

@@ -11,6 +11,7 @@ import jakarta.annotation.PostConstruct;
 import org.example.bailaconmigo.Configs.JwtTokenUtil;
 import org.example.bailaconmigo.DTOs.MercadoPagoTokenResponse;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
+import org.example.bailaconmigo.Entities.Event;
 import org.example.bailaconmigo.Entities.User;
 import org.example.bailaconmigo.Repositories.DancerProfileRepository;
 import org.example.bailaconmigo.Repositories.OrganizerProfileRepository;
@@ -21,10 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -32,11 +30,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
 @Service
 public class MercadoPagoService {
     @Autowired
@@ -86,10 +83,21 @@ public class MercadoPagoService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<MercadoPagoTokenResponse> response = restTemplate.postForEntity(url, request, MercadoPagoTokenResponse.class);
+        try {
+            ResponseEntity<MercadoPagoTokenResponse> response =
+                    restTemplate.postForEntity(url, request, MercadoPagoTokenResponse.class);
 
-        return response.getBody();
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            } else {
+                throw new RuntimeException("Error en la respuesta de Mercado Pago: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            logger.error("Error al intercambiar el código por access_token", e);
+            throw new RuntimeException("No se pudo obtener el access_token: " + e.getMessage());
+        }
     }
+
 
     @PostConstruct
     public void initMercadoPago() {
@@ -231,5 +239,146 @@ public class MercadoPagoService {
         } else {
             logger.info("Ignoring non-payment notification of type: {}", type);
         }
+    }
+
+    /**
+     * Crea una preferencia de pago dividido para un evento específico usando SDK.
+     *
+     * @param dancer        El usuario que está realizando el pago.
+     * @param event         El evento al que se está inscribiendo.
+     * @param registrationId El ID de la inscripción.
+     * @return El ID de la preferencia de pago creada.
+     */
+    public String createSplitPaymentPreference(User dancer, Event event, Long registrationId) {
+        try {
+            // Configurar el token del organizador
+            String organizerAccessToken = event.getOrganizer().getUser().getMercadoPagoToken();
+            MercadoPagoConfig.setAccessToken(organizerAccessToken);
+
+            BigDecimal totalPrice = BigDecimal.valueOf(event.getPrice());
+            BigDecimal marketplaceFee = totalPrice.multiply(BigDecimal.valueOf(0.10))
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            // Crear el item de la preferencia
+            PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+                    .id(event.getId().toString())
+                    .title("Inscripción a " + event.getName())
+                    .description("Evento de baile - " + event.getLocation())
+                    .categoryId("services")
+                    .quantity(1)
+                    .currencyId("ARS")
+                    .unitPrice(totalPrice)
+                    .build();
+
+            // Configurar URLs de retorno
+            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                    .success(frontendUrl + "/payment/success?registration=" + registrationId)
+                    .pending(frontendUrl + "/payment/pending?registration=" + registrationId)
+                    .failure(frontendUrl + "/payment/failure?registration=" + registrationId)
+                    .build();
+
+            // Crear la preferencia con marketplace_fee
+            PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                    .backUrls(backUrls)
+                    .items(List.of(itemRequest))
+                    .externalReference("REG_" + registrationId + "_EVENT_" + event.getId() + "_ORG_" + event.getOrganizer().getId())
+                    .notificationUrl(frontendUrl + "/api/webhooks/mercadopago")
+                    .marketplaceFee(marketplaceFee) // 💰 AQUÍ está la clave - marketplace_fee
+                    .build();
+
+            PreferenceClient client = new PreferenceClient();
+            Preference preference = client.create(preferenceRequest);
+
+            return preference.getInitPoint();
+
+        } catch (MPException | MPApiException e) {
+            logger.error("Error de Mercado Pago al crear preferencia dividida", e);
+            throw new RuntimeException("Error al crear preferencia de pago dividido: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error general al crear preferencia dividida", e);
+            throw new RuntimeException("Error inesperado al crear preferencia de pago dividido: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Versión alternativa usando RestTemplate directo (por si prefieres no usar el SDK)
+     */
+    public String createSplitPaymentPreferenceWithRestTemplate(User dancer, Event event, Long registrationId) {
+        try {
+            BigDecimal eventPrice = BigDecimal.valueOf(event.getPrice());
+            BigDecimal marketplaceFee = eventPrice.multiply(BigDecimal.valueOf(0.10))
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            String organizerAccessToken = event.getOrganizer().getUser().getMercadoPagoToken();
+
+            Map<String, Object> body = new HashMap<>();
+
+            // Items
+            List<Map<String, Object>> items = new ArrayList<>();
+            Map<String, Object> item = new HashMap<>();
+            item.put("title", "Inscripción a " + event.getName());
+            item.put("description", "Evento de baile - " + event.getLocation());
+            item.put("quantity", 1);
+            item.put("currency_id", "ARS");
+            item.put("unit_price", eventPrice);
+            items.add(item);
+
+            // Payer
+            Map<String, Object> payer = new HashMap<>();
+            payer.put("name", dancer.getFullName());
+            payer.put("email", dancer.getEmail());
+
+            // Back URLs
+            Map<String, String> backUrls = Map.of(
+                    "success", frontendUrl + "/payment/success?registration=" + registrationId,
+                    "failure", frontendUrl + "/payment/failure?registration=" + registrationId,
+                    "pending", frontendUrl + "/payment/pending?registration=" + registrationId
+            );
+
+            // Armar body completo con marketplace_fee
+            body.put("items", items);
+            body.put("payer", payer);
+            body.put("back_urls", backUrls);
+            body.put("auto_return", "approved");
+            body.put("external_reference", "REG_" + registrationId + "_EVENT_" + event.getId() + "_ORG_" + event.getOrganizer().getId());
+            body.put("notification_url", frontendUrl + "/api/webhooks/mercadopago");
+            body.put("marketplace_fee", marketplaceFee); // 💰 CAMBIO CLAVE: marketplace_fee en lugar de application_fee
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(organizerAccessToken); // Token del organizador
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    "https://api.mercadopago.com/checkout/preferences",
+                    HttpMethod.POST,
+                    request,
+                    Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.CREATED || response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                return responseBody.get("id").toString();
+            } else {
+                throw new RuntimeException("Error creando preferencia: " + response.getStatusCode());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error al crear preferencia de pago dividido con RestTemplate", e);
+            throw new RuntimeException("Error al crear preferencia de pago dividido: " + e.getMessage(), e);
+        }
+    }
+
+    public BigDecimal calculateAppFee(Double eventPrice) {
+        return BigDecimal.valueOf(eventPrice)
+                .multiply(BigDecimal.valueOf(0.10))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calculateOrganizerAmount(Double eventPrice) {
+        BigDecimal price = BigDecimal.valueOf(eventPrice);
+        BigDecimal appFee = calculateAppFee(eventPrice);
+        return price.subtract(appFee);
     }
 }

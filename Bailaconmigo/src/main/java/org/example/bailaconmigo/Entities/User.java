@@ -27,10 +27,21 @@ public class User {
     private String password;
     private String gender;
     private LocalDate birthdate;
-    private String city;
     private String lastPaymentReference;
+    // 🔐 Token de acceso de Mercado Pago
+    private String mercadoPagoToken;
+    // Relación con City
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id")
+    private City city;
+
+    // Relación con Country
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id")
+    private Country country;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
 
     @Enumerated(EnumType.STRING)
@@ -38,11 +49,31 @@ public class User {
 
     private LocalDate subscriptionExpiration;
 
-    // 🔐 Token de acceso de Mercado Pago
-    private String mercadoPagoToken;
-
+    // Campos para recuperación de contraseña
     private String passwordResetToken;
     private LocalDateTime passwordResetTokenExpiry;
+
+    // Métodos helper para obtener nombres (backward compatibility)
+    public String getCityName() {
+        return city != null ? city.getName() : null;
+    }
+
+    public String getCountryName() {
+        return country != null ? country.getName() : null;
+    }
+
+    // Métodos helper para establecer nombres (si necesitas mantener compatibilidad con código existente)
+    @Deprecated
+    public void setCityName(String cityName) {
+        // Este método se mantiene para compatibilidad pero se recomienda usar setCity()
+        // La lógica real debe manejarse en el servicio buscando la City por nombre
+    }
+
+    @Deprecated
+    public void setCountryName(String countryName) {
+        // Este método se mantiene para compatibilidad pero se recomienda usar setCountry()
+        // La lógica real debe manejarse en el servicio buscando el Country por nombre
+    }
 }
 
 

@@ -42,6 +42,10 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
+                                "/api/locations/countries",
+                                "/api/locations/cities/search",
+                                "/api/locations/cities/search/country/{countryId}",
+                                "/api/locations/cities/country/{countryId}",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/uploads/**" // <-- esto habilita los archivos subidos

@@ -167,7 +167,8 @@ public class MatchService {
         dto.setUserId(user.getId());
         dto.setFullName(user.getFullName());
         dto.setAge(profile.getAge());
-        dto.setCity(user.getCity());
+        dto.setCityName(user.getCity().getName());
+        dto.setCountryName(user.getCountry().getName());
         dto.setDanceStyles(profile.getDanceStyles());
         dto.setLevel(profile.getLevel());
         dto.setAboutMe(profile.getAboutMe());
@@ -186,7 +187,8 @@ public class MatchService {
         dto.setUserId(profile.getUser().getId());
         dto.setFullName(profile.getUser().getFullName());
         dto.setAge(profile.getAge());
-        dto.setCity(profile.getUser().getCity());
+        dto.setCityName(profile.getUser().getCity().getName());
+        dto.setCountryName(profile.getUser().getCountry().getName());
         dto.setDanceStyles(profile.getDanceStyles());
         dto.setLevel(profile.getLevel());
         dto.setAboutMe(profile.getAboutMe());

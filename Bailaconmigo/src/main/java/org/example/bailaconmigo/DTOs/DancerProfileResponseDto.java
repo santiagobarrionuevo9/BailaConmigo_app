@@ -13,7 +13,8 @@ public class DancerProfileResponseDto {
     private Long UserId;
     private String fullName;
     private int age;
-    private String city;
+    private String cityName;        // Nombre de la ciudad
+    private String countryName;     // Nombre del país
     private Set<DanceStyle> danceStyles;
     private Level level;
     private String aboutMe;

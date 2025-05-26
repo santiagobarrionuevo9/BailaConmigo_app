@@ -23,3 +23,10 @@ ul.list-group li {
 hr {
   border-top: 2px solid #cc5500;
 }
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+

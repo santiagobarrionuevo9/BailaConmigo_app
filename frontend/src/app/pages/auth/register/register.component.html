@@ -78,18 +78,43 @@
         </div>
   
         <div class="mb-3">
-          <label for="city" class="form-label">Ciudad</label>
-          <input
-            id="city"
-            formControlName="city"
-            type="text"
-            class="form-control"
-            [ngClass]="{'is-invalid': registerForm.get('city')?.invalid && registerForm.get('city')?.touched}"
-          />
-          <div *ngIf="registerForm.get('city')?.invalid && registerForm.get('city')?.touched" class="invalid-feedback">
-            La ciudad es obligatoria.
-          </div>
+        <label for="countryId" class="form-label">País</label>
+        <select
+          id="countryId"
+          formControlName="countryId"
+          class="form-select"
+          (change)="onCountryChange()"
+          [ngClass]="{'is-invalid': registerForm.get('countryId')?.invalid && registerForm.get('countryId')?.touched}"
+        >
+          <option value="">Selecciona un país</option>
+          <option *ngFor="let country of countries" [value]="country.id">
+            {{ country.name }}
+          </option>
+        </select>
+        <div *ngIf="registerForm.get('countryId')?.invalid && registerForm.get('countryId')?.touched" class="invalid-feedback">
+          El país es obligatorio.
         </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="cityId" class="form-label">Ciudad</label>
+        <select
+          id="cityId"
+          formControlName="cityId"
+          class="form-select"
+          [disabled]="!cities.length"
+          [ngClass]="{'is-invalid': registerForm.get('cityId')?.invalid && registerForm.get('cityId')?.touched}"
+        >
+          <option value="">Selecciona una ciudad</option>
+          <option *ngFor="let city of cities" [value]="city.id">
+            {{ city.name }}
+          </option>
+        </select>
+        <div *ngIf="registerForm.get('cityId')?.invalid && registerForm.get('cityId')?.touched" class="invalid-feedback">
+          La ciudad es obligatoria.
+        </div>
+      </div>
+
   
         <div class="mb-3">
           <label for="role" class="form-label">Rol</label>

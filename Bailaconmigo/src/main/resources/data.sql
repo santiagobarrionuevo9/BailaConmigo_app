@@ -1,27 +1,28 @@
+
 -- Insertar usuarios
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Carlos Rodriguez', 'carlos@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1990-05-15', 'Buenos Aires', 'BAILARIN', 'PRO', '2025-12-31');
+INSERT INTO users ( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Carlos Rodriguez', 'carlos@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1990-05-15',1,1, 'BAILARIN', 'PRO', '2025-12-31');
 
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Maria Gomez', 'maria@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Femenino', '1992-08-22', 'Córdoba', 'BAILARIN', 'BASICO', '2025-06-30');
+INSERT INTO users ( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Maria Gomez', 'maria@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Femenino', '1992-08-22',1,2, 'BAILARIN', 'BASICO', '2025-06-30');
 
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Juan Perez', 'juan@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1985-12-10', 'Rosario', 'ORGANIZADOR', 'PRO', '2025-12-15');
+INSERT INTO users ( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Juan Perez', 'juan@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1985-12-10',1,2, 'ORGANIZADOR', 'PRO', '2025-12-15');
 
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Laura Martinez', 'laura@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Femenino', '1988-03-25', 'Mendoza', 'BAILARIN', 'PRO', '2025-11-20');
+INSERT INTO users ( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Laura Martinez', 'laura@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Femenino', '1988-03-25', 1,2, 'BAILARIN', 'PRO', '2025-11-20');
 
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Roberto Sanchez', 'roberto@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1995-07-08', 'Buenos Aires', 'BAILARIN', 'SIN_SUSCRIPCION', NULL);
+INSERT INTO users ( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Roberto Sanchez', 'roberto@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1995-07-08',2,3, 'BAILARIN', 'SIN_SUSCRIPCION', NULL);
 
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Ana Lopez', 'ana@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Femenino', '1993-02-14', 'La Plata', 'BAILARIN', 'BASICO', '2025-08-15');
+INSERT INTO users ( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Ana Lopez', 'ana@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Femenino', '1993-02-14',2,3, 'BAILARIN', 'BASICO', '2025-08-15');
 
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Santiago Fernández', 'santiago@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1987-11-30', 'Córdoba', 'ORGANIZADOR', 'PRO', '2026-01-31');
+INSERT INTO users( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Santiago Fernández', 'santiago@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1987-11-30',2,3, 'ORGANIZADOR', 'PRO', '2026-01-31');
 
-INSERT INTO users ( full_name, email, password, gender, birthdate, city, role, subscription_type, subscription_expiration)
-VALUES ( 'Admin User', 'admin@bailaconmigo.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'No especificado', '1980-01-01', 'Buenos Aires', 'ADMIN', 'PRO', '2030-12-31');
+INSERT INTO users ( full_name, email, password, gender, birthdate, city_id,country_id, role, subscription_type, subscription_expiration)
+VALUES ( 'Admin User', 'admin@bailaconmigo.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'No especificado', '1980-01-01',2,3, 'ADMIN', 'PRO', '2030-12-31');
 
 -- Insertar perfiles de bailarines
 INSERT INTO dancer_profiles ( user_id, full_name, age, city, level, about_me, availability)

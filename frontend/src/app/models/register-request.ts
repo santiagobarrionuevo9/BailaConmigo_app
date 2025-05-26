@@ -7,7 +7,8 @@ export interface RegisterRequestDto {
     password: string;
     gender: string;
     birthdate: Date;
-    city: string;
+    countryId: number;
+    cityId: number;
     role: Role;
     subscriptionType?: SubscriptionType;
   }

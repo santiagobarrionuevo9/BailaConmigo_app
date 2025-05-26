@@ -17,10 +17,7 @@ import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.*;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
-import org.example.bailaconmigo.Repositories.DancerProfileRepository;
-import org.example.bailaconmigo.Repositories.OrganizerProfileRepository;
-import org.example.bailaconmigo.Repositories.RatingRepository;
-import org.example.bailaconmigo.Repositories.UserRepository;
+import org.example.bailaconmigo.Repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +52,12 @@ public class AuthService {
     private OrganizerProfileRepository organizerProfileRepository;
 
     @Autowired
+    private CityRepository cityRepository;
+
+    @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
     private EmailService emailService;
 
     @Autowired
@@ -70,9 +73,6 @@ public class AuthService {
 
     /**
      * Registra un nuevo usuario en la base de datos.
-     *
-     * @param request Objeto que contiene los datos del nuevo usuario.
-     * @throws RuntimeException Si el email ya está registrado o si el tipo de suscripción no es válido.
      */
     public void register(RegisterRequestDto request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -90,13 +90,28 @@ public class AuthService {
             }
         }
 
+        // Buscar ciudad y país
+        City city = null;
+        Country country = null;
+
+        if (request.getCityId() != null) {
+            city = cityRepository.findById(request.getCityId())
+                    .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+        }
+
+        if (request.getCountryId() != null) {
+            country = countryRepository.findById(request.getCountryId())
+                    .orElseThrow(() -> new RuntimeException("País no encontrado"));
+        }
+
         User user = new User();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setGender(request.getGender());
         user.setBirthdate(request.getBirthdate());
-        user.setCity(request.getCity());
+        user.setCity(city);
+        user.setCountry(country);
         user.setRole(request.getRole());
 
         if (request.getRole() == Role.BAILARIN) {
@@ -116,20 +131,17 @@ public class AuthService {
 
         userRepository.save(user);
         emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
+
         if (user.getRole() == Role.BAILARIN) {
             DancerProfile profile = new DancerProfile();
-
             profile.setUser(user);
             profile.setFullName(user.getFullName());
 
             int edad = Period.between(user.getBirthdate(), LocalDate.now()).getYears();
             profile.setAge(edad);
 
-            profile.setCity(user.getCity());
-
-            // El resto se deja vacío inicialmente
-            profile.setDanceStyles(new HashSet<>()); // Vacío
-            profile.setLevel(null); // A definir luego
+            profile.setDanceStyles(new HashSet<>());
+            profile.setLevel(null);
             profile.setAboutMe("");
             profile.setAvailability("");
             profile.setMedia(new ArrayList<>());
@@ -138,13 +150,12 @@ public class AuthService {
         }
         else if (user.getRole() == Role.ORGANIZADOR) {
             OrganizerProfile organizerProfile = new OrganizerProfile();
-
             organizerProfile.setUser(user);
             organizerProfile.setOrganizationName(user.getFullName());
             organizerProfile.setContactEmail(user.getEmail());
-            organizerProfile.setContactPhone("");  // Vacío inicialmente
-            organizerProfile.setDescription("");   // Vacío inicialmente
-            organizerProfile.setWebsite("");       // Vacío inicialmente
+            organizerProfile.setContactPhone("");
+            organizerProfile.setDescription("");
+            organizerProfile.setWebsite("");
             organizerProfile.setEvents(new ArrayList<>());
             organizerProfile.setMedia(new ArrayList<>());
 
@@ -170,7 +181,7 @@ public class AuthService {
                 user.getId(),
                 user.getFullName(),
                 user.getRole().toString(),
-                user.getSubscriptionType().toString(),     // Asegurate de que no sea null
+                user.getSubscriptionType().toString(),
                 user.getSubscriptionExpiration(),
                 user.getEmail()
         );
@@ -196,7 +207,6 @@ public class AuthService {
      * Restablece la contraseña con el token proporcionado
      */
     public void resetPassword(ResetPasswordRequestDto request) {
-        // Verificar que el token sea válido
         if (!jwtTokenUtil.validateToken(request.getToken())) {
             throw new RuntimeException("Token inválido o expirado");
         }
@@ -205,55 +215,136 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Verificar que el token de la base de datos coincida y no haya expirado
         if (!request.getToken().equals(user.getPasswordResetToken()) ||
                 user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Token inválido o expirado");
         }
 
-        // Establecer la nueva contraseña
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-
-        // Invalidar el token de restablecimiento
         user.setPasswordResetToken(null);
         user.setPasswordResetTokenExpiry(null);
 
         userRepository.save(user);
     }
 
+    /**
+     * Edita el perfil de un bailarín
+     */
     public void editProfile(Long userId, EditDancerProfileDto dto) {
         DancerProfile profile = profileRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new RuntimeException("Perfil no encontrado"));
 
-        profile.setCity(dto.getCity());
+        User user = profile.getUser();
+
+        // Actualizar ubicación si se proporciona
+        if (dto.getCityId() != null) {
+            City city = cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+            user.setCity(city);
+        }
+
+        if (dto.getCountryId() != null) {
+            Country country = countryRepository.findById(dto.getCountryId())
+                    .orElseThrow(() -> new RuntimeException("País no encontrado"));
+            user.setCountry(country);
+        }
+
+        // Guardar cambios en user si se modificó ubicación
+        if (dto.getCityId() != null || dto.getCountryId() != null) {
+            userRepository.save(user);
+        }
+
+        // Actualizar campos del perfil
         profile.setDanceStyles(dto.getDanceStyles());
         profile.setLevel(dto.getLevel());
         profile.setAboutMe(dto.getAboutMe());
         profile.setAvailability(dto.getAvailability());
 
-        // Obtener los URLs de media actuales
+        // Manejo de media
         List<String> currentMediaUrls = profile.getMedia().stream()
                 .map(Media::getUrl)
                 .collect(Collectors.toList());
 
-        // Solo agregar los nuevos URLs que no existan ya en el perfil
-        List<Media> newMediaItems = dto.getMediaUrls().stream()
-                .filter(url -> !currentMediaUrls.contains(url)) // Solo URLs nuevos
-                .map(url -> {
-                    Media media = new Media();
-                    media.setUrl(url);
-                    media.setProfile(profile);
-                    return media;
-                })
-                .collect(Collectors.toList());
+        if (dto.getMediaUrls() != null) {
+            List<Media> newMediaItems = dto.getMediaUrls().stream()
+                    .filter(url -> !currentMediaUrls.contains(url))
+                    .map(url -> {
+                        Media media = new Media();
+                        media.setUrl(url);
+                        media.setProfile(profile);
+                        return media;
+                    })
+                    .collect(Collectors.toList());
 
-        // Agregar solo los nuevos elementos sin borrar los existentes
-        if (!newMediaItems.isEmpty()) {
-            profile.getMedia().addAll(newMediaItems);
+            if (!newMediaItems.isEmpty()) {
+                profile.getMedia().addAll(newMediaItems);
+            }
         }
+
         profileRepository.save(profile);
     }
 
+    /**
+     * Edita el perfil de un organizador
+     */
+    public void editOrganizerProfile(Long userId, EditOrganizerProfileDto dto) {
+        OrganizerProfile profile = organizerProfileRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new RuntimeException("Perfil de organizador no encontrado"));
+
+        User user = profile.getUser();
+
+        // Actualizar ubicación del usuario si se proporciona
+        if (dto.getCityId() != null) {
+            City city = cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+            user.setCity(city);
+        }
+
+        if (dto.getCountryId() != null) {
+            Country country = countryRepository.findById(dto.getCountryId())
+                    .orElseThrow(() -> new RuntimeException("País no encontrado"));
+            user.setCountry(country);
+        }
+
+        // Guardar cambios en user si se modificó ubicación
+        if (dto.getCityId() != null || dto.getCountryId() != null) {
+            userRepository.save(user);
+        }
+
+        // Actualizar campos del perfil del organizador
+        profile.setOrganizationName(dto.getOrganizationName());
+        profile.setContactEmail(dto.getContactEmail());
+        profile.setContactPhone(dto.getContactPhone());
+        profile.setDescription(dto.getDescription());
+        profile.setWebsite(dto.getWebsite());
+
+        // Manejo de media
+        List<String> currentMediaUrls = profile.getMedia().stream()
+                .map(OrganizerMedia::getUrl)
+                .collect(Collectors.toList());
+
+        if (dto.getMediaUrls() != null) {
+            List<OrganizerMedia> newMediaItems = dto.getMediaUrls().stream()
+                    .filter(url -> !currentMediaUrls.contains(url))
+                    .map(url -> {
+                        OrganizerMedia media = new OrganizerMedia();
+                        media.setUrl(url);
+                        media.setProfile(profile);
+                        return media;
+                    })
+                    .collect(Collectors.toList());
+
+            if (!newMediaItems.isEmpty()) {
+                profile.getMedia().addAll(newMediaItems);
+            }
+        }
+
+        organizerProfileRepository.save(profile);
+    }
+
+    /**
+     * Califica un perfil
+     */
     public void rateProfile(Long raterId, RatingRequestDto dto) {
         if (raterId == null || dto.getProfileId() == null) {
             throw new RuntimeException("IDs inválidos.");
@@ -282,58 +373,124 @@ public class AuthService {
         ratingRepository.save(rating);
     }
 
-    public DancerProfileResponseDto getProfileById(Long id) {
+    /**
+     * Obtiene el perfil de un bailarín por ID de usuario
+     */
+    public DancerProfileResponseDto getDancerProfileById(Long id) {
         DancerProfile profile = profileRepository.findByUser_Id(id)
                 .orElseThrow(() -> new RuntimeException("Perfil no encontrado"));
 
         DancerProfileResponseDto dto = new DancerProfileResponseDto();
+        dto.setUserId(id);
         dto.setFullName(profile.getFullName());
         dto.setAge(profile.getAge());
-        dto.setCity(profile.getCity());
+
+        // Obtener nombres de ciudad y país desde las entidades
+        dto.setCityName(profile.getUser().getCity() != null ? profile.getUser().getCity().getName() : null);
+        dto.setCountryName(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getName() : null);
+
         dto.setDanceStyles(profile.getDanceStyles());
         dto.setLevel(profile.getLevel());
         dto.setAboutMe(profile.getAboutMe());
         dto.setAvailability(profile.getAvailability());
         dto.setSubscriptionType(profile.getUser().getSubscriptionType());
 
-
         List<String> mediaUrls = profile.getMedia().stream()
                 .map(Media::getUrl)
                 .collect(Collectors.toList());
         dto.setMediaUrls(mediaUrls);
 
-        // Nuevo campo: reputación promedio
         dto.setAverageRating(profile.getAverageRating());
 
         return dto;
     }
 
-
-    public List<DancerProfileResponseDto> getAllProfiles() {
+    /**
+     * Obtiene todos los perfiles de bailarines
+     */
+    public List<DancerProfileResponseDto> getAllDancerProfiles() {
         return profileRepository.findAll().stream().map(profile -> {
             User user = profile.getUser();
             DancerProfileResponseDto dto = new DancerProfileResponseDto();
+            dto.setUserId(user.getId());
             dto.setFullName(user.getFullName());
 
             int age = Period.between(user.getBirthdate(), LocalDate.now()).getYears();
             dto.setAge(age);
 
-            dto.setCity(profile.getCity());
+            // Obtener nombres de ciudad y país desde las entidades
+            dto.setCityName(user.getCity() != null ? user.getCity().getName() : null);
+            dto.setCountryName(user.getCountry() != null ? user.getCountry().getName() : null);
+
             dto.setDanceStyles(profile.getDanceStyles());
             dto.setLevel(profile.getLevel());
             dto.setAboutMe(profile.getAboutMe());
             dto.setAvailability(profile.getAvailability());
+            dto.setSubscriptionType(user.getSubscriptionType());
 
             List<String> mediaUrls = profile.getMedia().stream()
                     .map(Media::getUrl)
                     .collect(Collectors.toList());
             dto.setMediaUrls(mediaUrls);
 
+            dto.setAverageRating(profile.getAverageRating());
+
             return dto;
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene el perfil de un organizador por user ID
+     */
+    public OrganizerProfileResponseDto getOrganizerProfileById(Long userId) {
+        OrganizerProfile profile = organizerProfileRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new RuntimeException("Perfil de organizador no encontrado"));
 
+        OrganizerProfileResponseDto dto = new OrganizerProfileResponseDto();
+        dto.setId(profile.getId());
+        dto.setOrganizationName(profile.getOrganizationName());
+        dto.setContactEmail(profile.getContactEmail());
+        dto.setContactPhone(profile.getContactPhone());
+        dto.setDescription(profile.getDescription());
+        dto.setWebsite(profile.getWebsite());
+        dto.setFullName(profile.getUser().getFullName());
 
+        // Obtener nombres de ciudad y país desde las entidades
+        dto.setCityName(profile.getUser().getCity() != null ? profile.getUser().getCity().getName() : null);
+        dto.setCountryName(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getName() : null);
 
+        List<String> mediaUrls = profile.getMedia().stream()
+                .map(OrganizerMedia::getUrl)
+                .collect(Collectors.toList());
+        dto.setMediaUrls(mediaUrls);
+
+        return dto;
+    }
+
+    /**
+     * Obtiene todos los perfiles de organizadores
+     */
+    public List<OrganizerProfileResponseDto> getAllOrganizerProfiles() {
+        return organizerProfileRepository.findAll().stream().map(profile -> {
+            OrganizerProfileResponseDto dto = new OrganizerProfileResponseDto();
+            dto.setId(profile.getId());
+            dto.setOrganizationName(profile.getOrganizationName());
+            dto.setContactEmail(profile.getContactEmail());
+            dto.setContactPhone(profile.getContactPhone());
+            dto.setDescription(profile.getDescription());
+            dto.setWebsite(profile.getWebsite());
+            dto.setFullName(profile.getUser().getFullName());
+
+            // Obtener nombres de ciudad y país desde las entidades
+            dto.setCityName(profile.getUser().getCity() != null ? profile.getUser().getCity().getName() : null);
+            dto.setCountryName(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getName() : null);
+
+            List<String> mediaUrls = profile.getMedia().stream()
+                    .map(OrganizerMedia::getUrl)
+                    .collect(Collectors.toList());
+            dto.setMediaUrls(mediaUrls);
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
 }

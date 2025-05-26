@@ -34,33 +34,35 @@ public class MercadoPagoController {
     @GetMapping("/callback")
     public ResponseEntity<?> callback(
             @RequestParam("code") String code,
-            Principal principal // esto te da el usuario logueado
+            Principal principal
     ) {
         try {
             // 1. Obtener el token de Mercado Pago
             MercadoPagoTokenResponse token = mercadoService.exchangeCodeForAccessToken(code);
 
-            // 2. Buscar al usuario por email (ajustá esto a tu lógica de autenticación)
-            String email = principal.getName(); // funciona si usás Spring Security con email como username
+            // 2. Buscar al usuario logueado
+            String email = principal.getName();
             Optional<User> optionalUsuario = userRepository.findByEmail(email);
 
             if (optionalUsuario.isPresent()) {
                 User usuario = optionalUsuario.get();
 
-                // 3. Guardar el token en el usuario
+                // 3. Guardar el token en la base de datos
                 usuario.setMercadoPagoToken(token.getAccess_token());
                 userRepository.save(usuario);
 
-                return ResponseEntity.ok("Cuenta de Mercado Pago vinculada correctamente.");
+                return ResponseEntity.ok("✅ Cuenta de Mercado Pago vinculada correctamente.");
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Usuario no encontrado.");
             }
 
         } catch (Exception e) {
+            logger.error("Error en el callback de Mercado Pago", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al vincular Mercado Pago: " + e.getMessage());
+                    .body("❌ Error al vincular Mercado Pago: " + e.getMessage());
         }
     }
+
 
     @GetMapping("/generar-pago-pro")
     public ResponseEntity<?> generarLinkPago(@RequestParam String email) {

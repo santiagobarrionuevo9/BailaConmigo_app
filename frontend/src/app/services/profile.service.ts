@@ -13,12 +13,12 @@ export class ProfileService {
   constructor(private http: HttpClient) {}
 
   getProfile(id: number): Observable<DancerProfileResponseDto> {
-    return this.http.get<DancerProfileResponseDto>(`${this.baseUrl}/${id}`);
+    return this.http.get<DancerProfileResponseDto>(`${this.baseUrl}/dancer/${id}`);
   }
 
   updateProfile(userId: number, dto: EditDancerProfileDto): Observable<string> {
     
-    return this.http.put(`${this.baseUrl}/edit/${userId}`, dto, { responseType: 'text' });
+    return this.http.put(`${this.baseUrl}/dancer/edit/${userId}`, dto, { responseType: 'text' });
   }
 
   uploadMedia(formData: FormData): Observable<string> {

@@ -42,6 +42,14 @@
         <li class="nav-item">
           <a class="nav-link" routerLink="/login" *ngIf="!isLoggedIn">Login</a>
         </li>
+        <!-- Ícono de ayuda -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/faq" title="Preguntas frecuentes">
+            <i class="bi bi-question-circle"></i>
+          </a>
+        </li>
+      </ul>
       </ul>
       <div class="d-flex align-items-center" *ngIf="isLoggedIn">
         <!-- Botón para actualizar a PRO -->

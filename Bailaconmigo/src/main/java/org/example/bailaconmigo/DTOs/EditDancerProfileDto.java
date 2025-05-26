@@ -10,7 +10,8 @@ import java.util.Set;
 @Data
 public class EditDancerProfileDto {
 
-    private String city;
+    private Long cityId;        // En lugar de String city
+    private Long countryId;     // Nuevo campo
 
     private Set<DanceStyle> danceStyles;
 

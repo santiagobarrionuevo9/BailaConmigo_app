@@ -3,10 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/internal/Observable';
 import { LoginResponseDto } from '../models/login-response';
 import { LoginRequestDto } from '../models/login-request';
-import { RegisterRequestDto } from '../models/register-request';
-import { catchError, map } from 'rxjs';
 import { DancerProfileResponseDto } from '../models/dancerprofileresponse';
-import { EventResponseDto } from '../models/eventresponse';
+
 
 @Injectable({
   providedIn: 'root'
@@ -46,7 +44,7 @@ export class AuthService {
   }
 
   getProfileById(userId: number): Observable<DancerProfileResponseDto> {
-  return this.http.get<DancerProfileResponseDto>(`${this.apiUrl}/${userId}`);
+  return this.http.get<DancerProfileResponseDto>(`${this.apiUrl}/dancer/${userId}`);
   }
 
   // src/app/services/auth.service.ts
