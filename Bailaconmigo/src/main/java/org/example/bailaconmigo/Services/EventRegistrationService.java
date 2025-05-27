@@ -109,7 +109,7 @@ public class EventRegistrationService {
             PaymentInitiationResponseDto response = new PaymentInitiationResponseDto();
             response.setRegistrationId(savedRegistration.getId());
             response.setPreferenceId(preferenceId);
-            response.setPaymentUrl("https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=" + preferenceId);
+            response.setPaymentUrl(preferenceId);
             response.setTotalAmount(eventPrice);
             response.setAppFee(appFee);
             response.setOrganizerAmount(organizerAmount);

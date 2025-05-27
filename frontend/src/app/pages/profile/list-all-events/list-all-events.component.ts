@@ -5,6 +5,10 @@ import { EventResponseDto } from '../../../models/eventresponse';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RatingEventDto } from '../../../models/RatingeventDto';
+import { PaymentInitiationResponseDto } from '../../../models/PaymentInitiationResponseDto';
+import { EventRegistrationService } from '../../../services/event-registration.service';
+import { EventRegistrationRequestDto } from '../../../models/EventRegistrationRequestDto';
+import { EventRegistrationResponseDto } from '../../../models/EventRegistrationResponseDto';
 
 @Component({
   selector: 'app-list-all-events',
@@ -19,11 +23,17 @@ export class ListAllEventsComponent implements OnInit {
   expandedEvents: { [key: number]: boolean } = {};
   locations: string[] = [];
   eventTypes: string[] = [];
+  EventStatus = {
+    ACTIVO: 'ACTIVO',
+    CANCELADO: 'CANCELADO',
+    FINALIZADO: 'FINALIZADO'
+  };
   
   // Filtros
   selectedStyle: string | null = null;
   selectedLocation: string = '';
   selectedEventType: string = '';
+  dEvents: EventResponseDto[] = [];
   
   // Lista de todos los estilos de baile disponibles
   danceStyles: string[] = [];
@@ -40,8 +50,18 @@ export class ListAllEventsComponent implements OnInit {
   ratingSuccess: boolean = false;
   ratingError: string = '';
 
+  // Variables para inscripción
+  isRegistering: boolean = false;
+  registrationError: string = '';
+  registrationSuccess: string = '';
+
+  // Variables para modal de inscripción con detalles de pago
+  showPaymentModal: boolean = false;
+  paymentDetails: PaymentInitiationResponseDto | null = null;
+
   constructor(
     private eventService: EventService,
+    private eventRegistrationService: EventRegistrationService,
     private authService: AuthService
   ) {}
 
@@ -87,6 +107,11 @@ export class ListAllEventsComponent implements OnInit {
     this.expandedEvents[index] = !this.expandedEvents[index];
   }
 
+  // Devuelve true si la fecha del evento ya pasó
+  isPastEvent(event: any): boolean {
+    if (!event || !event.dateTime) return false;
+    return new Date(event.dateTime) < new Date();
+  }
   resetFilters(): void {
     this.selectedStyle = null;
     this.selectedLocation = '';
@@ -120,12 +145,125 @@ export class ListAllEventsComponent implements OnInit {
     });
   }
 
-  registrarseEvento(eventId: number): void {
-    console.log('Inscripción al evento:', eventId);
-    alert('Funcionalidad de inscripción en desarrollo');
+  // Método principal de inscripción
+  registrarseEvento(event: EventResponseDto): void {
+    const userId = this.getCurrentUserId();
+    
+    if (!userId) {
+      this.registrationError = 'Debes iniciar sesión para inscribirte a un evento';
+      this.showRegistrationNotification();
+      return;
+    }
+
+    this.isRegistering = true;
+    this.registrationError = '';
+    this.registrationSuccess = '';
+
+    const registrationRequest: EventRegistrationRequestDto = {
+      eventId: event.id
+    };
+
+    // Verificar si el evento tiene precio
+    const hasPrice = event.price && event.price > 0;
+
+    if (hasPrice) {
+      // Evento con pago
+      this.eventRegistrationService.registerForEventWithPayment(userId, registrationRequest).subscribe({
+        next: (paymentResponse: PaymentInitiationResponseDto) => {
+          this.isRegistering = false;
+          this.paymentDetails = paymentResponse;
+          this.showPaymentModal = true;
+        },
+        error: (err) => {
+          this.isRegistering = false;
+          this.registrationError = this.getErrorMessage(err);
+          this.showRegistrationNotification();
+        }
+      });
+    } 
+    else {
+      // Evento gratuito
+      this.eventRegistrationService.registerForEvent(userId, registrationRequest).subscribe({
+        next: (registrationResponse: EventRegistrationResponseDto) => {
+          this.isRegistering = false;
+          this.registrationSuccess = `¡Te has inscrito exitosamente en ${event.name}!`;
+          this.showRegistrationNotification();
+        },
+        error: (err) => {
+          this.isRegistering = false;
+          this.registrationError = this.getErrorMessage(err);
+          this.showRegistrationNotification();
+        }
+      });
+    }
   }
 
-  // Métodos para el modal de calificación
+  // Método para proceder al pago
+  proceedToPayment(): void {
+    if (this.paymentDetails?.preferenceId) {
+      // Abrir URL de pago en una nueva ventana
+      window.open(this.paymentDetails.preferenceId, '_blank', 'width=800,height=600');
+      this.closePaymentModal();
+    }
+  }
+
+  // Método para cerrar el modal de pago
+  closePaymentModal(): void {
+    this.showPaymentModal = false;
+    this.paymentDetails = null;
+  }
+
+  // Método para mostrar notificaciones de inscripción
+  private showRegistrationNotification(): void {
+    // Mostrar por 5 segundos
+    setTimeout(() => {
+      this.registrationError = '';
+      this.registrationSuccess = '';
+    }, 5000);
+  }
+
+  // Método para extraer mensaje de error
+  private getErrorMessage(error: any): string {
+    if (error.error) {
+      if (typeof error.error === 'string') {
+        return error.error;
+      } else if (error.error.message) {
+        return error.error.message;
+      }
+    }
+    return error.message || 'Error al procesar la inscripción';
+  }
+
+  // Verificar si el usuario puede inscribirse
+  canRegister(event: EventResponseDto): boolean {
+    const userId = this.getCurrentUserId();
+    return userId !== null && event.status === 'ACTIVO';
+  }
+
+  // Verificar si el evento está disponible
+  isEventAvailable(event: EventResponseDto): boolean {
+    return event.status === 'ACTIVO' && (event.availableCapacity ?? 0) > 0;
+  }
+
+  // Obtener texto del botón de inscripción
+  getRegistrationButtonText(event: EventResponseDto): string {
+    if (!this.canRegister(event)) {
+      return 'Iniciar sesión para inscribirse';
+    }
+    
+    if (!this.isEventAvailable(event)) {
+      return 'Sin cupo disponible';
+    }
+
+    if (this.isRegistering) {
+      return 'Procesando...';
+    }
+
+    const hasPrice = event.price && event.price > 0;
+    return hasPrice ? `Inscribirse ($${event.price})` : 'Inscribirse Gratis';
+  }
+
+  // Métodos para el modal de calificación (mantener los existentes)
   openRatingModal(event: EventResponseDto): void {
     this.selectedEventId = event.id;
     this.selectedEventName = event.name;
@@ -138,22 +276,18 @@ export class ListAllEventsComponent implements OnInit {
     this.ratingSuccess = false;
     this.ratingError = '';
     
-    // Necesario para prevenir problemas de scroll
     document.body.classList.add('modal-open');
   }
 
   closeRatingModal(): void {
     this.showRatingModal = false;
     this.selectedEventId = null;
-    
-    // Remover la clase modal-open al cerrar
     document.body.classList.remove('modal-open');
   }
 
   submitRating(): void {
     if (!this.selectedEventId) return;
     
-    // Obtener el ID del usuario actual
     const userId = this.getCurrentUserId();
     
     if (!userId) {
@@ -166,15 +300,12 @@ export class ListAllEventsComponent implements OnInit {
         this.ratingSuccess = true;
         this.ratingError = '';
         
-        // Recargar el evento para obtener la calificación actualizada
         if (this.selectedEventId) {
           this.eventService.getEventById(this.selectedEventId).subscribe({
             next: (updatedEvent) => {
-              // Actualizar el evento en la lista
               const index = this.events.findIndex(e => e.id === this.selectedEventId);
               if (index !== -1) {
                 this.events[index] = updatedEvent;
-                // También actualizar en la lista filtrada si corresponde
                 const filteredIndex = this.filteredEvents.findIndex(e => e.id === this.selectedEventId);
                 if (filteredIndex !== -1) {
                   this.filteredEvents[filteredIndex] = updatedEvent;
@@ -184,7 +315,6 @@ export class ListAllEventsComponent implements OnInit {
           });
         }
         
-        // Cerrar el modal después de un breve tiempo
         setTimeout(() => {
           this.closeRatingModal();
         }, 2000);

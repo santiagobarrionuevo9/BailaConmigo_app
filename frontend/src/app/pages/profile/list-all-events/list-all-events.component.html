@@ -1,208 +1,326 @@
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-orange">Eventos de Baile</h2>
+<!-- list-all-events.component.html -->
+<div class="container mt-4">
+  <h2 class="mb-4">Todos los Eventos</h2>
+
+  <!-- Notificaciones de inscripción -->
+  <div *ngIf="registrationSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    {{ registrationSuccess }}
+    <button type="button" class="btn-close" (click)="registrationSuccess = ''" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="registrationError" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    {{ registrationError }}
+    <button type="button" class="btn-close" (click)="registrationError = ''" aria-label="Close"></button>
   </div>
 
   <!-- Filtros -->
-  <div class="card mb-4 shadow-sm border-orange">
-    <div class="card-header bg-orange text-white">
-      <h5 class="mb-0">Filtros</h5>
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <label class="form-label">Estilo de Baile</label>
+      <select class="form-select" [(ngModel)]="selectedStyle" (change)="applyFilters()">
+        <option value="">Todos los estilos</option>
+        <option *ngFor="let style of danceStyles" [value]="style">{{ style }}</option>
+      </select>
     </div>
-    <div class="card-body">
-      <div class="row">
-        <!-- Filtro por estilos de baile -->
-        <div class="col-md-4 mb-3">
-          <label class="form-label fw-bold">Estilo de baile:</label>
-          <select class="form-select" [(ngModel)]="selectedStyle" (change)="applyFilters()">
-            <option [ngValue]="null">Todos los estilos</option>
-            <option *ngFor="let style of danceStyles" [ngValue]="style">
-                {{ style }}
-            </option>
-          </select>
-          <div *ngIf="danceStyles.length === 0" class="text-muted small mt-1">
-            Cargando estilos de baile...
-          </div>
-        </div>
-        
-        <!-- Filtro por ubicación -->
-        <div class="col-md-4 mb-3">
-          <label class="form-label fw-bold">Ubicación:</label>
-          <select class="form-select" [(ngModel)]="selectedLocation" (change)="applyFilters()">
-            <option value="">Todas las ubicaciones</option>
-            <option *ngFor="let location of locations" [value]="location">{{ location }}</option>
-          </select>
-        </div>
-        
-        <!-- Filtro por tipo de evento -->
-        <div class="col-md-4 mb-3">
-          <label class="form-label fw-bold">Tipo de evento:</label>
-          <select class="form-select" [(ngModel)]="selectedEventType" (change)="applyFilters()">
-            <option value="">Todos los tipos</option>
-            <option *ngFor="let type of eventTypes" [value]="type">{{ type }}</option>
-          </select>
-        </div>
-      </div>
-      
-      <!-- Botón para resetear filtros -->
-      <div class="text-end">
-        <button class="btn btn-outline-orange" (click)="resetFilters()">
-          <i class="bi bi-x-circle me-2"></i>Limpiar filtros
-        </button>
-        <div id="filter-notification" class="alert alert-success mt-2 d-none">
-          <i class="bi bi-check-circle me-2"></i>Filtros restablecidos correctamente
-        </div>
-      </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Ubicación</label>
+      <select class="form-select" [(ngModel)]="selectedLocation" (change)="applyFilters()">
+        <option value="">Todas las ubicaciones</option>
+        <option *ngFor="let location of locations" [value]="location">{{ location }}</option>
+      </select>
     </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Tipo de Evento</label>
+      <select class="form-select" [(ngModel)]="selectedEventType" (change)="applyFilters()">
+        <option value="">Todos los tipos</option>
+        <option *ngFor="let type of eventTypes" [value]="type">{{ type }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+      <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+        <i class="fas fa-refresh me-2"></i>Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Notificación de filtros limpiados -->
+  <div id="filter-notification" class="alert alert-info d-none">
+    <i class="fas fa-info-circle me-2"></i>
+    Filtros limpiados. Mostrando todos los eventos.
   </div>
 
   <!-- Lista de eventos -->
   <div class="row">
-    <div class="col-md-6 col-lg-4 mb-4" *ngFor="let event of filteredEvents; let i = index">
-      <div class="card h-100 shadow border-orange">
+    <div *ngFor="let event of filteredEvents; let i = index" class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">{{ event.name }}</h5>
+          <small class="opacity-75">
+            <i class="fas fa-calendar me-1"></i>
+            {{ event.dateTime | date:'dd/MM/yyyy HH:mm' }}
+          </small>
+        </div>
+
         <div class="card-body">
-          <h5 class="card-title text-orange fw-semibold">{{ event.name }}</h5>
           <p class="text-muted mb-2">
-            <i class="bi bi-calendar-event me-2 text-orange"></i>
-            {{ event.dateTime | date:'fullDate' }} - {{ event.dateTime | date:'shortTime' }}
+            <i class="fas fa-map-marker-alt me-1"></i>
+            {{ event.location }}
           </p>
-          
-          <div *ngIf="event.danceStyles?.length" class="d-flex flex-wrap gap-2 mb-2">
-            <span *ngFor="let style of event.danceStyles" class="badge bg-orange text-white shadow-sm px-3 py-2 rounded-pill">
-              {{ style }}
+
+          <p class="text-muted mb-2">
+            <i class="fas fa-tag me-1"></i>
+            {{ event.eventType }}
+          </p>
+
+          <!-- Precio -->
+          <div class="mb-2">
+            <span class="badge" [ngClass]="event.price && event.price > 0 ? 'bg-warning text-dark' : 'bg-success'">
+              <i class="fas fa-dollar-sign me-1"></i>
+              {{ event.price && event.price > 0 ? '$' + event.price : 'Gratuito' }}
             </span>
           </div>
-          
-          <p *ngIf="event.location" class="mb-2 small">
-            <i class="bi bi-geo-alt-fill text-orange me-1"></i> {{ event.location }}
-          </p>
-          
-          <p *ngIf="event.eventType" class="mb-2 small">
-            <i class="bi bi-tags-fill text-orange me-1"></i> {{ event.eventType }}
-          </p>
-          
-          <!-- Mostrar calificación promedio si existe -->
-          <div *ngIf="event.averageRating" class="mb-2 small">
-            <i class="bi bi-star-fill text-warning me-1"></i> 
-            <strong>Calificación:</strong> {{ event.averageRating | number:'1.1-1' }}/5
+
+          <!-- Capacidad -->
+          <div class="mb-2">
+            <small class="text-muted">
+              <i class="fas fa-users me-1"></i>
+              Cupo: {{ event.availableCapacity }}/{{ event.capacity }}
+            </small>
+            <div class="progress mt-1" style="height: 4px;">
+              <div 
+                class="progress-bar" 
+                [style.width.%]="(event.capacity && event.availableCapacity != null ? ((event.capacity - event.availableCapacity) / event.capacity) * 100 : 0)"
+                [ngClass]="(event.availableCapacity ?? 0) > 0 ? 'bg-success' : 'bg-danger'">
+              </div>
+            </div>
           </div>
-          
-          <div *ngIf="expandedEvents[i]" class="mt-3">
-            <p *ngIf="event.description" class="mb-3">
-              {{ event.description }}
-            </p>
-            
-            <ul class="list-group list-group-flush small">
-              <li class="list-group-item" *ngIf="event.location">
-                <i class="bi bi-geo-alt-fill text-orange me-2"></i><strong>Ubicación:</strong> {{ event.location }}
-              </li>
-              <li class="list-group-item" *ngIf="event.address">
-                <i class="bi bi-map-fill text-orange me-2"></i><strong>Dirección:</strong> {{ event.address }}
-              </li>
-              <li class="list-group-item" *ngIf="event.capacity">
-                <i class="bi bi-people-fill text-orange me-2"></i><strong>Cupo:</strong> {{ event.capacity }}
-              </li>
-              <li class="list-group-item" *ngIf="event.price !== undefined">
-                <i class="bi bi-cash-stack text-orange me-2"></i><strong>Precio:</strong> ${{ event.price }}
-              </li>
-              <li class="list-group-item">
-                <i class="bi bi-tags-fill text-orange me-2"></i><strong>Tipo:</strong> {{ event.eventType }}
-              </li>
-              <li class="list-group-item" *ngIf="event.organizerName">
-                <i class="bi bi-person-fill text-orange me-2"></i><strong>Organizador:</strong> {{ event.organizerName }}
-              </li>
+
+          <!-- Estado del evento -->
+          <span class="badge mb-2" 
+                [ngClass]="{
+                  'bg-success': event.status === 'ACTIVO',
+                  'bg-secondary': event.status === EventStatus.FINALIZADO,
+                  'bg-danger': event.status === 'CANCELADO'
+                }">
+            {{ event.status }}
+          </span>
+
+          <!-- Descripción colapsible -->
+          <div class="collapse" [ngClass]="{'show': expandedEvents[i]}" [id]="'collapse' + i">
+            <div class="card card-body mt-2 bg-light">
+              <p class="mb-2"><strong>Descripción:</strong></p>
+              <p class="small">{{ event.description }}</p>
+              
+              <div *ngIf="event.danceStyles && event.danceStyles.length > 0" class="mb-2">
+                <strong>Estilos de baile:</strong>
+                <div class="mt-1">
+                  <span *ngFor="let style of event.danceStyles" class="badge bg-secondary me-1 mb-1">
+                    {{ style.name }}
+                  </span>
+                </div>
+              </div>
+
+              <div *ngIf="event.averageRating && event.averageRating > 0" class="mb-2">
+                <strong>Calificación promedio:</strong>
+                <div class="mt-1">
+                  <span class="text-warning">
+                    <i *ngFor="let star of [1,2,3,4,5]" 
+                       class="fas" 
+                       [ngClass]="star <= event.averageRating ? 'fa-star' : 'fa-star-o'">
+                    </i>
+                  </span>
+                  <small class="text-muted ms-2">({{ event.averageRating.toFixed(1) }})</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-light">
+          <div class="d-flex justify-content-between align-items-center">
+            <!-- Botón para ver detalles -->
+            <button 
+              class="btn btn-outline-primary btn-sm" 
+              type="button" 
+              (click)="toggleExpand(i)"
+              [attr.aria-expanded]="expandedEvents[i]" 
+              [attr.aria-controls]="'collapse' + i">
+              <i class="fas" [ngClass]="expandedEvents[i] ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+              {{ expandedEvents[i] ? 'Ocultar' : 'Ver más' }}
+            </button>
+
+            <!-- Botón de inscripción -->
+            <button 
+              type="button"
+              class="btn btn-sm ms-2"
+              [ngClass]="{
+                'btn-success': canRegister(event) && isEventAvailable(event) && (!event.price || event.price === 0),
+                'btn-warning': canRegister(event) && isEventAvailable(event) && event.price && event.price > 0,
+                'btn-secondary': !canRegister(event) || !isEventAvailable(event)
+              }"
+              [disabled]="!canRegister(event) || !isEventAvailable(event) || isRegistering"
+              (click)="registrarseEvento(event)">
+              <i class="fas" 
+                 [ngClass]="{
+                   'fa-spinner fa-spin': isRegistering,
+                   'fa-user-plus': !isRegistering && canRegister(event) && isEventAvailable(event),
+                   'fa-lock': !canRegister(event),
+                   'fa-users-slash': !isEventAvailable(event)
+                 }"></i>
+              {{ getRegistrationButtonText(event) }}
+            </button>
+          </div>
+
+          <!-- Botón de calificación (solo para eventos pasados) -->
+          <div class="mt-2" *ngIf="isPastEvent(event)">
+            <button 
+              type="button" 
+              class="btn btn-outline-warning btn-sm w-100"
+              (click)="openRatingModal(event)">
+              <i class="fas fa-star me-1"></i>
+              Calificar Evento
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje cuando no hay eventos -->
+  <div *ngIf="filteredEvents.length === 0" class="text-center py-5">
+    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+    <h4 class="text-muted">No se encontraron eventos</h4>
+    <p class="text-muted">Intenta ajustar los filtros o verifica más tarde.</p>
+  </div>
+</div>
+
+<!-- Modal de Detalles de Pago -->
+<div class="modal fade" [ngClass]="{'show d-block': showPaymentModal}" 
+     *ngIf="showPaymentModal" 
+     tabindex="-1" 
+     style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">
+          <i class="fas fa-credit-card me-2"></i>
+          Completar Pago
+        </h5>
+        <button type="button" class="btn-close" (click)="closePaymentModal()"></button>
+      </div>
+      
+      <div class="modal-body" *ngIf="paymentDetails">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          {{ paymentDetails.message }}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Detalles del Evento</h6>
+            <ul class="list-unstyled">
+              <li><strong>Evento:</strong> {{ paymentDetails.eventName }}</li>
+              <li><strong>Total a pagar:</strong> ${{ paymentDetails.totalAmount }}</li>
             </ul>
           </div>
           
-          <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-outline-orange btn-sm" (click)="toggleExpand(i)">
-              <i class="bi" [ngClass]="expandedEvents[i] ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
-              {{ expandedEvents[i] ? 'Ver menos' : 'Ver más' }}
-            </button>
-            <div class="d-flex gap-2">
-              <button class="btn btn-orange flex-grow-1" (click)="registrarseEvento(event.id)">
-                <i class="bi bi-calendar-check me-2"></i>Inscribirse
-              </button>
-              <button class="btn btn-outline-warning" (click)="openRatingModal(event)">
-                <i class="bi bi-star-fill"></i> Calificar
-              </button>
-            </div>
+          <div class="col-md-6">
+            <h6>Desglose de Costos</h6>
+            <ul class="list-unstyled">
+              <li><strong>Organizador recibe:</strong> ${{ paymentDetails.organizerAmount }}</li>
+              <li><strong>Comisión de la app:</strong> ${{ paymentDetails.appFee }}</li>
+            </ul>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Mensaje cuando no hay eventos -->
-  <div class="alert alert-info" *ngIf="filteredEvents.length === 0">
-    <i class="bi bi-info-circle me-2"></i>
-    No se encontraron eventos con los criterios seleccionados.
-  </div>
-</div>
 
-<!-- Modal de calificación con implementación corregida -->
-<div class="modal fade" [ngClass]="{'show': showRatingModal}" tabindex="-1" [style.display]="showRatingModal ? 'block' : 'none'" role="dialog" aria-modal="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-orange text-white">
-        <h5 class="modal-title">Calificar evento: {{ selectedEventName }}</h5>
-        <button type="button" class="btn-close btn-close-white" (click)="closeRatingModal()" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <!-- Mensaje de éxito -->
-        <div class="alert alert-success" *ngIf="ratingSuccess">
-          <i class="bi bi-check-circle me-2"></i>
-          ¡Calificación guardada exitosamente!
+        <div class="alert alert-warning mt-3">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Importante:</strong> Al hacer clic en "Proceder al Pago", serás redirigido a Mercado Pago para completar el proceso de pago de forma segura.
         </div>
-        
-        <!-- Mensaje de error -->
-        <div class="alert alert-danger" *ngIf="ratingError">
-          <i class="bi bi-exclamation-triangle me-2"></i>
-          {{ ratingError }}
-        </div>
-        
-        <form *ngIf="!ratingSuccess">
-          <div class="mb-3">
-            <label class="form-label fw-bold">Puntuación:</label>
-            <div class="d-flex align-items-center">
-              <div class="star-rating">
-                <span *ngFor="let i of [1, 2, 3, 4, 5]" 
-                      (click)="rating.stars = i" 
-                      class="fs-3 me-1 star-item" 
-                      [class.text-warning]="i <= rating.stars"
-                      [class.text-muted]="i > rating.stars">
-                  <i class="bi" [ngClass]="i <= rating.stars ? 'bi-star-fill' : 'bi-star'"></i>
-                </span>
-              </div>
-              <span class="ms-3 fs-5">{{ rating.stars }} de 5</span>
-            </div>
-          </div>
-          
-          <div class="mb-3">
-            <label for="commentInput" class="form-label fw-bold">Comentario (opcional):</label>
-            <textarea class="form-control" 
-                      id="commentInput" 
-                      rows="3" 
-                      placeholder="Comparte tu experiencia..."
-                      [(ngModel)]="rating.comment"
-                      name="comment"></textarea>
-          </div>
-        </form>
       </div>
+      
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeRatingModal()">
+        <button type="button" class="btn btn-secondary" (click)="closePaymentModal()">
+          <i class="fas fa-times me-1"></i>
           Cancelar
         </button>
-        <button type="button" 
-                class="btn btn-orange" 
-                (click)="submitRating()" 
-                [disabled]="ratingSuccess">
-          <i class="bi bi-star-fill me-2"></i>
-          Enviar calificación
+        <button type="button" class="btn btn-warning" (click)="proceedToPayment()">
+          <i class="fas fa-credit-card me-1"></i>
+          Proceder al Pago
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Backdrop separado para el modal -->
-<div class="modal-backdrop fade" [ngClass]="{'show': showRatingModal}" *ngIf="showRatingModal"></div>
+<!-- Modal de Calificación (mantener el existente) -->
+<div class="modal fade" [ngClass]="{'show d-block': showRatingModal}" 
+     *ngIf="showRatingModal" 
+     tabindex="-1" 
+     style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-star me-2"></i>
+          Calificar Evento
+        </h5>
+        <button type="button" class="btn-close" (click)="closeRatingModal()"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div *ngIf="ratingSuccess" class="alert alert-success">
+          <i class="fas fa-check-circle me-2"></i>
+          ¡Calificación enviada exitosamente!
+        </div>
+        
+        <div *ngIf="ratingError" class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{ ratingError }}
+        </div>
+
+        <h6>{{ selectedEventName }}</h6>
+        
+        <div class="mb-3">
+          <label class="form-label">Calificación</label>
+          <div class="rating-stars">
+            <i *ngFor="let star of [1,2,3,4,5]" 
+               class="fas fa-star rating-star" 
+               [ngClass]="{'active': star <= rating.stars, 'inactive': star > rating.stars}"
+               (click)="rating.stars = star"
+               style="cursor: pointer; font-size: 1.5rem; margin-right: 0.25rem;"
+               [style.color]="star <= rating.stars ? '#ffc107' : '#e9ecef'">
+            </i>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="ratingComment" class="form-label">Comentario (opcional)</label>
+          <textarea 
+            class="form-control" 
+            id="ratingComment"
+            rows="3" 
+            [(ngModel)]="rating.comment"
+            placeholder="Comparte tu experiencia sobre este evento...">
+          </textarea>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeRatingModal()">
+          <i class="fas fa-times me-1"></i>
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-warning" (click)="submitRating()" [disabled]="ratingSuccess">
+          <i class="fas fa-star me-1"></i>
+          Enviar Calificación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
