@@ -218,17 +218,33 @@ public class EventRegistrationService {
         EventRegistration registration = registrationRepository.findByEventAndDancer(event, dancer)
                 .orElseThrow(() -> new RuntimeException("No se encontró inscripción para cancelar"));
 
-        // Si el pago fue confirmado, aquí podrías implementar lógica de reembolso
+        // Validar si ya está cancelada
+        if (registration.getStatus() == RegistrationStatus.CANCELADO) {
+            throw new RuntimeException("La inscripción ya fue cancelada anteriormente");
+        }
+
+        // Reembolso si aplica
         if (RegistrationStatus.CONFIRMADO.equals(registration.getStatus()) &&
-                "approved".equals(registration.getPaymentStatus())) {
-            // TODO: Implementar lógica de reembolso si es necesario
-            // Por ahora solo cancelamos
+                "approved".equalsIgnoreCase(registration.getPaymentStatus()) &&
+                registration.getPaymentId() != null) {
+            try {
+                mercadoPagoService.refundPayment(registration.getPaymentId(), registration.getEvent().getOrganizer().getUser().getMercadoPagoToken());
+                registration.setPaymentStatus("refunded");
+                registration.setCancelReason("Inscripción cancelada - Reembolso automático");
+            } catch (Exception e) {
+                registration.setCancelReason("Inscripción cancelada - Error en reembolso: " + e.getMessage());
+                System.err.println("Error al reembolsar pago " + registration.getPaymentId() + ": " + e.getMessage());
+            }
+        } else {
+            registration.setCancelReason(dto.getCancelReason() != null ? dto.getCancelReason() : "Inscripción cancelada");
         }
 
         // Cancelar inscripción
         registration.setStatus(RegistrationStatus.CANCELADO);
-        registration.setCancelReason(dto.getCancelReason());
         registrationRepository.save(registration);
+
+        // Notificar al usuario (opcional)
+        notificationService.sendCancelationPackage(registration);
     }
 
     /**

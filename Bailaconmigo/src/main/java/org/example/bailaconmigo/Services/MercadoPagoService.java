@@ -8,15 +8,15 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import org.example.bailaconmigo.Configs.JwtTokenUtil;
 import org.example.bailaconmigo.DTOs.MercadoPagoTokenResponse;
+import org.example.bailaconmigo.Entities.Enum.RegistrationStatus;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
 import org.example.bailaconmigo.Entities.Event;
+import org.example.bailaconmigo.Entities.EventRegistration;
 import org.example.bailaconmigo.Entities.User;
-import org.example.bailaconmigo.Repositories.DancerProfileRepository;
-import org.example.bailaconmigo.Repositories.OrganizerProfileRepository;
-import org.example.bailaconmigo.Repositories.RatingRepository;
-import org.example.bailaconmigo.Repositories.UserRepository;
+import org.example.bailaconmigo.Repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +27,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -41,6 +43,9 @@ public class MercadoPagoService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private EventRegistrationRepository registrationRepository;
 
 
     private final RestTemplate restTemplate;
@@ -282,7 +287,7 @@ public class MercadoPagoService {
                     .backUrls(backUrls)
                     .items(List.of(itemRequest))
                     .externalReference("REG_" + registrationId + "_EVENT_" + event.getId() + "_ORG_" + event.getOrganizer().getId())
-                    .notificationUrl(frontendUrl + "/api/webhooks/mercadopago")
+                    .notificationUrl(frontendUrl + "/api/mercadopago/webhook/inscription-notification")
                     .marketplaceFee(marketplaceFee) // 💰 AQUÍ está la clave - marketplace_fee
                     .build();
 
@@ -381,4 +386,133 @@ public class MercadoPagoService {
         BigDecimal appFee = calculateAppFee(eventPrice);
         return price.subtract(appFee);
     }
+
+    /**
+     * Procesa la notificación recibida de Mercado Pago.
+     * Consulta el pago por su ID y actualiza el estado de la inscripción si está aprobado.
+     */
+    @Transactional
+    public void processPaymentNotification(String paymentId) {
+        String platformAccessToken = mercadoPagoAccessToken;
+
+        String url = "https://api.mercadopago.com/v1/payments/" + paymentId + "?access_token=" + platformAccessToken;
+        ResponseEntity<Map> response;
+
+        try {
+            response = restTemplate.getForEntity(url, Map.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            // Esto es para pruebas automáticas de MercadoPago con IDs que no existen
+            logger.warn("Pago no encontrado en Mercado Pago (ID: {}): {}", paymentId, e.getMessage());
+            return; // No lanzar excepción, solo ignorar notificación inválida
+        } catch (Exception e) {
+            logger.error("Error al consultar pago con token plataforma: {}", e.getMessage(), e);
+            return;
+        }
+
+        if (response.getStatusCode() != HttpStatus.OK) {
+            logger.error("Respuesta no OK desde MercadoPago con token plataforma: {}", response.getStatusCode());
+            return;
+        }
+
+        Map<String, Object> paymentData = response.getBody();
+        String status = (String) paymentData.get("status");
+        String externalReference = (String) paymentData.get("external_reference");
+
+        if (externalReference == null) {
+            logger.warn("External reference es nulo para pago: {}", paymentId);
+            return;
+        }
+
+        Long registrationId = parseRegistrationIdFromExternalReference(externalReference);
+        Optional<EventRegistration> registrationOpt = registrationRepository.findById(registrationId);
+        if (registrationOpt.isEmpty()) {
+            logger.warn("Inscripción no encontrada con ID: {}", registrationId);
+            return;
+        }
+
+        EventRegistration registration = registrationOpt.get();
+
+        String organizerToken = registration.getEvent().getOrganizer().getUser().getMercadoPagoToken();
+        url = "https://api.mercadopago.com/v1/payments/" + paymentId + "?access_token=" + organizerToken;
+
+        try {
+            response = restTemplate.getForEntity(url, Map.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            logger.warn("Pago no encontrado con token organizador (ID: {}): {}", paymentId, e.getMessage());
+            return;
+        } catch (Exception e) {
+            logger.error("Error al consultar pago con token organizador: {}", e.getMessage(), e);
+            return;
+        }
+
+        if (response.getStatusCode() != HttpStatus.OK) {
+            logger.error("Respuesta no OK desde MercadoPago con token organizador: {}", response.getStatusCode());
+            return;
+        }
+
+        paymentData = response.getBody();
+        status = (String) paymentData.get("status");
+
+        if ("approved".equalsIgnoreCase(status)) {
+            registration.setPaymentStatus("APPROVED");
+            registration.setStatus(RegistrationStatus.CONFIRMADO);
+            registration.setPaymentId(paymentId);
+            registration.setPaymentMethod((String) paymentData.get("payment_method_id"));
+            registration.setPaymentDate(LocalDateTime.now());
+            registrationRepository.save(registration);
+
+            emailService.sendRegistrationConfirmationToDancer(registration);
+            emailService.sendRegistrationNotificationToOrganizer(registration);
+        } else {
+            logger.info("Pago recibido pero no aprobado (ID: {}, status: {})", paymentId, status);
+        }
+    }
+
+
+    private Long parseRegistrationIdFromExternalReference(String externalReference) {
+        try {
+            // Extraer el número entre "REG_" y "_EVENT"
+            int start = externalReference.indexOf("REG_") + 4;
+            int end = externalReference.indexOf("_EVENT");
+            String idStr = externalReference.substring(start, end);
+            return Long.parseLong(idStr);
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing externalReference: " + externalReference, e);
+        }
+    }
+
+    public void refundPayment(String paymentId, String organizerAccessToken) {
+        String url = "https://api.mercadopago.com/v1/payments/" + paymentId + "/refunds";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(organizerAccessToken); // token del organizador
+
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    Map.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                logger.info("Reembolso exitoso para el pago con ID {}", paymentId);
+            } else {
+                logger.warn("Error al intentar reembolsar el pago. Status: {}", response.getStatusCode());
+            }
+        } catch (HttpClientErrorException e) {
+            logger.error("Error HTTP al hacer reembolso: {}", e.getResponseBodyAsString());
+            throw new RuntimeException("No se pudo realizar el reembolso: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error general al hacer reembolso: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al intentar reembolsar el pago: " + e.getMessage(), e);
+        }
+    }
+
+
+
+
 }

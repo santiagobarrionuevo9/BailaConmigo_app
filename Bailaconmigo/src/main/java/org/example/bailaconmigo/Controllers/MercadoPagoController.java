@@ -105,4 +105,30 @@ public class MercadoPagoController {
                     .body(Map.of("error", "Error procesando la notificación: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/webhook/inscription-notification")
+    public ResponseEntity<String> handleMercadoPagoNotification(@RequestBody Map<String, Object> payload) {
+        try {
+            // Mercado Pago envía el campo "type" y "data" en el body del webhook
+            String type = (String) payload.get("type");
+            Map<String, Object> data = (Map<String, Object>) payload.get("data");
+
+            if ("payment".equalsIgnoreCase(type) && data != null) {
+                String paymentId = String.valueOf(data.get("id"));
+
+                // Procesar el pago recibido
+                mercadoService.processPaymentNotification(paymentId);
+
+                return ResponseEntity.ok("Notification processed");
+            } else {
+                return ResponseEntity.badRequest().body("Unsupported notification type");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing notification: " + e.getMessage());
+        }
+    }
 }
+

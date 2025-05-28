@@ -426,4 +426,41 @@ public class EmailService {
         }
     }
 
+    public void sendCancelationPackage(EventRegistration registration) {
+        User dancer = registration.getDancer();
+        Event event = registration.getEvent();
+
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(dancer.getEmail());
+            helper.setSubject("Cancelación del evento \"" + event.getName() + "\" y reembolso");
+
+            String htmlContent = """
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+          <h2 style="color: #dc3545;">Evento Cancelado</h2>
+          <p>Hola <strong>%s</strong>,</p>
+          <p>Lamentamos informarte que el evento <strong>"%s"</strong> ha sido cancelado por el organizador.</p>
+          <p>Se realizará el reembolso correspondiente a la brevedad.</p>
+          <p>Si tenés alguna consulta, podés responder este correo o contactar al organizador directamente.</p>
+          <p style="color: #888;">Gracias por tu comprensión,</p>
+          <p><strong>El equipo de Baila Conmigo</strong></p>
+          <hr />
+          <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+        </body>
+        </html>
+        """.formatted(dancer.getFullName(), event.getName());
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+
+        } catch (MessagingException e) {
+            System.out.println("Error al enviar el correo de cancelación y reembolso al bailarín: " + e.getMessage());
+        }
+    }
+
+
+
 }
