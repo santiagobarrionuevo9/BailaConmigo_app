@@ -3,6 +3,34 @@
       <h2 class="text-center mb-4">Crear cuenta</h2>
       <p class="text-center text-muted mb-3">💃 ¡Un paso más cerca de la pista perfecta! 🕺</p>
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+        <div class="mb-3">
+          <label for="role" class="form-label">Rol</label>
+          <select
+            id="role"
+            formControlName="role"
+            class="form-select"
+            [ngClass]="{'is-invalid': registerForm.get('role')?.invalid && registerForm.get('role')?.touched}"
+          >
+            <option value="">Selecciona un rol</option>
+            <option value="BAILARIN">Bailarin</option>
+            <option value="ORGANIZADOR">Organizador</option>
+          </select>
+          <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="invalid-feedback">
+            El rol es obligatorio.
+          </div>
+        </div>
+
+        <div *ngIf="registerForm.get('role')?.value === 'ORGANIZADOR'" class="form-check mb-3">
+        <input
+          type="checkbox"
+          class="form-check-input"
+          id="isAcademy"
+          (change)="onAcademyToggle($event)"
+        />
+        <label class="form-check-label" for="isAcademy">¿Es una academia o empresa?</label>
+      </div>
+
         <div class="mb-3">
           <label for="fullName" class="form-label">Nombre completo</label>
           <input
@@ -45,37 +73,54 @@
           </div>
         </div>
   
-        <div class="mb-3">
+        <!-- Género (solo si NO es academia y NO es organizador que marcó academia) -->
+        <div class="mb-3" *ngIf="!isOrganizerAndAcademy">
           <label for="gender" class="form-label">Género</label>
           <select
             id="gender"
             formControlName="gender"
             class="form-select"
-            [ngClass]="{'is-invalid': registerForm.get('gender')?.invalid && registerForm.get('gender')?.touched}"
+            [ngClass]="{
+              'is-invalid': registerForm.get('gender')?.invalid &&
+                            registerForm.get('gender')?.touched
+            }"
           >
-            <option value="">Selecciona tu género</option>
-            <option value="MALE">Masculino</option>
-            <option value="FEMALE">Femenino</option>
-            <option value="OTHER">Otro</option>
+            <option value="" disabled>Selecciona tu género</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMENINO">Femenino</option>
+            <option value="OTRO">Otro</option>
           </select>
-          <div *ngIf="registerForm.get('gender')?.invalid && registerForm.get('gender')?.touched" class="invalid-feedback">
+          <div
+            *ngIf="registerForm.get('gender')?.invalid &&
+                  registerForm.get('gender')?.touched"
+            class="invalid-feedback"
+          >
             El género es obligatorio.
           </div>
         </div>
   
-        <div class="mb-3">
+        <!-- Fecha de nacimiento (solo si NO es academia y NO es organizador que marcó academia) -->
+        <div class="mb-3" *ngIf="!isOrganizerAndAcademy">
           <label for="birthdate" class="form-label">Fecha de nacimiento</label>
           <input
             id="birthdate"
             formControlName="birthdate"
             type="date"
             class="form-control"
-            [ngClass]="{'is-invalid': registerForm.get('birthdate')?.invalid && registerForm.get('birthdate')?.touched}"
+            [ngClass]="{
+              'is-invalid': registerForm.get('birthdate')?.invalid &&
+                            registerForm.get('birthdate')?.touched
+            }"
           />
-          <div *ngIf="registerForm.get('birthdate')?.invalid && registerForm.get('birthdate')?.touched" class="invalid-feedback">
+          <div
+            *ngIf="registerForm.get('birthdate')?.invalid &&
+                  registerForm.get('birthdate')?.touched"
+            class="invalid-feedback"
+          >
             La fecha de nacimiento es obligatoria.
           </div>
         </div>
+
   
         <div class="mb-3">
         <label for="countryId" class="form-label">País</label>
@@ -114,41 +159,23 @@
           La ciudad es obligatoria.
         </div>
       </div>
-
-  
-        <div class="mb-3">
-          <label for="role" class="form-label">Rol</label>
-          <select
-            id="role"
-            formControlName="role"
-            class="form-select"
-            [ngClass]="{'is-invalid': registerForm.get('role')?.invalid && registerForm.get('role')?.touched}"
-          >
-            <option value="">Selecciona un rol</option>
-            <option value="BAILARIN">Bailarin</option>
-            <option value="ORGANIZADOR">Organizador</option>
-          </select>
-          <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="invalid-feedback">
-            El rol es obligatorio.
-          </div>
+      
+      <div class="mb-3" *ngIf="!isOrganizerAndAcademy">
+        <label for="subscriptionType" class="form-label">Tipo de suscripción</label>
+        <select
+          id="subscriptionType"
+          formControlName="subscriptionType"
+          class="form-select"
+          [ngClass]="{'is-invalid': registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched}"
+        >
+          <option value="">Selecciona una suscripción</option>
+          <option value="BASICO">Básico</option>
+          <option value="PRO">Pro</option>
+        </select>
+        <div *ngIf="registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched" class="invalid-feedback">
+          El tipo de suscripción es obligatorio.
         </div>
-  
-        <div class="mb-3">
-          <label for="subscriptionType" class="form-label">Tipo de suscripción</label>
-          <select
-            id="subscriptionType"
-            formControlName="subscriptionType"
-            class="form-select"
-            [ngClass]="{'is-invalid': registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched}"
-          >
-            <option value="">Selecciona una suscripción</option>
-            <option value="BASICO">Basico</option>
-            <option value="PRO">Pro</option>
-          </select>
-          <div *ngIf="registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched" class="invalid-feedback">
-            El tipo de suscripción es obligatorio.
-          </div>
-        </div>
+      </div>
   
         <button type="submit" class="btn btn-success w-100">
           Registrarse
@@ -165,4 +192,3 @@
       </form>
     </div>
   </div>
-  

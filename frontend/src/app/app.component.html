@@ -39,6 +39,9 @@
         <li class="nav-item" *ngIf="userRole === 'ORGANIZADOR'">
           <a class="nav-link" routerLink="/events" *ngIf="isLoggedIn">Eventos</a>
         </li>
+        <li class="nav-item" *ngIf="userRole === 'ORGANIZADOR'">
+          <a class="nav-link" routerLink="/profile-organizer" *ngIf="isLoggedIn">Perfil</a>
+        </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/login" *ngIf="!isLoggedIn">Login</a>
         </li>

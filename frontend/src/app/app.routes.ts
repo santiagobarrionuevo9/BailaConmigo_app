@@ -19,6 +19,7 @@ import { UpgradeProComponent } from './pages/mercadopago/upgrade-pro/upgrade-pro
 import { FaqPageComponent } from './shared/components/faq-page/faq-page.component';
 import { TermsComponent } from './shared/components/terms/terms.component';
 import { PrivacyComponent } from './shared/components/privacy/privacy.component';
+import { OrganizerComponent } from './pages/event/organizer/organizer.component';
 
 
 export const routes: Routes = [
@@ -42,5 +43,6 @@ export const routes: Routes = [
   {path: 'upgrade-pro', component: UpgradeProComponent},
   { path: 'faq', component: FaqPageComponent },
   { path: 'terminos', component: TermsComponent },
-  { path: 'privacidad', component: PrivacyComponent }
+  { path: 'privacidad', component: PrivacyComponent },
+  {path: 'profile-organizer', component: OrganizerComponent}
   ];

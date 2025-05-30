@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Role } from '../../../models/role';
 import { SubscriptionType } from '../../../models/subscription-type';
@@ -18,7 +18,7 @@ import { LocationService } from '../../../services/location.service';
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   registerForm: FormGroup;
   roles = Object.values(Role);
   subscriptionTypes = Object.values(SubscriptionType);
@@ -26,7 +26,7 @@ export class RegisterComponent {
   cities: City[] = [];
   errorMessage: string = '';
   successMessage: string = '';
-
+  isOrganizerAndAcademy: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -35,6 +35,7 @@ export class RegisterComponent {
     private locationService: LocationService
   ) {
     this.registerForm = this.fb.group({
+      role: ['', Validators.required],
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -42,16 +43,24 @@ export class RegisterComponent {
       birthdate: ['', Validators.required],
       countryId: ['', Validators.required],
       cityId: ['', Validators.required],
-      role: ['', Validators.required],
-      subscriptionType: ['', Validators.required]
+      subscriptionType: ['', Validators.required],
+      isAcademy: [false]
     });
 
+    this.registerForm.get('role')?.valueChanges.subscribe((role) => {
+      this.updateFieldsForRole(role);
+    });
+
+    this.registerForm.get('isAcademy')?.valueChanges.subscribe((isAcademy) => {
+      if (this.registerForm.get('role')?.value === 'ORGANIZADOR') {
+        this.setOrganizerAcademyDefaults(isAcademy);
+      }
+    });
   }
 
   ngOnInit(): void {
-  this.loadCountries();
+    this.loadCountries();
   }
-
 
   loadCountries(): void {
     this.locationService.getAllCountries().subscribe({
@@ -73,11 +82,46 @@ export class RegisterComponent {
     }
   }
 
+  updateFieldsForRole(role: string): void {
+    if (role === 'ORGANIZADOR') {
+      this.registerForm.get('subscriptionType')?.setValue('BASICO');
+      this.registerForm.get('subscriptionType')?.disable();
+    } else {
+      this.registerForm.get('subscriptionType')?.enable();
+      this.isOrganizerAndAcademy = false; // Reset cuando no es organizador
+    }
+
+    const isAcademy = this.registerForm.get('isAcademy')?.value;
+    this.setOrganizerAcademyDefaults(isAcademy);
+  }
+
+  setOrganizerAcademyDefaults(isAcademy: boolean): void {
+    if (this.registerForm.get('role')?.value !== 'ORGANIZADOR') return;
+
+    if (isAcademy) {
+      // Para academias: género "OTRO" y fecha que garantice mayoría de edad
+      const eighteenYearsAgo = new Date();
+      eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+      const formattedDate = eighteenYearsAgo.toISOString().split('T')[0];
+
+      this.registerForm.patchValue({
+        birthdate: formattedDate,
+        gender: 'OTRO'
+      });
+    } else {
+      // Para organizadores individuales, limpiar los campos para que puedan elegir
+      this.registerForm.patchValue({
+        birthdate: '',
+        gender: ''
+      });
+    }
+  }
+
   onSubmit(): void {
     if (this.registerForm.invalid) return;
-  
+
     const registerRequest = this.registerForm.value;
-  
+
     this.authService.register(registerRequest).subscribe({
       next: () => {
         Swal.fire({
@@ -102,5 +146,48 @@ export class RegisterComponent {
       }
     });
   }
-  
+
+  onRoleChange(): void {
+    const role = this.registerForm.get('role')?.value;
+    if (role !== 'ORGANIZADOR') {
+      this.isOrganizerAndAcademy = false;
+      this.registerForm.get('subscriptionType')?.enable();
+      this.registerForm.get('birthdate')?.enable();
+      this.registerForm.get('gender')?.enable();
+    }
+  }
+
+  onAcademyToggle(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.isOrganizerAndAcademy = checked;
+
+    if (checked && this.registerForm.get('role')?.value === 'ORGANIZADOR') {
+      // Para academias: setear valores automáticos
+      const eighteenYearsAgo = new Date();
+      eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+      const formattedDate = eighteenYearsAgo.toISOString().split('T')[0];
+
+      this.registerForm.patchValue({
+        subscriptionType: 'BASICO',
+        birthdate: formattedDate,
+        gender: 'OTRO'
+      });
+
+      // Deshabilitar campos que se setean automáticamente
+      this.registerForm.get('subscriptionType')?.disable();
+      this.registerForm.get('birthdate')?.disable();
+      this.registerForm.get('gender')?.disable();
+    } else {
+      // Cuando se desmarca academia, habilitar los campos
+      this.registerForm.get('subscriptionType')?.enable();
+      this.registerForm.get('birthdate')?.enable();
+      this.registerForm.get('gender')?.enable();
+      
+      // Limpiar los valores para que el usuario pueda elegir
+      this.registerForm.patchValue({
+        birthdate: '',
+        gender: ''
+      });
+    }
+  }
 }
