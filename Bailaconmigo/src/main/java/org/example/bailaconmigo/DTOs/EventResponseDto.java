@@ -14,7 +14,15 @@ public class EventResponseDto {
     private String name;
     private String description;
     private LocalDateTime dateTime;
-    private String location;
+    // Campos para ubicación
+    private Long cityId;
+    private String cityName;
+    private Long countryId;
+    private String countryName;
+
+    // Campo deprecated para compatibilidad (opcional)
+    @Deprecated
+    private String location; // Mantener temporalmente para compatibilidad
     private String address;
     private Integer capacity;
     private Double price;

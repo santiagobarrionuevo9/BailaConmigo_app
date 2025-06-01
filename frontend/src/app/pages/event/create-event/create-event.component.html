@@ -24,8 +24,41 @@
       </div>
 
       <div class="mb-3">
-        <label for="location" class="form-label">Lugar</label>
-        <input type="text" id="location" class="form-control" formControlName="location" placeholder="Ej: Salón Central" />
+        <label for="countryId" class="form-label">País</label>
+        <select
+          id="countryId"
+          formControlName="countryId"
+          class="form-select"
+          (change)="onCountryChange()"
+          [ngClass]="{'is-invalid': form.get('countryId')?.invalid && form.get('countryId')?.touched}"
+        >
+          <option value="">Selecciona un país</option>
+          <option *ngFor="let country of countries" [value]="country.id">
+            {{ country.name }}
+          </option>
+        </select>
+        <div *ngIf="form.get('countryId')?.invalid && form.get('countryId')?.touched" class="invalid-feedback">
+          El país es obligatorio.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="cityId" class="form-label">Ciudad</label>
+        <select
+          id="cityId"
+          formControlName="cityId"
+          class="form-select"
+          [disabled]="!cities.length"
+          [ngClass]="{'is-invalid': form.get('cityId')?.invalid && form.get('cityId')?.touched}"
+        >
+          <option value="">Selecciona una ciudad</option>
+          <option *ngFor="let city of cities" [value]="city.id">
+            {{ city.name }}
+          </option>
+        </select>
+        <div *ngIf="form.get('cityId')?.invalid && form.get('cityId')?.touched" class="invalid-feedback">
+          La ciudad es obligatoria.
+        </div>
       </div>
 
       <div class="mb-3">

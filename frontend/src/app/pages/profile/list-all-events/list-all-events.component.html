@@ -26,7 +26,7 @@
     </div>
 
     <div class="col-md-3">
-      <label class="form-label">Ubicación</label>
+      <label class="form-label">Pais</label>
       <select class="form-select" [(ngModel)]="selectedLocation" (change)="applyFilters()">
         <option value="">Todas las ubicaciones</option>
         <option *ngFor="let location of locations" [value]="location">{{ location }}</option>
@@ -67,11 +67,7 @@
         </div>
 
         <div class="card-body">
-          <p class="text-muted mb-2">
-            <i class="fas fa-map-marker-alt me-1"></i>
-            {{ event.location }}
-          </p>
-
+          
           <p class="text-muted mb-2">
             <i class="fas fa-tag me-1"></i>
             {{ event.eventType }}

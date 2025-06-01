@@ -1,6 +1,7 @@
 package org.example.bailaconmigo.Controllers;
 
 import org.example.bailaconmigo.DTOs.*;
+import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -90,4 +91,58 @@ public class EventController {
                     .body("Error al calificar el evento: " + e.getMessage());
         }
     }
+
+    @GetMapping("/type")
+    public ResponseEntity<?> getEventsByType(@RequestParam EventType type) {
+        try {
+            List<EventResponseDto> events = eventService.getEventsByType(type);
+            return ResponseEntity.ok(events);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener eventos por tipo: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/city/{cityId}")
+    public ResponseEntity<?> getEventsByCity(@PathVariable Long cityId) {
+        try {
+            List<EventResponseDto> events = eventService.getEventsByCity(cityId);
+            return ResponseEntity.ok(events);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener eventos por ciudad: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/country/{countryId}")
+    public ResponseEntity<?> getEventsByCountry(@PathVariable Long countryId) {
+        try {
+            List<EventResponseDto> events = eventService.getEventsByCountry(countryId);
+            return ResponseEntity.ok(events);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener eventos por país: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/location")
+    public ResponseEntity<?> getEventsByCityAndCountry(@RequestParam Long cityId,
+                                                       @RequestParam Long countryId) {
+        try {
+            List<EventResponseDto> events = eventService.getEventsByCityAndCountry(cityId, countryId);
+            return ResponseEntity.ok(events);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener eventos por ciudad y país: " + e.getMessage());
+        }
+    }
+
 }

@@ -8,6 +8,9 @@ import { EventResponseDto } from '../../../models/eventresponse';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../../services/auth.service';
+import { Country } from '../../../models/Country';
+import { City } from '../../../models/City';
+import { LocationService } from '../../../services/location.service';
 
 @Component({
   selector: 'app-edit-event',
@@ -22,6 +25,9 @@ export class EditEventComponent implements OnInit {
   availableDanceStyles: string[] = [];
   selectedStyles: string[] = [];
   originalEvent?: EventResponseDto;
+  countries: Country[] = [];
+  cities: City[] = [];
+
 
   constructor(
     private fb: FormBuilder,
@@ -29,10 +35,12 @@ export class EditEventComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private userContext: UserContextService,
-    private authService: AuthService
+    private authService: AuthService,
+    private locationService: LocationService
   ) {}
 
   ngOnInit(): void {
+    this.loadCountries();
     this.eventId = Number(this.route.snapshot.paramMap.get('id'));
 
     this.form = this.fb.group({
@@ -40,6 +48,8 @@ export class EditEventComponent implements OnInit {
       description: [''],
       dateTime: ['', Validators.required],
       location: [''],
+      countryId: [null, Validators.required],
+      cityId: [null, Validators.required],
       address: [''],
       capacity: [1, [Validators.min(0)]],
       price: [0, [Validators.min(0)]],
@@ -71,9 +81,10 @@ export class EditEventComponent implements OnInit {
           name: event.name,
           description: event.description || '',
           dateTime: event.dateTime,
-          location: event.location || '',
           address: event.address || '',
           capacity: event.capacity || 0,
+          countryId: event.countryId || null,
+          cityId: event.cityId || null,
           price: event.price || 0,
           eventType: event.eventType || 'CLASE',
           danceStyles: this.selectedStyles,
@@ -100,12 +111,13 @@ export class EditEventComponent implements OnInit {
       name: this.form.value.name,
       description: this.form.value.description,
       dateTime: this.form.value.dateTime,
-      location: this.form.value.location,
       address: this.form.value.address,
       capacity: this.form.value.capacity,
       price: this.form.value.price,
       danceStyles: this.selectedStyles,
-      additionalInfo: this.form.value.additionalInfo
+      additionalInfo: this.form.value.additionalInfo,
+      countryId: this.form.value.countryId,
+      cityId: this.form.value.cityId
     };
     
     const organizerId = this.userContext.userId!;
@@ -142,6 +154,27 @@ export class EditEventComponent implements OnInit {
     // Actualizar el campo oculto en el formulario
     this.form.patchValue({ danceStyles: [...this.selectedStyles] });
   }
+
+  loadCountries(): void {
+    this.locationService.getAllCountries().subscribe({
+      next: (data) => this.countries = data,
+      error: () => Swal.fire('Error', 'No se pudieron cargar los países.', 'error')
+    });
+  }
+
+  onCountryChange(): void {
+    const selectedCountryId = this.form.get('countryId')?.value;
+    if (selectedCountryId) {
+      this.locationService.getCitiesByCountry(selectedCountryId).subscribe({
+        next: (data) => this.cities = data,
+        error: () => Swal.fire('Error', 'No se pudieron cargar las ciudades.', 'error')
+      });
+    } else {
+      this.cities = [];
+      this.form.get('cityId')?.setValue('');
+    }
+  }
+
 
   // Método para eliminar un estilo de baile
   removeDanceStyle(index: number): void {

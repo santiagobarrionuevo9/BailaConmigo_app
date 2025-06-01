@@ -272,7 +272,7 @@ public class EmailService {
                     dancer.getFullName(),
                     event.getName(),
                     event.getDateTime(),
-                    event.getLocation(),
+                    event.getAddress(),
                     event.getAddress()
             );
 
@@ -371,7 +371,7 @@ public class EmailService {
                         event.getName(),
                         updateDetails,
                         event.getDateTime(),
-                        event.getLocation(),
+                        event.getAddress(),
                         event.getAddress()
                 );
 

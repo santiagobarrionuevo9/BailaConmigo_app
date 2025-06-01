@@ -1,0 +1,14 @@
+<div class="modal-backdrop" *ngIf="visible">
+  <div class="modal-content p-4">
+    <h5 class="mb-3 text-orange">Cancelar evento</h5>
+    
+    <p class="mb-2">Por favor, ingresa el motivo de la cancelación:</p>
+
+    <textarea [(ngModel)]="reason" rows="3" class="form-control mb-3" placeholder="Motivo de la cancelación..."></textarea>
+
+    <div class="text-end">
+      <button class="btn btn-outline-secondary me-2" (click)="onClose()">Cerrar</button>
+      <button class="btn btn-orange" [disabled]="!reason.trim()" (click)="onSubmit()">Confirmar cancelación</button>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EventService } from '../../../services/event.service';
 import { CreateEventRequestDto } from '../../../models/createeventrequest';
@@ -7,6 +7,9 @@ import { UserContextService } from '../../../services/user-context.service';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../../services/auth.service';
 import { Router, RouterLink } from '@angular/router';
+import { Country } from '../../../models/Country';
+import { City } from '../../../models/City';
+import { LocationService } from '../../../services/location.service';
 
 @Component({
   selector: 'app-create-event',
@@ -15,17 +18,21 @@ import { Router, RouterLink } from '@angular/router';
   templateUrl: './create-event.component.html',
   styleUrl: './create-event.component.css'
 })
-export class CreateEventComponent {
+export class CreateEventComponent implements OnInit {
   form: FormGroup;
   availableDanceStyles: string[] = [];
   selectedStyles: string[] = [];
+  countries: Country[] = [];
+  cities: City[] = [];
   
-  constructor(private fb: FormBuilder, private eventService: EventService,private router: Router, private userContext: UserContextService, private authService: AuthService) {
+  constructor(private fb: FormBuilder,private locationService: LocationService, private eventService: EventService,private router: Router, private userContext: UserContextService, private authService: AuthService) {
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
       dateTime: ['', Validators.required],
-      location: [''],
+      
+      countryId: ['', Validators.required],
+      cityId: ['', Validators.required],
       address: [''],
       capacity: [0],
       price: [0],
@@ -38,9 +45,30 @@ export class CreateEventComponent {
   }
 
   ngOnInit(): void {
+    this.loadCountries();
     this.authService.getDanceStyles().subscribe(styles => {
       this.availableDanceStyles = styles;
     });
+  }
+
+  loadCountries(): void {
+    this.locationService.getAllCountries().subscribe({
+      next: (data) => this.countries = data,
+      error: () => Swal.fire('Error', 'No se pudieron cargar los países.', 'error')
+    });
+  }
+
+  onCountryChange(): void {
+    const selectedCountryId = this.form.get('countryId')?.value;
+    if (selectedCountryId) {
+      this.locationService.getCitiesByCountry(selectedCountryId).subscribe({
+        next: (data) => this.cities = data,
+        error: () => Swal.fire('Error', 'No se pudieron cargar las ciudades.', 'error')
+      });
+    } else {
+      this.cities = [];
+      this.form.get('cityId')?.setValue('');
+    }
   }
   
   

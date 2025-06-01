@@ -7,11 +7,12 @@ import { UserContextService } from '../../../services/user-context.service';
 import { Router, RouterLink } from '@angular/router';
 import { CancelEventRequestDto } from '../../../models/CancelEventRequestDto';
 import { EventStatus } from '../../../models/EventStatus';
+import { CanceleventComponent } from "../cancelevent/cancelevent.component";
 
 @Component({
   selector: 'app-organizer-event',
   standalone: true,
-  imports: [  CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, CanceleventComponent],
   templateUrl: './organizer-event.component.html',
   styleUrl: './organizer-event.component.css'
 })
@@ -20,6 +21,8 @@ export class OrganizerEventComponent implements OnInit {
   events: EventResponseDto[] = [];
   organizerId!: number;
   expandedEvents: boolean[] = [];
+  cancelPromptVisible = false;
+  cancelEventIdToProcess!: number;
   
   constructor(private eventService: EventService,private userContext: UserContextService,private router: Router) {}
   
@@ -41,25 +44,28 @@ export class OrganizerEventComponent implements OnInit {
     this.router.navigate(['/edit-event', eventId]);
   }
 
-  // Cancelar evento
+  
+
   onCancelEvent(eventId: number): void {
-    const reason = prompt('Motivo de la cancelación:');
-    if (!reason) return;
-
-    const organizerId = this.userContext.userId!;
-    const dto: CancelEventRequestDto = { cancellationReason: reason };
-
-    this.eventService.cancelEvent(eventId, organizerId, dto).subscribe({
-      next: () => {
-        alert('Evento cancelado correctamente.');
-        // Recargar eventos
-        this.ngOnInit();
-      },
-      error: err => {
-      const message = err?.error?.message || err?.message || 'Ocurrió un error al cancelar el evento.';
-      alert('Error al cancelar el evento: ' + message);
-    }
-
-    });
+  this.cancelEventIdToProcess = eventId;
+  this.cancelPromptVisible = true;
   }
+
+confirmCancel(reason: string): void {
+  const dto: CancelEventRequestDto = { cancellationReason: reason };
+  const organizerId = this.userContext.userId!;
+
+  this.eventService.cancelEvent(this.cancelEventIdToProcess, organizerId, dto).subscribe({
+    next: () => {
+      this.cancelPromptVisible = false;
+      this.ngOnInit(); // recargar
+    },
+    error: err => {
+      const message = err?.error?.message || 'Ocurrió un error al cancelar el evento.';
+      // Mostrar error personalizado si lo deseas
+      alert('Error: ' + message);
+      this.cancelPromptVisible = false;
+    }
+  });
+}
 }

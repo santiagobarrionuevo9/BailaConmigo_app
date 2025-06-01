@@ -15,7 +15,13 @@ public class EditEventRequestDto {
 
     private LocalDateTime dateTime;
 
-    private String location;
+    // Campos para ubicación
+    private Long cityId;
+    private Long countryId;
+
+    // Campo deprecated para compatibilidad (opcional)
+    @Deprecated
+    private String location; // Mantener temporalmente para compatibilidad
 
     private Integer capacity;
 

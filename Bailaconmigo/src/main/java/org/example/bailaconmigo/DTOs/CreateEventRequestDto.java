@@ -12,7 +12,7 @@ public class CreateEventRequestDto {
     private String name;
     private String description;
     private LocalDateTime dateTime;
-    private String location;
+
     private String address;
     private Integer capacity;
     private Double price;
@@ -20,4 +20,12 @@ public class CreateEventRequestDto {
     private String additionalInfo;
     private List<String> mediaUrls;
     private EventType eventType;
+
+    // Campos para ubicación
+    private Long cityId;
+    private Long countryId;
+
+    // Campos deprecated para compatibilidad (opcional)
+    @Deprecated
+    private String location; // Mantener temporalmente para compatibilidad
 }

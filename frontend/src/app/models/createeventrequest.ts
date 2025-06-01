@@ -2,7 +2,9 @@ export interface CreateEventRequestDto {
     name: string;
     description?: string;
     dateTime: string; // formato ISO: '2025-05-01T19:00'
-    location?: string;
+    
+    countryId: number;
+    cityId: number;
     address?: string;
     capacity?: number;
     price?: number;

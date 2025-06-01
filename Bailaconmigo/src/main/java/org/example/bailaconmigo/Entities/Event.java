@@ -33,8 +33,6 @@ public class Event {
 
     private LocalDateTime dateTime;
 
-    private String location;
-
     private String address;
 
     private Integer capacity;
@@ -61,6 +59,16 @@ public class Event {
     @Column(name = "status")
     private EventStatus status = EventStatus.ACTIVO;
 
+    // Relación con City
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id")
+    private City city;
+
+    // Relación con Country
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id")
+    private Country country;
+
     // Organizador que crea el evento
     @ManyToOne
     @JoinColumn(name = "organizer_id", nullable = false)
@@ -77,6 +85,28 @@ public class Event {
     // Inscripciones al evento
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventRegistration> registrations = new ArrayList<>();
+
+    // Métodos helper para obtener nombres (backward compatibility)
+    public String getCityName() {
+        return city != null ? city.getName() : null;
+    }
+
+    public String getCountryName() {
+        return country != null ? country.getName() : null;
+    }
+
+    // Métodos helper para establecer nombres (si necesitas mantener compatibilidad con código existente)
+    @Deprecated
+    public void setCityName(String cityName) {
+        // Este método se mantiene para compatibilidad pero se recomienda usar setCity()
+        // La lógica real debe manejarse en el servicio buscando la City por nombre
+    }
+
+    @Deprecated
+    public void setCountryName(String countryName) {
+        // Este método se mantiene para compatibilidad pero se recomienda usar setCountry()
+        // La lógica real debe manejarse en el servicio buscando el Country por nombre
+    }
 
     // Método auxiliar para obtener el promedio de estrellas
     public double getAverageRating() {
@@ -102,6 +132,4 @@ public class Event {
     public boolean hasAvailableCapacity() {
         return getAvailableCapacity() > 0;
     }
-
-
 }

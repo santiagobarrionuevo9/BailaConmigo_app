@@ -5,7 +5,10 @@ export interface EventResponseDto {
   name: string;
   description?: string;
   dateTime: string;
-  location: string;
+  countryId: number;
+  cityId: number;
+  cityName?: string; // Asumiendo que el backend devuelve el nombre de la ciudad
+  countryName?: string; // Asumiendo que el backend devuelve el nombre del país
   address?: string;
   capacity?: number;
   price?: number;

@@ -268,7 +268,7 @@ public class MercadoPagoService {
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .id(event.getId().toString())
                     .title("Inscripción a " + event.getName())
-                    .description("Evento de baile - " + event.getLocation())
+                    .description("Evento de baile - " + event.getAddress())
                     .categoryId("services")
                     .quantity(1)
                     .currencyId("ARS")
@@ -322,7 +322,7 @@ public class MercadoPagoService {
             List<Map<String, Object>> items = new ArrayList<>();
             Map<String, Object> item = new HashMap<>();
             item.put("title", "Inscripción a " + event.getName());
-            item.put("description", "Evento de baile - " + event.getLocation());
+            item.put("description", "Evento de baile - " + event.getAddress());
             item.put("quantity", 1);
             item.put("currency_id", "ARS");
             item.put("unit_price", eventPrice);

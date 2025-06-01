@@ -31,6 +31,12 @@ public class EventService {
     private OrganizerProfileRepository organizerProfileRepository;
 
     @Autowired
+    private CityRepository cityRepository;
+
+    @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
     private EmailService emailService;
 
     /**
@@ -51,7 +57,6 @@ public class EventService {
         event.setName(dto.getName());
         event.setDescription(dto.getDescription());
         event.setDateTime(dto.getDateTime());
-        event.setLocation(dto.getLocation());
         event.setAddress(dto.getAddress());
         event.setCapacity(dto.getCapacity());
         event.setPrice(dto.getPrice());
@@ -61,6 +66,19 @@ public class EventService {
         event.setOrganizer(organizerProfile);
         event.setStatus(EventStatus.ACTIVO);
         event.setCancellationReason(null);
+
+        // Configurar city y country
+        if (dto.getCityId() != null) {
+            City city = cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+            event.setCity(city);
+        }
+
+        if (dto.getCountryId() != null) {
+            Country country = countryRepository.findById(dto.getCountryId())
+                    .orElseThrow(() -> new RuntimeException("País no encontrado"));
+            event.setCountry(country);
+        }
 
         // Procesar las URLs de media
         List<EventMedia> mediaList = new ArrayList<>();
@@ -94,7 +112,8 @@ public class EventService {
         }
 
         // Guardar datos originales para comparar cambios
-        String oldLocation = event.getLocation();
+        String oldCityName = event.getCityName();
+        String oldCountryName = event.getCountryName();
         String oldAddress = event.getAddress();
         LocalDateTime oldDateTime = event.getDateTime();
 
@@ -102,12 +121,24 @@ public class EventService {
         if (dto.getName() != null) event.setName(dto.getName());
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
         if (dto.getDateTime() != null) event.setDateTime(dto.getDateTime());
-        if (dto.getLocation() != null) event.setLocation(dto.getLocation());
         if (dto.getAddress() != null) event.setAddress(dto.getAddress());
         if (dto.getCapacity() != null) event.setCapacity(dto.getCapacity());
         if (dto.getPrice() != null) event.setPrice(dto.getPrice());
         if (dto.getDanceStyles() != null) event.setDanceStyles(dto.getDanceStyles());
         if (dto.getAdditionalInfo() != null) event.setAdditionalInfo(dto.getAdditionalInfo());
+
+        // Actualizar city y country si se proporcionan
+        if (dto.getCityId() != null) {
+            City city = cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+            event.setCity(city);
+        }
+
+        if (dto.getCountryId() != null) {
+            Country country = countryRepository.findById(dto.getCountryId())
+                    .orElseThrow(() -> new RuntimeException("País no encontrado"));
+            event.setCountry(country);
+        }
 
         eventRepository.save(event);
 
@@ -116,8 +147,11 @@ public class EventService {
         if (dto.getDateTime() != null && !dto.getDateTime().equals(oldDateTime)) {
             changes.append("- Fecha y hora: ").append(dto.getDateTime()).append("\n");
         }
-        if (dto.getLocation() != null && !dto.getLocation().equals(oldLocation)) {
-            changes.append("- Ubicación: ").append(dto.getLocation()).append("\n");
+        if (dto.getCityId() != null && !event.getCityName().equals(oldCityName)) {
+            changes.append("- Ciudad: ").append(event.getCityName()).append("\n");
+        }
+        if (dto.getCountryId() != null && !event.getCountryName().equals(oldCountryName)) {
+            changes.append("- País: ").append(event.getCountryName()).append("\n");
         }
         if (dto.getAddress() != null && !dto.getAddress().equals(oldAddress)) {
             changes.append("- Dirección: ").append(dto.getAddress()).append("\n");
@@ -187,6 +221,33 @@ public class EventService {
     }
 
     /**
+     * Obtiene eventos por ciudad
+     */
+    public List<EventResponseDto> getEventsByCity(Long cityId) {
+        return eventRepository.findByCityId(cityId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene eventos por país
+     */
+    public List<EventResponseDto> getEventsByCountry(Long countryId) {
+        return eventRepository.findByCountryId(countryId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene eventos por ciudad y país
+     */
+    public List<EventResponseDto> getEventsByCityAndCountry(Long cityId, Long countryId) {
+        return eventRepository.findByCityIdAndCountryId(cityId, countryId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Obtiene un evento por su ID
      */
     public EventResponseDto getEventById(Long eventId) {
@@ -235,10 +296,9 @@ public class EventService {
         dto.setName(event.getName());
         dto.setDescription(event.getDescription());
         dto.setDateTime(event.getDateTime());
-        dto.setLocation(event.getLocation());
         dto.setAddress(event.getAddress());
         dto.setCapacity(event.getCapacity());
-        dto.setAvailableCapacity(event.getAvailableCapacity()); // Añadido para mostrar cupo disponible
+        dto.setAvailableCapacity(event.getAvailableCapacity());
         dto.setPrice(event.getPrice());
         dto.setDanceStyles(event.getDanceStyles());
         dto.setAdditionalInfo(event.getAdditionalInfo());
@@ -249,6 +309,17 @@ public class EventService {
         // Información del organizador
         dto.setOrganizerId(event.getOrganizer().getId());
         dto.setOrganizerName(event.getOrganizer().getOrganizationName());
+
+        // Información de ubicación
+        if (event.getCity() != null) {
+            dto.setCityId(event.getCity().getId());
+            dto.setCityName(event.getCity().getName());
+        }
+
+        if (event.getCountry() != null) {
+            dto.setCountryId(event.getCountry().getId());
+            dto.setCountryName(event.getCountry().getName());
+        }
 
         // Media URLs
         List<String> mediaUrls = event.getMedia().stream()

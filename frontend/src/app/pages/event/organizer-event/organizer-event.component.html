@@ -39,23 +39,28 @@
 
           </p>
           
-            <ul class="list-group list-group-flush small">
-              <li class="list-group-item" *ngIf="event.location">
-                <i class="bi bi-geo-alt-fill text-orange me-2"></i><strong>Ubicación:</strong> {{ event.location }}
-              </li>
-              <li class="list-group-item" *ngIf="event.address">
-                <i class="bi bi-map-fill text-orange me-2"></i><strong>Dirección:</strong> {{ event.address }}
-              </li>
-              <li class="list-group-item" *ngIf="event.availableCapacity">
-                <i class="bi bi-people-fill text-orange me-2"></i><strong>Cupo:</strong> {{ event.availableCapacity }}
-              </li>
-              <li class="list-group-item" *ngIf="event.price !== undefined">
-                <i class="bi bi-cash-stack text-orange me-2"></i><strong>Precio:</strong> ${{ event.price }}
-              </li>
-              <li class="list-group-item">
-                <i class="bi bi-tags-fill text-orange me-2"></i><strong>Tipo:</strong> {{ event.eventType }}
-              </li>
-            </ul>
+          <ul class="list-group list-group-flush small">
+            
+            <li class="list-group-item" *ngIf="event.cityName">
+              <i class="bi bi-building text-orange me-2"></i><strong>Ciudad:</strong> {{ event.cityName }} 
+            </li>
+            <li class="list-group-item" *ngIf="event.countryName">
+              <i class="bi bi-globe-americas text-orange me-2"></i><strong>País:</strong> {{ event.countryName }}
+            </li>
+            <li class="list-group-item" *ngIf="event.address">
+              <i class="bi bi-geo-alt-fill text-orange me-2"></i><strong>Dirección:</strong> {{ event.address }}
+            </li>
+            <li class="list-group-item" *ngIf="event.availableCapacity">
+              <i class="bi bi-people-fill text-orange me-2"></i><strong>Cupo:</strong> {{ event.availableCapacity }}
+            </li>
+            <li class="list-group-item" *ngIf="event.price !== undefined">
+              <i class="bi bi-currency-dollar text-orange me-2"></i><strong>Precio:</strong> ${{ event.price }}
+            </li>
+            <li class="list-group-item">
+              <i class="bi bi-calendar-event-fill text-orange me-2"></i><strong>Tipo:</strong> {{ event.eventType }}
+            </li>
+          </ul>
+
           </div>
 
           <div class="d-grid mt-3">
@@ -78,3 +83,8 @@
     </div>
   </div>
 </div>
+<app-cancelevent
+  [visible]="cancelPromptVisible"
+  (cancel)="confirmCancel($event)"
+  (close)="cancelPromptVisible = false">
+</app-cancelevent>

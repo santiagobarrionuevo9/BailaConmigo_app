@@ -86,7 +86,7 @@ export class ListAllEventsComponent implements OnInit {
       next: (data) => {
         this.events = data;
         this.filteredEvents = [...this.events];
-        this.extractLocations();
+        
         this.extractEventTypes();
       },
       error: (err) => {
@@ -95,9 +95,7 @@ export class ListAllEventsComponent implements OnInit {
     });
   }
 
-  extractLocations(): void {
-    this.locations = [...new Set(this.events.map(event => event.location))].filter(Boolean);
-  }
+  
 
   extractEventTypes(): void {
     this.eventTypes = [...new Set(this.events.map(event => event.eventType))].filter(Boolean);
@@ -130,7 +128,7 @@ export class ListAllEventsComponent implements OnInit {
   applyFilters(): void {
     this.filteredEvents = this.events.filter(event => {
       // Filtrar por ubicación si se ha seleccionado una
-      const locationMatch = !this.selectedLocation || event.location === this.selectedLocation;
+      const locationMatch = !this.selectedLocation || event.countryName === this.selectedLocation;
       
       // Filtrar por estilo de baile si se ha seleccionado uno
       let styleMatch = true;

@@ -1,5 +1,7 @@
 package org.example.bailaconmigo.Repositories;
 
+import org.example.bailaconmigo.Entities.City;
+import org.example.bailaconmigo.Entities.Country;
 import org.example.bailaconmigo.Entities.Event;
 import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Entities.OrganizerProfile;
@@ -13,4 +15,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByOrganizerId(Long organizerId);
     List<Event> findByOrganizer(OrganizerProfile organizer);
     List<Event> findByEventType(EventType eventType);
+    // Nuevos métodos para buscar por ubicación
+    List<Event> findByCity(City city);
+    List<Event> findByCountry(Country country);
+    List<Event> findByCityId(Long cityId);
+    List<Event> findByCountryId(Long countryId);
+    List<Event> findByCityIdAndCountryId(Long cityId, Long countryId);
 }
