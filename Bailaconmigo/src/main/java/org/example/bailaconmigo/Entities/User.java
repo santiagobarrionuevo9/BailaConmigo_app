@@ -28,6 +28,8 @@ public class User {
     private String gender;
     private LocalDate birthdate;
     private String lastPaymentReference;
+    @Column(name = "created_date")
+    private LocalDateTime createdDate = LocalDateTime.now();
     // 🔐 Token de acceso de Mercado Pago
     private String mercadoPagoToken;
     // Relación con City
