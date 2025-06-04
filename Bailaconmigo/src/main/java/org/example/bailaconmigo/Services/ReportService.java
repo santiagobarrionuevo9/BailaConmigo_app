@@ -2,22 +2,22 @@ package org.example.bailaconmigo.Services;
 
 import lombok.RequiredArgsConstructor;
 import org.example.bailaconmigo.DTOs.*;
-import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
-import org.example.bailaconmigo.Repositories.DancerProfileRepository;
-import org.example.bailaconmigo.Repositories.MatchRepository;
-import org.example.bailaconmigo.Repositories.UserRepository;
+import org.example.bailaconmigo.Entities.Enum.*;
+import org.example.bailaconmigo.Entities.Event;
+import org.example.bailaconmigo.Entities.EventRegistration;
+import org.example.bailaconmigo.Entities.OrganizerProfile;
+import org.example.bailaconmigo.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +29,24 @@ public class ReportService {
 
     @Autowired
     private MatchRepository matchRepository;
+
+    @Autowired
+    private DancerProfileRepository dancerProfileRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private EventRegistrationRepository registrationRepository;
+
+    @Autowired
+    private OrganizerProfileRepository organizerProfileRepository;
+
+    @Autowired
+    private CityRepository cityRepository;
+
+    @Autowired
+    private CountryRepository countryRepository;
 
     public UserStatsDto getUserStats() {
         UserStatsDto stats = new UserStatsDto();
@@ -261,4 +279,622 @@ public class ReportService {
                 .orElse(new UserMatchingStatsDto(userId, "Usuario no encontrado", 0L, 0L, 0.0));
     }
 
+    /**
+     * Reporte de Diversidad de Baile
+     * Objetivo: Demostrar la diversidad y preferencias de baile en la plataforma
+     */
+    public DanceDiversityReportDto generateDanceDiversityReport() {
+        DanceDiversityReportDto report = new DanceDiversityReportDto();
+
+        // Métricas básicas
+        Long totalDancers = dancerProfileRepository.countActiveDancers();
+        Double avgStyles = dancerProfileRepository.findAverageStylesPerDancer();
+
+        report.setTotalActiveDancers(totalDancers);
+        report.setAverageStylesPerDancer(avgStyles != null ? Math.round(avgStyles * 100.0) / 100.0 : 0.0);
+
+        // Distribución de estilos de baile
+        report.setStyleDistribution(getDanceStyleDistribution());
+
+        // Distribución de niveles
+        report.setLevelDistribution(getLevelDistribution());
+
+        // Combinaciones más populares
+        report.setTopCombinations(getTopStyleCombinations(10));
+
+        // Estilos por región
+        report.setStylesByRegion(getStylesByRegion());
+
+        // Estadísticas por nivel y estilo
+        report.setStyleLevelStats(getStyleLevelStats());
+
+        return report;
+    }
+
+    private List<DanceStyleDistributionDto> getDanceStyleDistribution() {
+        List<Object[]> results = dancerProfileRepository.findDanceStyleDistribution();
+        Long totalEntries = results.stream().mapToLong(r -> (Long) r[1]).sum();
+
+        return results.stream()
+                .map(result -> {
+                    DanceStyle style = (DanceStyle) result[0];
+                    Long count = (Long) result[1];
+                    Double percentage = totalEntries > 0 ?
+                            Math.round((count.doubleValue() / totalEntries * 100) * 100.0) / 100.0 : 0.0;
+
+                    return new DanceStyleDistributionDto(
+                            style,
+                            style.name(),
+                            count,
+                            percentage
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<LevelDistributionDto> getLevelDistribution() {
+        List<Object[]> results = dancerProfileRepository.findLevelDistribution();
+        Long totalDancers = results.stream().mapToLong(r -> (Long) r[1]).sum();
+
+        return results.stream()
+                .map(result -> {
+                    Level level = (Level) result[0];
+                    Long count = (Long) result[1];
+                    Double percentage = totalDancers > 0 ?
+                            Math.round((count.doubleValue() / totalDancers * 100) * 100.0) / 100.0 : 0.0;
+
+                    return new LevelDistributionDto(
+                            level,
+                            level.name(),
+                            count,
+                            percentage
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<StyleCombinationDto> getTopStyleCombinations(int limit) {
+        List<Object[]> results = dancerProfileRepository.findTopStyleCombinations(limit);
+        Long totalCombinations = results.stream().mapToLong(r -> (Long) r[1]).sum();
+
+        return results.stream()
+                .map(result -> {
+                    String combination = (String) result[0];
+                    Long count = (Long) result[1];
+                    Double percentage = totalCombinations > 0 ?
+                            Math.round((count.doubleValue() / totalCombinations * 100) * 100.0) / 100.0 : 0.0;
+
+                    return new StyleCombinationDto(combination, count, percentage);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<RegionalDanceStyleDto> getStylesByRegion() {
+        List<Object[]> results = dancerProfileRepository.findDanceStylesByCountry();
+
+        return results.stream()
+                .map(result -> {
+                    String region = (String) result[0];
+                    DanceStyle style = (DanceStyle) result[1];
+                    Long count = (Long) result[2];
+
+                    return new RegionalDanceStyleDto(
+                            region,
+                            style,
+                            style.name(),
+                            count,
+                            0.0 // Se puede calcular por región si es necesario
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<StyleLevelStatsDto> getStyleLevelStats() {
+        List<Object[]> results = dancerProfileRepository.findStyleDistributionByLevel();
+
+        return results.stream()
+                .map(result -> {
+                    Level level = (Level) result[0];
+                    DanceStyle style = (DanceStyle) result[1];
+                    Long count = (Long) result[2];
+
+                    return new StyleLevelStatsDto(
+                            level,
+                            level.name(),
+                            style,
+                            style.name(),
+                            count,
+                            0.0 // Se puede calcular porcentaje por nivel si es necesario
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Reporte Geográfico Básico Mejorado
+     * Objetivo: Mostrar el alcance geográfico de la aplicación
+     */
+    public GeographicReportDto generateEnhancedGeographicReport() {
+        GeographicReportDto report = new GeographicReportDto();
+
+        // Métricas básicas
+        Long totalUsers = userRepository.count();
+        Long totalDancers = dancerProfileRepository.countActiveDancers();
+
+        report.setTotalUsers(totalUsers);
+        report.setTotalDancers(totalDancers);
+
+        // Top ciudades con información de bailarines
+        List<EnhancedGeographicDto> topCities = getEnhancedTopCities(10);
+        report.setTopCities(topCities);
+        report.setTotalCities(topCities.size());
+
+        // Top países con información de bailarines
+        List<EnhancedGeographicDto> topCountries = getEnhancedTopCountries();
+        report.setTopCountries(topCountries);
+        report.setTotalCountries(topCountries.size());
+
+        // Rankings por estilo específico
+        report.setCityStyleRankings(getCityStyleRankings());
+
+        return report;
+    }
+
+    private List<EnhancedGeographicDto> getEnhancedTopCities(int limit) {
+        List<Object[]> cityResults = userRepository.findTopCities(limit);
+        Long totalUsers = userRepository.count();
+
+        return cityResults.stream()
+                .map(result -> {
+                    String cityName = (String) result[0];
+                    Long userCount = (Long) result[1];
+                    Double percentage = totalUsers > 0 ?
+                            Math.round((userCount.doubleValue() / totalUsers * 100) * 100.0) / 100.0 : 0.0;
+
+                    // Obtener estilos populares en esta ciudad
+                    List<DanceStyleDistributionDto> popularStyles = getPopularStylesInCity(cityName);
+
+                    EnhancedGeographicDto dto = new EnhancedGeographicDto();
+                    dto.setName(cityName);
+                    dto.setUserCount(userCount);
+                    dto.setDancerCount(0L); // Se puede implementar una query específica si se necesita
+                    dto.setPercentage(percentage);
+                    dto.setPopularStyles(popularStyles);
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<EnhancedGeographicDto> getEnhancedTopCountries() {
+        List<Object[]> countryResults = userRepository.findUsersByCountry();
+        Long totalUsers = userRepository.count();
+
+        return countryResults.stream()
+                .map(result -> {
+                    String countryName = (String) result[0];
+                    Long userCount = (Long) result[1];
+                    Double percentage = totalUsers > 0 ?
+                            Math.round((userCount.doubleValue() / totalUsers * 100) * 100.0) / 100.0 : 0.0;
+
+                    EnhancedGeographicDto dto = new EnhancedGeographicDto();
+                    dto.setName(countryName);
+                    dto.setUserCount(userCount);
+                    dto.setDancerCount(0L);
+                    dto.setPercentage(percentage);
+                    dto.setPopularStyles(new ArrayList<>());
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<DanceStyleDistributionDto> getPopularStylesInCity(String cityName) {
+        // Esta es una implementación básica, se puede mejorar con una query más específica
+        return new ArrayList<>();
+    }
+
+    private List<CityStyleRankingDto> getCityStyleRankings() {
+        List<CityStyleRankingDto> rankings = new ArrayList<>();
+
+        // Para cada estilo de baile, obtener las top ciudades
+        for (DanceStyle style : DanceStyle.values()) {
+            List<Object[]> cityRanking = dancerProfileRepository.findCitiesByDanceStyle(style);
+
+            List<GeographicDto> topCitiesForStyle = cityRanking.stream()
+                    .limit(5) // Top 5 ciudades por estilo
+                    .map(result -> new GeographicDto((String) result[0], (Long) result[1]))
+                    .collect(Collectors.toList());
+
+            if (!topCitiesForStyle.isEmpty()) {
+                rankings.add(new CityStyleRankingDto(style, style.name(), topCitiesForStyle));
+            }
+        }
+
+        return rankings;
+    }
+
+    /**
+     * Dashboard completo con métricas de baile y geográficas
+     */
+    public Map<String, Object> getCompleteDashboard() {
+        Map<String, Object> dashboard = getDashboardStats(); // Mantener stats existentes
+
+        // Agregar reportes de baile
+        DanceDiversityReportDto danceReport = generateDanceDiversityReport();
+        dashboard.put("danceDiversity", danceReport);
+
+        // Agregar reportes geográficos mejorados
+        GeographicReportDto geoReport = generateEnhancedGeographicReport();
+        dashboard.put("geographicReport", geoReport);
+
+        // Métricas rápidas adicionales
+        dashboard.put("mostPopularStyle", getMostPopularStyle());
+        dashboard.put("mostActiveDanceCity", getMostActiveDanceCity());
+
+        return dashboard;
+    }
+
+    private String getMostPopularStyle() {
+        List<DanceStyleDistributionDto> styles = getDanceStyleDistribution();
+        return styles.isEmpty() ? "N/A" : styles.get(0).getStyleName();
+    }
+
+    private String getMostActiveDanceCity() {
+        List<Object[]> cities = dancerProfileRepository.findDanceStylesByCity();
+        if (cities.isEmpty()) return "N/A";
+
+        Map<String, Long> cityCount = new HashMap<>();
+        for (Object[] result : cities) {
+            String city = (String) result[0];
+            Long count = (Long) result[2];
+            cityCount.merge(city, count, Long::sum);
+        }
+
+        return cityCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("N/A");
+    }
+
+
+    /**
+     * Reporte general de eventos
+     */
+    public EventGeneralReportDto getEventGeneralReport() {
+        List<Event> allEvents = eventRepository.findAll();
+        List<EventRegistration> allRegistrations = registrationRepository.findAll();
+
+        EventGeneralReportDto report = new EventGeneralReportDto();
+        report.setGeneratedAt(LocalDateTime.now());
+
+        // Estadísticas generales
+        report.setTotalEvents(allEvents.size());
+        report.setActiveEvents((int) allEvents.stream().filter(e -> e.getStatus() == EventStatus.ACTIVO).count());
+        report.setCancelledEvents((int) allEvents.stream().filter(e -> e.getStatus() == EventStatus.CANCELADO).count());
+
+        report.setTotalRegistrations(allRegistrations.size());
+        report.setConfirmedRegistrations((int) allRegistrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO).count());
+        report.setPendingRegistrations((int) allRegistrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.PENDIENTE).count());
+        report.setCancelledRegistrations((int) allRegistrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CANCELADO).count());
+
+        // Ingresos totales
+        BigDecimal totalRevenue = allRegistrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO && r.getPaidAmount() != null)
+                .map(EventRegistration::getPaidAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        report.setTotalRevenue(totalRevenue);
+
+        // Promedio de inscripciones por evento
+        double avgRegistrations = allEvents.isEmpty() ? 0 :
+                (double) allRegistrations.size() / allEvents.size();
+        report.setAverageRegistrationsPerEvent(avgRegistrations);
+
+        // Eventos por tipo
+        Map<EventType, Long> eventsByType = allEvents.stream()
+                .collect(Collectors.groupingBy(Event::getEventType, Collectors.counting()));
+        report.setEventsByType(eventsByType);
+
+        // Estilos de baile más populares
+        Map<DanceStyle, Long> stylePopularity = allEvents.stream()
+                .flatMap(e -> e.getDanceStyles().stream())
+                .collect(Collectors.groupingBy(style -> style, Collectors.counting()));
+        report.setDanceStylePopularity(stylePopularity);
+
+        return report;
+    }
+
+    /**
+     * Reporte de eventos por organizador
+     */
+    public List<OrganizerEventReportDto> getOrganizerEventReports() {
+        List<OrganizerProfile> organizers = organizerProfileRepository.findAll();
+
+        return organizers.stream().map(organizer -> {
+            List<Event> organizerEvents = eventRepository.findByOrganizer(organizer);
+
+            OrganizerEventReportDto report = new OrganizerEventReportDto();
+            report.setOrganizerId(organizer.getId());
+            report.setOrganizerName(organizer.getOrganizationName());
+
+            report.setTotalEvents(organizerEvents.size());
+            report.setActiveEvents((int) organizerEvents.stream()
+                    .filter(e -> e.getStatus() == EventStatus.ACTIVO).count());
+            report.setCancelledEvents((int) organizerEvents.stream()
+                    .filter(e -> e.getStatus() == EventStatus.CANCELADO).count());
+
+            // Calcular inscripciones totales para este organizador
+            int totalRegistrations = organizerEvents.stream()
+                    .mapToInt(e -> e.getRegistrations().size()).sum();
+            report.setTotalRegistrations(totalRegistrations);
+
+            // Calcular ingresos del organizador
+            BigDecimal organizerRevenue = organizerEvents.stream()
+                    .flatMap(e -> e.getRegistrations().stream())
+                    .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO)
+                    .filter(r -> r.getOrganizerAmount() != null)
+                    .map(EventRegistration::getOrganizerAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            report.setTotalRevenue(organizerRevenue);
+
+            // Rating promedio
+            double avgRating = organizerEvents.stream()
+                    .mapToDouble(Event::getAverageRating)
+                    .average().orElse(0.0);
+            report.setAverageRating(avgRating);
+
+            return report;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * Reporte detallado de un evento específico
+     */
+    public EventDetailReportDto getEventDetailReport(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+
+        EventDetailReportDto report = new EventDetailReportDto();
+        report.setEventId(event.getId());
+        report.setEventName(event.getName());
+        report.setEventType(event.getEventType());
+        report.setEventStatus(event.getStatus());
+        report.setEventDate(event.getDateTime());
+        report.setOrganizerName(event.getOrganizer().getOrganizationName());
+        report.setCityName(event.getCityName());
+        report.setCountryName(event.getCountryName());
+
+        report.setCapacity(event.getCapacity());
+        report.setPrice(event.getPrice());
+        report.setDanceStyles(new ArrayList<>(event.getDanceStyles()));
+
+        // Estadísticas de inscripciones
+        List<EventRegistration> registrations = event.getRegistrations();
+        report.setTotalRegistrations(registrations.size());
+        report.setConfirmedRegistrations((int) registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO).count());
+        report.setPendingRegistrations((int) registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.PENDIENTE).count());
+        report.setCancelledRegistrations((int) registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CANCELADO).count());
+
+        report.setAvailableCapacity(event.getAvailableCapacity());
+        report.setOccupancyRate(event.getCapacity() > 0 ?
+                (double) report.getConfirmedRegistrations() / event.getCapacity() * 100 : 0);
+
+        // Ingresos del evento
+        BigDecimal eventRevenue = registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO)
+                .filter(r -> r.getPaidAmount() != null)
+                .map(EventRegistration::getPaidAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        report.setTotalRevenue(eventRevenue);
+
+        // Rating
+        report.setAverageRating(event.getAverageRating());
+        report.setTotalRatings(event.getRatings().size());
+
+        // Lista de participantes confirmados
+        List<ParticipantInfoDto> participants = registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO)
+                .map(r -> {
+                    ParticipantInfoDto participant = new ParticipantInfoDto();
+                    participant.setDancerId(r.getDancer().getId());
+                    participant.setDancerName(r.getDancer().getFullName());
+                    participant.setRegistrationDate(r.getRegistrationDate());
+                    participant.setPaidAmount(r.getPaidAmount());
+                    return participant;
+                })
+                .collect(Collectors.toList());
+        report.setParticipants(participants);
+
+        return report;
+    }
+
+    /**
+     * Reporte de inscripciones por período
+     */
+    public RegistrationReportDto getRegistrationReport(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        List<EventRegistration> registrations = registrationRepository.findAll().stream()
+                .filter(r -> r.getRegistrationDate().isAfter(startDateTime) &&
+                        r.getRegistrationDate().isBefore(endDateTime))
+                .collect(Collectors.toList());
+
+        RegistrationReportDto report = new RegistrationReportDto();
+        report.setStartDate(startDate);
+        report.setEndDate(endDate);
+        report.setGeneratedAt(LocalDateTime.now());
+
+        report.setTotalRegistrations(registrations.size());
+        report.setConfirmedRegistrations((int) registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO).count());
+        report.setPendingRegistrations((int) registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.PENDIENTE).count());
+        report.setCancelledRegistrations((int) registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CANCELADO).count());
+
+        // Ingresos del período
+        BigDecimal periodRevenue = registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO)
+                .filter(r -> r.getPaidAmount() != null)
+                .map(EventRegistration::getPaidAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        report.setPeriodRevenue(periodRevenue);
+
+        // Inscripciones por día
+        Map<LocalDate, Long> registrationsByDay = registrations.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getRegistrationDate().toLocalDate(),
+                        Collectors.counting()
+                ));
+        report.setRegistrationsByDay(registrationsByDay);
+
+        return report;
+    }
+
+    /**
+     * Reporte de eventos por ubicación
+     */
+    public List<LocationEventReportDto> getLocationEventReports() {
+        List<Event> allEvents = eventRepository.findAll();
+
+        // Agrupar por país y ciudad
+        Map<String, Map<String, List<Event>>> eventsByLocation = allEvents.stream()
+                .filter(e -> e.getCountryName() != null && e.getCityName() != null)
+                .collect(Collectors.groupingBy(
+                        Event::getCountryName,
+                        Collectors.groupingBy(Event::getCityName)
+                ));
+
+        List<LocationEventReportDto> reports = new ArrayList<>();
+
+        eventsByLocation.forEach((country, cities) -> {
+            cities.forEach((city, events) -> {
+                LocationEventReportDto report = new LocationEventReportDto();
+                report.setCountryName(country);
+                report.setCityName(city);
+                report.setTotalEvents(events.size());
+                report.setActiveEvents((int) events.stream()
+                        .filter(e -> e.getStatus() == EventStatus.ACTIVO).count());
+
+                // Total de inscripciones en esta ubicación
+                int totalRegistrations = events.stream()
+                        .mapToInt(e -> e.getRegistrations().size()).sum();
+                report.setTotalRegistrations(totalRegistrations);
+
+                // Ingresos por ubicación
+                BigDecimal locationRevenue = events.stream()
+                        .flatMap(e -> e.getRegistrations().stream())
+                        .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO)
+                        .filter(r -> r.getPaidAmount() != null)
+                        .map(EventRegistration::getPaidAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                report.setTotalRevenue(locationRevenue);
+
+                reports.add(report);
+            });
+        });
+
+        return reports.stream()
+                .sorted((a, b) -> Integer.compare(b.getTotalEvents(), a.getTotalEvents()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Reporte de rendimiento financiero
+     */
+    public FinancialReportDto getFinancialReport(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        List<EventRegistration> registrations = registrationRepository.findAll().stream()
+                .filter(r -> r.getRegistrationDate().isAfter(startDateTime) &&
+                        r.getRegistrationDate().isBefore(endDateTime))
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO)
+                .collect(Collectors.toList());
+
+        FinancialReportDto report = new FinancialReportDto();
+        report.setStartDate(startDate);
+        report.setEndDate(endDate);
+        report.setGeneratedAt(LocalDateTime.now());
+
+        // Ingresos totales
+        BigDecimal totalRevenue = registrations.stream()
+                .filter(r -> r.getPaidAmount() != null)
+                .map(EventRegistration::getPaidAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        report.setTotalRevenue(totalRevenue);
+
+        // Comisiones de la app
+        BigDecimal totalAppFees = registrations.stream()
+                .filter(r -> r.getAppFee() != null)
+                .map(EventRegistration::getAppFee)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        report.setTotalAppFees(totalAppFees);
+
+        // Dinero para organizadores
+        BigDecimal totalOrganizerAmount = registrations.stream()
+                .filter(r -> r.getOrganizerAmount() != null)
+                .map(EventRegistration::getOrganizerAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        report.setTotalOrganizerAmount(totalOrganizerAmount);
+
+        // Transacciones por método de pago
+        Map<String, Long> paymentMethods = registrations.stream()
+                .filter(r -> r.getPaymentMethod() != null)
+                .collect(Collectors.groupingBy(
+                        EventRegistration::getPaymentMethod,
+                        Collectors.counting()
+                ));
+        report.setTransactionsByPaymentMethod(paymentMethods);
+
+        // Ingresos por tipo de evento
+        Map<EventType, BigDecimal> revenueByEventType = registrations.stream()
+                .filter(r -> r.getPaidAmount() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getEvent().getEventType(),
+                        Collectors.reducing(BigDecimal.ZERO,
+                                EventRegistration::getPaidAmount,
+                                BigDecimal::add)
+                ));
+        report.setRevenueByEventType(revenueByEventType);
+
+        return report;
+    }
+
+    /**
+     * Reporte de eventos próximos
+     */
+    public List<UpcomingEventReportDto> getUpcomingEventsReport(int days) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime futureDate = now.plusDays(days);
+
+        List<Event> upcomingEvents = eventRepository.findAll().stream()
+                .filter(e -> e.getStatus() == EventStatus.ACTIVO)
+                .filter(e -> e.getDateTime().isAfter(now) && e.getDateTime().isBefore(futureDate))
+                .sorted(Comparator.comparing(Event::getDateTime))
+                .collect(Collectors.toList());
+
+        return upcomingEvents.stream().map(event -> {
+            UpcomingEventReportDto report = new UpcomingEventReportDto();
+            report.setEventId(event.getId());
+            report.setEventName(event.getName());
+            report.setEventDate(event.getDateTime());
+            report.setOrganizerName(event.getOrganizer().getOrganizationName());
+            report.setCityName(event.getCityName());
+            report.setCapacity(event.getCapacity());
+            report.setCurrentRegistrations(event.getRegistrations().size());
+            report.setAvailableSpots(event.getAvailableCapacity());
+            report.setOccupancyRate(event.getCapacity() > 0 ?
+                    (double) event.getRegistrations().size() / event.getCapacity() * 100 : 0);
+
+            return report;
+        }).collect(Collectors.toList());
+    }
 }

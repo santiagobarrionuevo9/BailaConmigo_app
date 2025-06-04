@@ -19,115 +19,63 @@ public class ReportController {
     @Autowired
     private ReportService userReportService;
 
-    // Endpoint principal - Dashboard completo
+    // === DASHBOARD Y MÉTRICAS GENERALES ===
+
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getUserDashboard() {
         try {
-            Map<String, Object> dashboard = userReportService.getDashboardStats();
-            return ResponseEntity.ok(dashboard);
+            return ResponseEntity.ok(userReportService.getDashboardStats());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    // Estadísticas básicas de usuarios
-    @GetMapping("/stats")
-    public ResponseEntity<UserStatsDto> getUserStats() {
+    @GetMapping("/dashboard/complete")
+    public ResponseEntity<Map<String, Object>> getCompleteDashboard() {
+        return ResponseEntity.ok(userReportService.getCompleteDashboard());
+    }
+
+    @GetMapping("/metrics")
+    public ResponseEntity<BasicMetricsDto> getBasicMetrics() {
         try {
-            UserStatsDto stats = userReportService.getUserStats();
-            return ResponseEntity.ok(stats);
+            MatchingReportDto report = userReportService.generateMatchingReport();
+            BasicMetricsDto metrics = new BasicMetricsDto();
+            metrics.setTotalLikes(report.getTotalLikesGiven());
+            metrics.setTotalMatches(report.getTotalSuccessfulMatches());
+            metrics.setConversionRate(report.getConversionRate());
+            metrics.setAverageMatchesPerUser(report.getAverageMatchesPerUser());
+            return ResponseEntity.ok(metrics);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    // Registros mensuales
-    @GetMapping("/monthly-registrations")
-    public ResponseEntity<List<MonthlyRegistrationDto>> getMonthlyRegistrations() {
-        try {
-            List<MonthlyRegistrationDto> registrations = userReportService.getMonthlyRegistrations();
-            return ResponseEntity.ok(registrations);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public static class BasicMetricsDto {
+        private Long totalLikes;
+        private Long totalMatches;
+        private Double conversionRate;
+        private Double averageMatchesPerUser;
+        public Long getTotalLikes() { return totalLikes; }
+        public void setTotalLikes(Long totalLikes) { this.totalLikes = totalLikes; }
+        public Long getTotalMatches() { return totalMatches; }
+        public void setTotalMatches(Long totalMatches) { this.totalMatches = totalMatches; }
+        public Double getConversionRate() { return conversionRate; }
+        public void setConversionRate(Double conversionRate) { this.conversionRate = conversionRate; }
+        public Double getAverageMatchesPerUser() { return averageMatchesPerUser; }
+        public void setAverageMatchesPerUser(Double averageMatchesPerUser) { this.averageMatchesPerUser = averageMatchesPerUser; }
     }
 
-    // Distribución por edad
-    @GetMapping("/age-distribution")
-    public ResponseEntity<List<AgeRangeDto>> getAgeDistribution() {
-        try {
-            List<AgeRangeDto> ageDistribution = userReportService.getAgeDistribution();
-            return ResponseEntity.ok(ageDistribution);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+    // === ACTIVIDAD DE MATCHING ===
 
-    // Top ciudades
-    @GetMapping("/top-cities")
-    public ResponseEntity<List<GeographicDto>> getTopCities(
-            @RequestParam(defaultValue = "10") int limit) {
-        try {
-            List<GeographicDto> cities = userReportService.getTopCities(limit);
-            return ResponseEntity.ok(cities);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    // Usuarios por país
-    @GetMapping("/by-country")
-    public ResponseEntity<List<GeographicDto>> getUsersByCountry() {
-        try {
-            List<GeographicDto> countries = userReportService.getTopCountries();
-            return ResponseEntity.ok(countries);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    // Endpoint para exportar datos (CSV format)
-    @GetMapping("/export/csv")
-    public ResponseEntity<String> exportUserStatsCSV() {
-        try {
-            UserStatsDto stats = userReportService.getUserStats();
-            StringBuilder csv = new StringBuilder();
-            csv.append("Metric,Value\n");
-            csv.append("Total Users,").append(stats.getTotalUsers()).append("\n");
-            csv.append("Male Users,").append(stats.getMaleUsers()).append("\n");
-            csv.append("Female Users,").append(stats.getFemaleUsers()).append("\n");
-            csv.append("Other Gender,").append(stats.getOtherGenderUsers()).append("\n");
-            csv.append("Basic Users,").append(stats.getBasicUsers()).append("\n");
-            csv.append("Pro Users,").append(stats.getProUsers()).append("\n");
-
-            return ResponseEntity.ok()
-                    .header("Content-Type", "text/csv")
-                    .header("Content-Disposition", "attachment; filename=user_stats.csv")
-                    .body(csv.toString());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * Genera un reporte completo de actividad de matching
-     * Incluye métricas generales y estadísticas de hoy, esta semana y este mes
-     */
     @GetMapping("/activity")
     public ResponseEntity<MatchingReportDto> getMatchingActivityReport() {
         try {
-            MatchingReportDto report = userReportService.generateMatchingReport();
-            return ResponseEntity.ok(report);
+            return ResponseEntity.ok(userReportService.generateMatchingReport());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    /**
-     * Genera un reporte de matching para un rango de fechas personalizado
-     * @param startDate Fecha de inicio (formato: YYYY-MM-DD)
-     * @param endDate Fecha de fin (formato: YYYY-MM-DD)
-     */
     @GetMapping("/activity/range")
     public ResponseEntity<MatchingReportDto> getMatchingReportByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -136,66 +84,219 @@ public class ReportController {
             if (startDate.isAfter(endDate)) {
                 return ResponseEntity.badRequest().build();
             }
+            return ResponseEntity.ok(userReportService.generateCustomRangeReport(startDate, endDate));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
-            MatchingReportDto report = userReportService.generateCustomRangeReport(startDate, endDate);
+    // === DIVERSIDAD DE BAILE ===
+
+    @GetMapping("/dance/diversity")
+    public ResponseEntity<DanceDiversityReportDto> getDanceDiversityReport() {
+        return ResponseEntity.ok(userReportService.generateDanceDiversityReport());
+    }
+
+    @GetMapping("/dance/styles")
+    public ResponseEntity<List<DanceStyleDistributionDto>> getDanceStyles() {
+        DanceDiversityReportDto report = userReportService.generateDanceDiversityReport();
+        return ResponseEntity.ok(report.getStyleDistribution());
+    }
+
+    @GetMapping("/dance/combinations")
+    public ResponseEntity<List<StyleCombinationDto>> getStyleCombinations(
+            @RequestParam(defaultValue = "10") int limit) {
+        DanceDiversityReportDto report = userReportService.generateDanceDiversityReport();
+        return ResponseEntity.ok(report.getTopCombinations().stream()
+                .limit(limit)
+                .collect(java.util.stream.Collectors.toList()));
+    }
+
+    // === MÉTRICAS RÁPIDAS PARA DECISIONES ===
+
+    @GetMapping("/quick/dance")
+    public ResponseEntity<Map<String, Object>> getQuickDanceMetrics() {
+        DanceDiversityReportDto report = userReportService.generateDanceDiversityReport();
+        Map<String, Object> quickMetrics = new java.util.HashMap<>();
+        quickMetrics.put("totalActiveDancers", report.getTotalActiveDancers());
+        quickMetrics.put("averageStylesPerDancer", report.getAverageStylesPerDancer());
+        quickMetrics.put("totalStyles", report.getStyleDistribution().size());
+        quickMetrics.put("mostPopularStyle", report.getStyleDistribution().isEmpty() ? "N/A" :
+                report.getStyleDistribution().get(0).getStyleName());
+        quickMetrics.put("topCombination", report.getTopCombinations().isEmpty() ? "N/A" :
+                report.getTopCombinations().get(0).getCombination());
+        return ResponseEntity.ok(quickMetrics);
+    }
+
+    @GetMapping("/quick/geography")
+    public ResponseEntity<Map<String, Object>> getQuickGeographyMetrics() {
+        GeographicReportDto report = userReportService.generateEnhancedGeographicReport();
+        Map<String, Object> quickMetrics = new java.util.HashMap<>();
+        quickMetrics.put("totalUsers", report.getTotalUsers());
+        quickMetrics.put("totalDancers", report.getTotalDancers());
+        quickMetrics.put("totalCities", report.getTotalCities());
+        quickMetrics.put("totalCountries", report.getTotalCountries());
+        quickMetrics.put("topCity", report.getTopCities().isEmpty() ? "N/A" :
+                report.getTopCities().get(0).getName());
+        quickMetrics.put("topCountry", report.getTopCountries().isEmpty() ? "N/A" :
+                report.getTopCountries().get(0).getName());
+        return ResponseEntity.ok(quickMetrics);
+    }
+
+    /**
+     * GET /api/reports/general
+     * Obtiene un reporte general de todos los eventos e inscripciones
+     */
+    @GetMapping("/general")
+    public ResponseEntity<EventGeneralReportDto> getGeneralReport() {
+        try {
+            EventGeneralReportDto report = userReportService.getEventGeneralReport();
             return ResponseEntity.ok(report);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
     /**
-     * Obtiene las estadísticas de matching de un usuario específico
-     * @param userId ID del usuario
+     * GET /api/reports/organizers
+     * Obtiene reportes de todos los organizadores
      */
-    @GetMapping("/user/{userId}/stats")
-    public ResponseEntity<UserMatchingStatsDto> getUserMatchingStats(@PathVariable Long userId) {
+    @GetMapping("/organizers")
+    public ResponseEntity<List<OrganizerEventReportDto>> getOrganizerReports() {
         try {
-            UserMatchingStatsDto stats = userReportService.getUserMatchingStats(userId);
-            return ResponseEntity.ok(stats);
+            List<OrganizerEventReportDto> reports = userReportService.getOrganizerEventReports();
+            return ResponseEntity.ok(reports);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
     /**
-     * Endpoint simple para obtener solo las métricas básicas (útil para dashboards)
+     * GET /api/reports/events/{eventId}
+     * Obtiene un reporte detallado de un evento específico
      */
-    @GetMapping("/metrics")
-    public ResponseEntity<BasicMetricsDto> getBasicMetrics() {
+    @GetMapping("/events/{eventId}")
+    public ResponseEntity<EventDetailReportDto> getEventDetailReport(@PathVariable Long eventId) {
         try {
-            MatchingReportDto fullReport = userReportService.generateMatchingReport();
-
-            BasicMetricsDto metrics = new BasicMetricsDto();
-            metrics.setTotalLikes(fullReport.getTotalLikesGiven());
-            metrics.setTotalMatches(fullReport.getTotalSuccessfulMatches());
-            metrics.setConversionRate(fullReport.getConversionRate());
-            metrics.setAverageMatchesPerUser(fullReport.getAverageMatchesPerUser());
-
-            return ResponseEntity.ok(metrics);
+            EventDetailReportDto report = userReportService.getEventDetailReport(eventId);
+            return ResponseEntity.ok(report);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
-    // DTO para métricas básicas
-    public static class BasicMetricsDto {
-        private Long totalLikes;
-        private Long totalMatches;
-        private Double conversionRate;
-        private Double averageMatchesPerUser;
-
-        // Getters y Setters
-        public Long getTotalLikes() { return totalLikes; }
-        public void setTotalLikes(Long totalLikes) { this.totalLikes = totalLikes; }
-
-        public Long getTotalMatches() { return totalMatches; }
-        public void setTotalMatches(Long totalMatches) { this.totalMatches = totalMatches; }
-
-        public Double getConversionRate() { return conversionRate; }
-        public void setConversionRate(Double conversionRate) { this.conversionRate = conversionRate; }
-
-        public Double getAverageMatchesPerUser() { return averageMatchesPerUser; }
-        public void setAverageMatchesPerUser(Double averageMatchesPerUser) { this.averageMatchesPerUser = averageMatchesPerUser; }
+    /**
+     * GET /api/reports/registrations
+     * Obtiene un reporte de inscripciones por período
+     * Parámetros: startDate (yyyy-MM-dd), endDate (yyyy-MM-dd)
+     */
+    @GetMapping("/registrations")
+    public ResponseEntity<RegistrationReportDto> getRegistrationReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            if (startDate.isAfter(endDate)) {
+                return ResponseEntity.badRequest().build();
+            }
+            RegistrationReportDto report = userReportService.getRegistrationReport(startDate, endDate);
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
+
+    /**
+     * GET /api/reports/locations
+     * Obtiene reportes de eventos agrupados por ubicación
+     */
+    @GetMapping("/locations")
+    public ResponseEntity<List<LocationEventReportDto>> getLocationReports() {
+        try {
+            List<LocationEventReportDto> reports = userReportService.getLocationEventReports();
+            return ResponseEntity.ok(reports);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/financial
+     * Obtiene un reporte financiero por período
+     * Parámetros: startDate (yyyy-MM-dd), endDate (yyyy-MM-dd)
+     */
+    @GetMapping("/financial")
+    public ResponseEntity<FinancialReportDto> getFinancialReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            if (startDate.isAfter(endDate)) {
+                return ResponseEntity.badRequest().build();
+            }
+            FinancialReportDto report = userReportService.getFinancialReport(startDate, endDate);
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/upcoming
+     * Obtiene un reporte de eventos próximos
+     * Parámetro opcional: days (default: 30)
+     */
+    @GetMapping("/upcoming")
+    public ResponseEntity<List<UpcomingEventReportDto>> getUpcomingEventsReport(
+            @RequestParam(defaultValue = "30") int days) {
+        try {
+            if (days <= 0 || days > 365) {
+                return ResponseEntity.badRequest().build();
+            }
+            List<UpcomingEventReportDto> reports = userReportService.getUpcomingEventsReport(days);
+            return ResponseEntity.ok(reports);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/events/{eventId}/participants
+     * Obtiene solo la lista de participantes de un evento (endpoint específico)
+     */
+    @GetMapping("/events/{eventId}/participants")
+    public ResponseEntity<List<ParticipantInfoDto>> getEventParticipants(@PathVariable Long eventId) {
+        try {
+            EventDetailReportDto report = userReportService.getEventDetailReport(eventId);
+            return ResponseEntity.ok(report.getParticipants());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/summary
+     * Obtiene un resumen rápido para dashboard
+     */
+    @GetMapping("/summary")
+    public ResponseEntity<DashboardSummaryDto> getDashboardSummary() {
+        try {
+            EventGeneralReportDto generalReport = userReportService.getEventGeneralReport();
+            List<UpcomingEventReportDto> upcomingEvents = userReportService.getUpcomingEventsReport(7);
+
+            DashboardSummaryDto summary = new DashboardSummaryDto();
+            summary.setTotalEvents(generalReport.getTotalEvents());
+            summary.setTotalRegistrations(generalReport.getTotalRegistrations());
+            summary.setTotalRevenue(generalReport.getTotalRevenue());
+            summary.setUpcomingEvents(upcomingEvents);
+
+            return ResponseEntity.ok(summary);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
 }
