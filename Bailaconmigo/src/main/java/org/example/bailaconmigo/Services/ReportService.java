@@ -2,10 +2,8 @@ package org.example.bailaconmigo.Services;
 
 import lombok.RequiredArgsConstructor;
 import org.example.bailaconmigo.DTOs.*;
+import org.example.bailaconmigo.Entities.*;
 import org.example.bailaconmigo.Entities.Enum.*;
-import org.example.bailaconmigo.Entities.Event;
-import org.example.bailaconmigo.Entities.EventRegistration;
-import org.example.bailaconmigo.Entities.OrganizerProfile;
 import org.example.bailaconmigo.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +39,12 @@ public class ReportService {
 
     @Autowired
     private OrganizerProfileRepository organizerProfileRepository;
+
+    @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
+    private EventRatingRepository eventRatingRepository;
 
     @Autowired
     private CityRepository cityRepository;
@@ -896,5 +900,406 @@ public class ReportService {
 
             return report;
         }).collect(Collectors.toList());
+    }
+
+
+    /**
+     * Reporte general de ratings de eventos
+     */
+    public EventRatingsReportDto getEventRatingsReport() {
+        List<EventRating> allEventRatings = eventRatingRepository.findAll();
+
+        EventRatingsReportDto report = new EventRatingsReportDto();
+        report.setGeneratedAt(LocalDateTime.now());
+
+        // Estadísticas básicas
+        report.setTotalEventRatings(allEventRatings.size());
+
+        if (!allEventRatings.isEmpty()) {
+            // Promedio general de ratings de eventos
+            double avgRating = allEventRatings.stream()
+                    .mapToInt(EventRating::getStars)
+                    .average()
+                    .orElse(0.0);
+            report.setAverageEventRating(Math.round(avgRating * 100.0) / 100.0);
+
+            // Distribución de estrellas
+            Map<Integer, Long> starsDistribution = allEventRatings.stream()
+                    .collect(Collectors.groupingBy(EventRating::getStars, Collectors.counting()));
+            report.setStarsDistribution(starsDistribution);
+
+            // Porcentaje de ratings con comentarios
+            long ratingsWithComments = allEventRatings.stream()
+                    .filter(r -> r.getComment() != null && !r.getComment().trim().isEmpty())
+                    .count();
+            double commentPercentage = (ratingsWithComments * 100.0) / allEventRatings.size();
+            report.setCommentPercentage(Math.round(commentPercentage * 100.0) / 100.0);
+        } else {
+            report.setAverageEventRating(0.0);
+            report.setStarsDistribution(new HashMap<>());
+            report.setCommentPercentage(0.0);
+        }
+
+        // Top eventos mejor calificados
+        report.setTopRatedEvents(getTopRatedEvents(10));
+
+        // Eventos con más ratings
+        report.setMostRatedEvents(getMostRatedEvents(10));
+
+        return report;
+    }
+
+    /**
+     * Reporte general de ratings de perfiles
+     */
+    public ProfileRatingsReportDto getProfileRatingsReport() {
+        List<Rating> allProfileRatings = ratingRepository.findAll();
+
+        ProfileRatingsReportDto report = new ProfileRatingsReportDto();
+        report.setGeneratedAt(LocalDateTime.now());
+
+        // Estadísticas básicas
+        report.setTotalProfileRatings(allProfileRatings.size());
+
+        if (!allProfileRatings.isEmpty()) {
+            // Promedio general de ratings de perfiles
+            double avgRating = allProfileRatings.stream()
+                    .mapToInt(Rating::getStars)
+                    .average()
+                    .orElse(0.0);
+            report.setAverageProfileRating(Math.round(avgRating * 100.0) / 100.0);
+
+            // Distribución de estrellas
+            Map<Integer, Long> starsDistribution = allProfileRatings.stream()
+                    .collect(Collectors.groupingBy(Rating::getStars, Collectors.counting()));
+            report.setStarsDistribution(starsDistribution);
+
+            // Porcentaje de ratings con comentarios
+            long ratingsWithComments = allProfileRatings.stream()
+                    .filter(r -> r.getComment() != null && !r.getComment().trim().isEmpty())
+                    .count();
+            double commentPercentage = (ratingsWithComments * 100.0) / allProfileRatings.size();
+            report.setCommentPercentage(Math.round(commentPercentage * 100.0) / 100.0);
+        } else {
+            report.setAverageProfileRating(0.0);
+            report.setStarsDistribution(new HashMap<>());
+            report.setCommentPercentage(0.0);
+        }
+
+        // Top perfiles mejor calificados
+        report.setTopRatedProfiles(getTopRatedProfiles(10));
+
+        // Perfiles con más ratings
+        report.setMostRatedProfiles(getMostRatedProfiles(10));
+
+        return report;
+    }
+
+    /**
+     * Reporte de satisfacción por tipo de evento
+     */
+    public List<EventTypeSatisfactionDto> getEventTypeSatisfactionReport() {
+        List<Event> allEvents = eventRepository.findAll();
+
+        Map<EventType, List<Double>> ratingsByType = new HashMap<>();
+
+        // Agrupar ratings por tipo de evento
+        for (Event event : allEvents) {
+            if (!event.getRatings().isEmpty()) {
+                double avgRating = event.getAverageRating();
+                ratingsByType.computeIfAbsent(event.getEventType(), k -> new ArrayList<>())
+                        .add(avgRating);
+            }
+        }
+
+        return ratingsByType.entrySet().stream()
+                .map(entry -> {
+                    EventType type = entry.getKey();
+                    List<Double> ratings = entry.getValue();
+
+                    double avgSatisfaction = ratings.stream()
+                            .mapToDouble(Double::doubleValue)
+                            .average()
+                            .orElse(0.0);
+
+                    EventTypeSatisfactionDto dto = new EventTypeSatisfactionDto();
+                    dto.setEventType(type);
+                    dto.setEventTypeName(type.name());
+                    dto.setAverageRating(Math.round(avgSatisfaction * 100.0) / 100.0);
+                    dto.setTotalRatedEvents(ratings.size());
+                    dto.setTotalEvents((int) allEvents.stream()
+                            .filter(e -> e.getEventType() == type)
+                            .count());
+
+                    return dto;
+                })
+                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Reporte de satisfacción por estilo de baile
+     */
+    public List<DanceStyleSatisfactionDto> getDanceStyleSatisfactionReport() {
+        List<Event> allEvents = eventRepository.findAll();
+
+        Map<DanceStyle, List<Double>> ratingsByStyle = new HashMap<>();
+
+        // Agrupar ratings por estilo de baile
+        for (Event event : allEvents) {
+            if (!event.getRatings().isEmpty() && !event.getDanceStyles().isEmpty()) {
+                double avgRating = event.getAverageRating();
+                for (DanceStyle style : event.getDanceStyles()) {
+                    ratingsByStyle.computeIfAbsent(style, k -> new ArrayList<>())
+                            .add(avgRating);
+                }
+            }
+        }
+
+        return ratingsByStyle.entrySet().stream()
+                .map(entry -> {
+                    DanceStyle style = entry.getKey();
+                    List<Double> ratings = entry.getValue();
+
+                    double avgSatisfaction = ratings.stream()
+                            .mapToDouble(Double::doubleValue)
+                            .average()
+                            .orElse(0.0);
+
+                    DanceStyleSatisfactionDto dto = new DanceStyleSatisfactionDto();
+                    dto.setDanceStyle(style);
+                    dto.setStyleName(style.name());
+                    dto.setAverageRating(Math.round(avgSatisfaction * 100.0) / 100.0);
+                    dto.setTotalRatedEvents(ratings.size());
+
+                    return dto;
+                })
+                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Reporte detallado de un evento específico incluyendo ratings
+     */
+    public EventRatingDetailDto getEventRatingDetail(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+
+        EventRatingDetailDto detail = new EventRatingDetailDto();
+        detail.setEventId(event.getId());
+        detail.setEventName(event.getName());
+        detail.setEventType(event.getEventType());
+        detail.setEventDate(event.getDateTime());
+
+        List<EventRating> ratings = event.getRatings();
+
+        if (!ratings.isEmpty()) {
+            detail.setTotalRatings(ratings.size());
+            detail.setAverageRating(event.getAverageRating());
+
+            // Distribución de estrellas
+            Map<Integer, Long> distribution = ratings.stream()
+                    .collect(Collectors.groupingBy(EventRating::getStars, Collectors.counting()));
+            detail.setStarsDistribution(distribution);
+
+            // Comentarios más recientes
+            List<RatingCommentDto> recentComments = ratings.stream()
+                    .filter(r -> r.getComment() != null && !r.getComment().trim().isEmpty())
+                    .sorted((a, b) -> b.getId().compareTo(a.getId())) // Asumiendo que ID mayor = más reciente
+                    .limit(10)
+                    .map(r -> new RatingCommentDto(
+                            r.getRater().getFullName(),
+                            r.getStars(),
+                            r.getComment()
+                    ))
+                    .collect(Collectors.toList());
+            detail.setRecentComments(recentComments);
+        } else {
+            detail.setTotalRatings(0);
+            detail.setAverageRating(0.0);
+            detail.setStarsDistribution(new HashMap<>());
+            detail.setRecentComments(new ArrayList<>());
+        }
+
+        return detail;
+    }
+
+    /**
+     * Reporte detallado de un perfil específico incluyendo ratings
+     */
+    public ProfileRatingDetailDto getProfileRatingDetail(Long profileId) {
+        DancerProfile profile = dancerProfileRepository.findById(profileId)
+                .orElseThrow(() -> new RuntimeException("Perfil no encontrado"));
+
+        ProfileRatingDetailDto detail = new ProfileRatingDetailDto();
+        detail.setProfileId(profile.getId());
+        detail.setProfileName(profile.getFullName());
+        detail.setDanceStyles(new ArrayList<>(profile.getDanceStyles()));
+        detail.setLevel(profile.getLevel());
+
+        List<Rating> ratings = profile.getRatings();
+
+        if (!ratings.isEmpty()) {
+            detail.setTotalRatings(ratings.size());
+            detail.setAverageRating(profile.getAverageRating());
+
+            // Distribución de estrellas
+            Map<Integer, Long> distribution = ratings.stream()
+                    .collect(Collectors.groupingBy(Rating::getStars, Collectors.counting()));
+            detail.setStarsDistribution(distribution);
+
+            // Comentarios más recientes
+            List<RatingCommentDto> recentComments = ratings.stream()
+                    .filter(r -> r.getComment() != null && !r.getComment().trim().isEmpty())
+                    .sorted((a, b) -> b.getId().compareTo(a.getId()))
+                    .limit(10)
+                    .map(r -> new RatingCommentDto(
+                            r.getRater().getFullName(),
+                            r.getStars(),
+                            r.getComment()
+                    ))
+                    .collect(Collectors.toList());
+            detail.setRecentComments(recentComments);
+        } else {
+            detail.setTotalRatings(0);
+            detail.setAverageRating(0.0);
+            detail.setStarsDistribution(new HashMap<>());
+            detail.setRecentComments(new ArrayList<>());
+        }
+
+        return detail;
+    }
+
+    /**
+     * Métodos auxiliares para obtener tops
+     */
+    private List<TopRatedEventDto> getTopRatedEvents(int limit) {
+        return eventRepository.findAll().stream()
+                .filter(e -> !e.getRatings().isEmpty())
+                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating()))
+                .limit(limit)
+                .map(e -> new TopRatedEventDto(
+                        e.getId(),
+                        e.getName(),
+                        e.getEventType(),
+                        e.getAverageRating(),
+                        e.getRatings().size()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private List<TopRatedEventDto> getMostRatedEvents(int limit) {
+        return eventRepository.findAll().stream()
+                .filter(e -> !e.getRatings().isEmpty())
+                .sorted((a, b) -> Integer.compare(b.getRatings().size(), a.getRatings().size()))
+                .limit(limit)
+                .map(e -> new TopRatedEventDto(
+                        e.getId(),
+                        e.getName(),
+                        e.getEventType(),
+                        e.getAverageRating(),
+                        e.getRatings().size()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private List<TopRatedProfileDto> getTopRatedProfiles(int limit) {
+        return dancerProfileRepository.findAll().stream()
+                .filter(p -> !p.getRatings().isEmpty())
+                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating()))
+                .limit(limit)
+                .map(p -> new TopRatedProfileDto(
+                        p.getId(),
+                        p.getFullName(),
+                        p.getLevel(),
+                        p.getAverageRating(),
+                        p.getRatings().size(),
+                        new ArrayList<>(p.getDanceStyles())
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private List<TopRatedProfileDto> getMostRatedProfiles(int limit) {
+        return dancerProfileRepository.findAll().stream()
+                .filter(p -> !p.getRatings().isEmpty())
+                .sorted((a, b) -> Integer.compare(b.getRatings().size(), a.getRatings().size()))
+                .limit(limit)
+                .map(p -> new TopRatedProfileDto(
+                        p.getId(),
+                        p.getFullName(),
+                        p.getLevel(),
+                        p.getAverageRating(),
+                        p.getRatings().size(),
+                        new ArrayList<>(p.getDanceStyles())
+                ))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Reporte de organizadores por rating promedio
+     */
+    public List<OrganizerRatingReportDto> getOrganizerRatingReport() {
+        List<OrganizerProfile> organizers = organizerProfileRepository.findAll();
+
+        return organizers.stream()
+                .map(organizer -> {
+                    List<Event> organizerEvents = eventRepository.findByOrganizer(organizer);
+
+                    // Calcular rating promedio de todos los eventos del organizador
+                    List<Double> eventRatings = organizerEvents.stream()
+                            .filter(e -> !e.getRatings().isEmpty())
+                            .map(Event::getAverageRating)
+                            .collect(Collectors.toList());
+
+                    double avgRating = eventRatings.stream()
+                            .mapToDouble(Double::doubleValue)
+                            .average()
+                            .orElse(0.0);
+
+                    int totalRatings = organizerEvents.stream()
+                            .mapToInt(e -> e.getRatings().size())
+                            .sum();
+
+                    OrganizerRatingReportDto report = new OrganizerRatingReportDto();
+                    report.setOrganizerId(organizer.getId());
+                    report.setOrganizerName(organizer.getOrganizationName());
+                    report.setAverageRating(Math.round(avgRating * 100.0) / 100.0);
+                    report.setTotalRatings(totalRatings);
+                    report.setTotalEvents(organizerEvents.size());
+                    report.setRatedEvents(eventRatings.size());
+
+                    return report;
+                })
+                .filter(r -> r.getTotalRatings() > 0) // Solo organizadores con ratings
+                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Actualizar el dashboard completo para incluir métricas de rating
+     */
+    public Map<String, Object> getCompleteRatingDashboard() {
+        Map<String, Object> dashboard = getCompleteDashboard();
+
+        // Agregar reportes de ratings
+        EventRatingsReportDto eventRatings = getEventRatingsReport();
+        ProfileRatingsReportDto profileRatings = getProfileRatingsReport();
+        List<EventTypeSatisfactionDto> eventTypeSatisfaction = getEventTypeSatisfactionReport();
+        List<DanceStyleSatisfactionDto> stylesSatisfaction = getDanceStyleSatisfactionReport();
+        List<OrganizerRatingReportDto> organizerRatings = getOrganizerRatingReport();
+
+        dashboard.put("eventRatings", eventRatings);
+        dashboard.put("profileRatings", profileRatings);
+        dashboard.put("eventTypeSatisfaction", eventTypeSatisfaction);
+        dashboard.put("stylesSatisfaction", stylesSatisfaction);
+        dashboard.put("organizerRatings", organizerRatings);
+
+        // Métricas rápidas de rating
+        dashboard.put("overallEventSatisfaction", eventRatings.getAverageEventRating());
+        dashboard.put("overallProfileSatisfaction", profileRatings.getAverageProfileRating());
+        dashboard.put("bestRatedEventType", eventTypeSatisfaction.isEmpty() ? "N/A" : eventTypeSatisfaction.get(0).getEventTypeName());
+        dashboard.put("bestRatedStyle", stylesSatisfaction.isEmpty() ? "N/A" : stylesSatisfaction.get(0).getStyleName());
+
+        return dashboard;
     }
 }

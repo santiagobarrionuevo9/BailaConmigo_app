@@ -384,7 +384,8 @@ public class AuthService {
         dto.setUserId(id);
         dto.setFullName(profile.getFullName());
         dto.setAge(profile.getAge());
-
+        dto.setCityId(profile.getUser().getCity() != null ? profile.getUser().getCity().getId() : null);
+        dto.setCountryId(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getId() : null);
         // Obtener nombres de ciudad y país desde las entidades
         dto.setCityName(profile.getUser().getCity() != null ? profile.getUser().getCity().getName() : null);
         dto.setCountryName(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getName() : null);
@@ -419,6 +420,8 @@ public class AuthService {
             dto.setAge(age);
 
             // Obtener nombres de ciudad y país desde las entidades
+            dto.setCityId(user.getCity() != null ? user.getCity().getId() : null);
+            dto.setCountryId(user.getCountry() != null ? user.getCountry().getId() : null);
             dto.setCityName(user.getCity() != null ? user.getCity().getName() : null);
             dto.setCountryName(user.getCountry() != null ? user.getCountry().getName() : null);
 
@@ -456,6 +459,9 @@ public class AuthService {
         dto.setFullName(profile.getUser().getFullName());
 
         // Obtener nombres de ciudad y país desde las entidades
+        dto.setCityId(profile.getUser().getCity() != null ? profile.getUser().getCity().getId() : null);
+        dto.setCountryId(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getId() : null);
+
         dto.setCityName(profile.getUser().getCity() != null ? profile.getUser().getCity().getName() : null);
         dto.setCountryName(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getName() : null);
 
@@ -480,6 +486,8 @@ public class AuthService {
             dto.setDescription(profile.getDescription());
             dto.setWebsite(profile.getWebsite());
             dto.setFullName(profile.getUser().getFullName());
+            dto.setCityId(profile.getUser().getCity() != null ? profile.getUser().getCity().getId() : null);
+            dto.setCountryId(profile.getUser().getCountry() != null ? profile.getUser().getCountry().getId() : null);
 
             // Obtener nombres de ciudad y país desde las entidades
             dto.setCityName(profile.getUser().getCity() != null ? profile.getUser().getCity().getName() : null);

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -295,6 +296,127 @@ public class ReportController {
             return ResponseEntity.ok(summary);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // === ENDPOINTS DE RATINGS ESENCIALES ===
+
+    /**
+     * GET /api/reports/ratings/events
+     * Reporte general de ratings de eventos
+     */
+    @GetMapping("/ratings/events")
+    public ResponseEntity<EventRatingsReportDto> getEventRatingsReport() {
+        try {
+            return ResponseEntity.ok(userReportService.getEventRatingsReport());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/ratings/profiles
+     * Reporte general de ratings de perfiles
+     */
+    @GetMapping("/ratings/profiles")
+    public ResponseEntity<ProfileRatingsReportDto> getProfileRatingsReport() {
+        try {
+            return ResponseEntity.ok(userReportService.getProfileRatingsReport());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/ratings/events/{eventId}
+     * Detalle de ratings de un evento específico
+     */
+    @GetMapping("/ratings/events/{eventId}")
+    public ResponseEntity<EventRatingDetailDto> getEventRatingDetail(@PathVariable Long eventId) {
+        try {
+            return ResponseEntity.ok(userReportService.getEventRatingDetail(eventId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/ratings/profiles/{profileId}
+     * Detalle de ratings de un perfil específico
+     */
+    @GetMapping("/ratings/profiles/{profileId}")
+    public ResponseEntity<ProfileRatingDetailDto> getProfileRatingDetail(@PathVariable Long profileId) {
+        try {
+            return ResponseEntity.ok(userReportService.getProfileRatingDetail(profileId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/satisfaction/event-types
+     * Satisfacción por tipo de evento
+     */
+    @GetMapping("/satisfaction/event-types")
+    public ResponseEntity<List<EventTypeSatisfactionDto>> getEventTypeSatisfactionReport() {
+        try {
+            return ResponseEntity.ok(userReportService.getEventTypeSatisfactionReport());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/satisfaction/dance-styles
+     * Satisfacción por estilo de baile
+     */
+    @GetMapping("/satisfaction/dance-styles")
+    public ResponseEntity<List<DanceStyleSatisfactionDto>> getDanceStyleSatisfactionReport() {
+        try {
+            return ResponseEntity.ok(userReportService.getDanceStyleSatisfactionReport());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/dashboard/ratings
+     * Dashboard completo con métricas de rating
+     */
+    @GetMapping("/dashboard/ratings")
+    public ResponseEntity<Map<String, Object>> getCompleteRatingDashboard() {
+        try {
+            return ResponseEntity.ok(userReportService.getCompleteRatingDashboard());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * GET /api/reports/quick/ratings
+     * Métricas rápidas de ratings para dashboard
+     */
+    @GetMapping("/quick/ratings")
+    public ResponseEntity<Map<String, Object>> getQuickRatingMetrics() {
+        try {
+            EventRatingsReportDto eventRatings = userReportService.getEventRatingsReport();
+            ProfileRatingsReportDto profileRatings = userReportService.getProfileRatingsReport();
+
+            Map<String, Object> quickMetrics = new HashMap<>();
+            quickMetrics.put("totalEventRatings", eventRatings.getTotalEventRatings());
+            quickMetrics.put("totalProfileRatings", profileRatings.getTotalProfileRatings());
+            quickMetrics.put("averageEventRating", eventRatings.getAverageEventRating());
+            quickMetrics.put("averageProfileRating", profileRatings.getAverageProfileRating());
+            quickMetrics.put("eventCommentPercentage", eventRatings.getCommentPercentage());
+            quickMetrics.put("profileCommentPercentage", profileRatings.getCommentPercentage());
+
+            return ResponseEntity.ok(quickMetrics);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 

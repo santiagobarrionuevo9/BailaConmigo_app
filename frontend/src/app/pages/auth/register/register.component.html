@@ -160,22 +160,9 @@
         </div>
       </div>
       
-      <div class="mb-3" *ngIf="!isOrganizerAndAcademy">
-        <label for="subscriptionType" class="form-label">Tipo de suscripción</label>
-        <select
-          id="subscriptionType"
-          formControlName="subscriptionType"
-          class="form-select"
-          [ngClass]="{'is-invalid': registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched}"
-        >
-          <option value="">Selecciona una suscripción</option>
-          <option value="BASICO">Básico</option>
-          <option value="PRO">Pro</option>
-        </select>
-        <div *ngIf="registerForm.get('subscriptionType')?.invalid && registerForm.get('subscriptionType')?.touched" class="invalid-feedback">
-          El tipo de suscripción es obligatorio.
-        </div>
-      </div>
+      <!-- Campo oculto con valor fijo -->
+      <input type="hidden" formControlName="subscriptionType" />
+
   
         <button type="submit" class="btn btn-success w-100">
           Registrarse

@@ -21,12 +21,13 @@ public class MatchController {
     @GetMapping("/search")
     public List<DancerProfileResponseDto> searchDancers(
             @RequestParam Long userId,
-            @RequestParam String city,
+            @RequestParam("cityId") String cityId,
+            @RequestParam(value = "countryId", required = false) Long countryId,
             @RequestParam Set<String> styles,
             @RequestParam(required = false) String level,
             @RequestParam(required = false) String availability
     ) {
-        return matchService.searchDancers(userId, city, styles, level, availability);
+        return matchService.searchDancers(userId, cityId, countryId, styles, level, availability);
     }
 
     // ❤️ Dar like a un perfil

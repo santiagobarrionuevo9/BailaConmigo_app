@@ -1,5 +1,7 @@
 export interface EditDancerProfileDto {
-    city: string;
+    
+    cityId: number;
+    countryId: number;
     danceStyles: string[]; // enum
     level: string; // enum
     aboutMe: string;

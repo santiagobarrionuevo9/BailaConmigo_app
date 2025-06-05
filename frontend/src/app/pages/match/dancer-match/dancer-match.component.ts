@@ -49,7 +49,7 @@ export class DancerMatchComponent implements OnInit {
         // ⚡ Paso 2: Cargar perfil para obtener ciudad
         this.authService.getProfileById(this.userId).subscribe({
           next: (profile) => {
-            this.searchParams.city = profile.city;
+            this.searchParams.city = profile.cityName;
 
             // Estilos por defecto opcionalmente según su perfil
             this.searchParams.styles = Array.from(profile.danceStyles || []);

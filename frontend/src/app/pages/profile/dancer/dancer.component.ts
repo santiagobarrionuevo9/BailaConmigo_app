@@ -8,6 +8,9 @@ import Swal from 'sweetalert2';
 import { UserContextService } from '../../../services/user-context.service';
 import { AuthstateService } from '../../../services/authstate.service';
 import { AuthService } from '../../../services/auth.service';
+import { Country } from '../../../models/Country';
+import { City } from '../../../models/City';
+import { LocationService } from '../../../services/location.service';
 
 @Component({
   selector: 'app-dancer',
@@ -24,6 +27,9 @@ export class DancerComponent implements OnInit {
   mediaPreview: string[] = [];
   currentMediaIndex = 0; // Para control de carrusel tipo Tinder
   selectedFileNames: Set<string> = new Set();
+  countries: Country[] = [];
+  cities: City[] = [];
+
   
   availableDanceStyles: string[] = [];
   selectedStyles: string[] = [];
@@ -32,13 +38,21 @@ export class DancerComponent implements OnInit {
     private fb: FormBuilder, 
     private profileService: ProfileService,
     private userContext: UserContextService, 
-    private auhtservice: AuthService
+    private auhtservice: AuthService,
+    private locationService: LocationService
   ) {}
 
   ngOnInit(): void {
+    this.locationService.getAllCountries().subscribe({
+    next: (countries) => this.countries = countries
+  });
+
+  
+
     this.userId = this.userContext.userId!;
     this.form = this.fb.group({
-      city: [''],
+      countryId: [null],
+      cityId: [null],
       danceStyles: [[]],
       level: [''],
       aboutMe: [''],
@@ -51,16 +65,36 @@ export class DancerComponent implements OnInit {
     });
     
     this.profileService.getProfile(this.userId).subscribe(profile => {
-      this.profileData = profile;
-      this.form.patchValue(profile);
-      this.mediaPreview = [...profile.mediaUrls];
-      
-      // Inicializar los estilos seleccionados
-      this.selectedStyles = [...profile.danceStyles];
-      
-      // Inicializar los archivos seleccionados
-      this.initializeSelectedFiles();
-    });
+    this.profileData = profile;
+    this.form.patchValue(profile);
+    this.mediaPreview = [...profile.mediaUrls];
+    this.selectedStyles = [...profile.danceStyles];
+    this.initializeSelectedFiles();
+
+    // Cargar ciudades del país del perfil actual para vista solo lectura
+    if (profile.countryId) {
+      this.locationService.getCitiesByCountry(profile.countryId).subscribe({
+        next: (cities) => this.cities = cities
+      });
+    }
+    
+  });
+
+  this.form.get('countryId')?.valueChanges.subscribe((countryId: number) => {
+  if (!countryId) {
+    this.cities = [];
+    this.form.patchValue({ cityId: null });
+    return;
+  }
+
+  this.locationService.getCitiesByCountry(countryId).subscribe({
+    next: (cities) => {
+      this.cities = cities;
+      this.form.patchValue({ cityId: null }); // Reinicia ciudad al cambiar país
+    }
+  });
+});
+
   }
 
   // Método para agregar un estilo de baile
@@ -156,6 +190,7 @@ export class DancerComponent implements OnInit {
         
         // Actualizamos los datos locales y cerramos el modo de edición
         this.profileData = { ...this.profileData, ...dto };
+        
         this.isEditing = false;
       },
       error: (error) => {
@@ -211,6 +246,22 @@ export class DancerComponent implements OnInit {
       });
     }
   }
+
+  onCountryChange(countryId: number): void {
+  if (!countryId) {
+    this.cities = [];
+    this.form.patchValue({ cityId: null });
+    return;
+  }
+
+  this.locationService.getCitiesByCountry(countryId).subscribe({
+    next: (cities) => {
+      this.cities = cities;
+      this.form.patchValue({ cityId: null });
+    }
+  });
+}
+
 
   isVideo(url: string): boolean {
     return /\.(mp4|mov|avi|webm|ogg)$/i.test(url);

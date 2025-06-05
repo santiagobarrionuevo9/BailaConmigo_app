@@ -46,9 +46,21 @@
       <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="isEditing">
         <div class="row">
           <div class="col-md-6 mb-3">
-            <label class="form-label">Ciudad</label>
-            <input class="form-control" formControlName="city" />
+            <label class="form-label">País</label>
+            <select class="form-select" formControlName="countryId" (change)="onCountryChange(form.value.countryId)">
+              <option [ngValue]="null">-- Selecciona un país --</option>
+              <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+            </select>
           </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Ciudad</label>
+            <select class="form-select" formControlName="cityId" [disabled]="!cities.length">
+              <option [ngValue]="null">-- Selecciona una ciudad --</option>
+              <option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</option>
+            </select>
+          </div>
+
 
           <div class="col-md-6 mb-3">
             <label class="form-label">Nivel</label>
@@ -113,7 +125,8 @@
 
       <!-- VISTA DE SOLO LECTURA -->
       <div *ngIf="!isEditing">
-        <p><strong>Ciudad:</strong> {{ profileData.city }}</p>
+        <p><strong>Ciudad:</strong> {{ profileData.cityName }}</p>
+        <p><strong>País:</strong> {{ profileData.countryName }}</p>
         <p><strong>Nivel:</strong> {{ profileData.level }}</p>
         <p><strong>Estilos:</strong> {{ profileData.danceStyles.join(', ') }}</p>
         <p><strong>Sobre mí:</strong> {{ profileData.aboutMe }}</p>

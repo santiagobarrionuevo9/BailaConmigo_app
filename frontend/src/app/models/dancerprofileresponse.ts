@@ -2,7 +2,10 @@ export interface DancerProfileResponseDto {
     userId: number;
     fullName: string;
     age: number;
-    city: string;
+    cityName: string;
+    countryName: string;
+    cityId: number;
+    countryId: number;
     danceStyles: string[];
     level: string;
     aboutMe: string;

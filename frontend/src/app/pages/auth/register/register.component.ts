@@ -60,7 +60,12 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCountries();
+
+    // Setear y deshabilitar permanentemente la suscripción
+    this.registerForm.get('subscriptionType')?.setValue('BASICO');
+    this.registerForm.get('subscriptionType')?.disable();
   }
+
 
   loadCountries(): void {
     this.locationService.getAllCountries().subscribe({
@@ -120,7 +125,9 @@ export class RegisterComponent implements OnInit {
   onSubmit(): void {
     if (this.registerForm.invalid) return;
 
-    const registerRequest = this.registerForm.value;
+    const registerRequest: RegisterRequestDto = {
+      ...this.registerForm.getRawValue(), // Incluye los deshabilitados como subscriptionType
+    };
 
     this.authService.register(registerRequest).subscribe({
       next: () => {

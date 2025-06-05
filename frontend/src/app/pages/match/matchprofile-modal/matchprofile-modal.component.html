@@ -3,7 +3,8 @@
     <button class="close-btn" (click)="closeModal()">×</button>
 
     <h2>{{ dancer.fullName }}, {{ dancer.age }}</h2>
-    <p><i class="bi bi-geo-alt-fill"></i> {{ dancer.city }}</p>
+    <p><i class="bi bi-geo-alt-fill"></i> {{ dancer.cityName }}</p>
+    <p><i class="bi bi-flag-fill"></i> {{ dancer.countryName }}</p>
     <p><strong>Estilos:</strong> {{ dancer.danceStyles.join(', ') }}</p>
     <p><strong>Nivel:</strong> {{ dancer.level }}</p>
     <p><strong>Sobre mí:</strong> {{ dancer.aboutMe }}</p>
