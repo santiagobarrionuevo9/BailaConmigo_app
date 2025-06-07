@@ -1,0 +1,163 @@
+<div class="dashboard-container">
+      <div class="dashboard-header">
+        <h1>Dashboard - BailaConmigo</h1>
+        <p class="subtitle">Resumen general de actividad de la aplicación</p>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando datos del dashboard...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="error-container">
+        <p>❌ Error al cargar los datos: {{ error }}</p>
+        <button (click)="loadDashboardData()" class="retry-button">Reintentar</button>
+      </div>
+
+      <!-- Dashboard Content -->
+      <div *ngIf="!loading && !error" class="dashboard-content">
+        
+        <!-- Métricas Básicas -->
+        <section class="metrics-section">
+          <h2>Métricas Generales</h2>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon">💝</div>
+              <div class="metric-content">
+                <h3>{{ basicMetrics?.totalLikes | number }}</h3>
+                <p>Total Likes Dados</p>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-icon">🎯</div>
+              <div class="metric-content">
+                <h3>{{ basicMetrics?.totalMatches | number }}</h3>
+                <p>Total Matches</p>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-icon">📊</div>
+              <div class="metric-content">
+                <h3>{{ ((basicMetrics?.conversionRate ?? 0) * 100) | number:'1.1-1' }}%</h3>
+                <p>Tasa de Conversión</p>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-icon">👥</div>
+              <div class="metric-content">
+                <h3>{{ basicMetrics?.averageMatchesPerUser | number:'1.1-1' }}</h3>
+                <p>Promedio Matches/Usuario</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Métricas de Baile -->
+        <section class="dance-section">
+          <h2>Actividad de Baile</h2>
+          <div class="dance-grid">
+            <div class="dance-card">
+              <div class="dance-icon">💃</div>
+              <div class="dance-content">
+                <h3>{{ quickDanceMetrics?.totalActiveDancers | number }}</h3>
+                <p>Bailarines Activos</p>
+              </div>
+            </div>
+            
+            <div class="dance-card">
+              <div class="dance-icon">🎭</div>
+              <div class="dance-content">
+                <h3>{{ quickDanceMetrics?.totalStyles | number }}</h3>
+                <p>Estilos Totales</p>
+              </div>
+            </div>
+            
+            <div class="dance-card">
+              <div class="dance-icon">⭐</div>
+              <div class="dance-content">
+                <h3>{{ quickDanceMetrics?.mostPopularStyle }}</h3>
+                <p>Estilo Más Popular</p>
+              </div>
+            </div>
+            
+            <div class="dance-card">
+              <div class="dance-icon">📈</div>
+              <div class="dance-content">
+                <h3>{{ quickDanceMetrics?.averageStylesPerDancer | number:'1.1-1' }}</h3>
+                <p>Promedio Estilos/Bailarín</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Métricas Geográficas -->
+        <section class="geography-section">
+          <h2>Distribución Geográfica</h2>
+          <div class="geography-grid">
+            <div class="geography-card">
+              <div class="geography-icon">👥</div>
+              <div class="geography-content">
+                <h3>{{ quickGeographyMetrics?.totalUsers | number }}</h3>
+                <p>Total Usuarios</p>
+              </div>
+            </div>
+            
+            <div class="geography-card">
+              <div class="geography-icon">💃</div>
+              <div class="geography-content">
+                <h3>{{ quickGeographyMetrics?.totalDancers | number }}</h3>
+                <p>Total Bailarines</p>
+              </div>
+            </div>
+            
+            <div class="geography-card">
+              <div class="geography-icon">🏙️</div>
+              <div class="geography-content">
+                <h3>{{ quickGeographyMetrics?.totalCities | number }}</h3>
+                <p>Ciudades</p>
+              </div>
+            </div>
+            
+            <div class="geography-card">
+              <div class="geography-icon">🌍</div>
+              <div class="geography-content">
+                <h3>{{ quickGeographyMetrics?.totalCountries | number }}</h3>
+                <p>Países</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="top-locations">
+            <div class="top-location-item">
+              <span class="location-label">🏆 Ciudad Top:</span>
+              <span class="location-value">{{ quickGeographyMetrics?.topCity }}</span>
+            </div>
+            <div class="top-location-item">
+              <span class="location-label">🌟 País Top:</span>
+              <span class="location-value">{{ quickGeographyMetrics?.topCountry }}</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="actions-section">
+          <h2>Reportes Detallados</h2>
+          <div class="action-buttons">
+            <button class="action-button" routerLink="/reportmatching">
+              📊 Reporte de Matching
+            </button>
+            <button class="action-button" routerLink="/diversity">
+              💃 Diversidad de Baile
+            </button>
+            <button class="action-button" routerLink="/reports/geography">
+              🗺️ Reporte Geográfico
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>

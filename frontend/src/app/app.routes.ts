@@ -20,6 +20,9 @@ import { FaqPageComponent } from './shared/components/faq-page/faq-page.componen
 import { TermsComponent } from './shared/components/terms/terms.component';
 import { PrivacyComponent } from './shared/components/privacy/privacy.component';
 import { OrganizerComponent } from './pages/event/organizer/organizer.component';
+import { DashboardComponent } from './pages/report/dashboard/dashboard.component';
+import { MatchingComponent } from './pages/report/matching/matching.component';
+import { DiversityComponent } from './pages/report/diversity/diversity.component';
 
 
 export const routes: Routes = [
@@ -44,5 +47,8 @@ export const routes: Routes = [
   { path: 'faq', component: FaqPageComponent },
   { path: 'terminos', component: TermsComponent },
   { path: 'privacidad', component: PrivacyComponent },
-  {path: 'profile-organizer', component: OrganizerComponent}
+  {path: 'profile-organizer', component: OrganizerComponent},
+  {path: 'dashboard', component: DashboardComponent},
+  {path: 'reportmatching', component: MatchingComponent },
+  {path: 'diversity', component: DiversityComponent}
   ];

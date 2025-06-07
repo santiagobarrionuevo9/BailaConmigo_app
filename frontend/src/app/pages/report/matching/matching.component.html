@@ -1,0 +1,209 @@
+<div class="matching-report-container">
+      <div class="report-header">
+        <h1>📊 Reporte de Actividad de Matching</h1>
+        <p class="subtitle">Análisis detallado de likes, matches y conversiones</p>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="filters-section">
+        <h3>Filtros de Fecha</h3>
+        <div class="date-filters">
+          <div class="date-input-group">
+            <label for="startDate">Fecha Inicio:</label>
+            <input 
+              type="date" 
+              id="startDate" 
+              [(ngModel)]="startDate"
+              (change)="onDateChange()"
+              class="date-input">
+          </div>
+          <div class="date-input-group">
+            <label for="endDate">Fecha Fin:</label>
+            <input 
+              type="date" 
+              id="endDate" 
+              [(ngModel)]="endDate"
+              (change)="onDateChange()"
+              class="date-input">
+          </div>
+          <button (click)="resetFilters()" class="reset-button">Limpiar Filtros</button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando reporte de matching...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="error-container">
+        <p>❌ {{ error }}</p>
+        <button (click)="loadReport()" class="retry-button">Reintentar</button>
+      </div>
+
+      <!-- Report Content -->
+      <div *ngIf="!loading && !error && report" class="report-content">
+        
+        <!-- Métricas Generales -->
+        <section class="general-metrics">
+          <h2>Métricas Generales</h2>
+          <div class="metrics-grid">
+            <div class="metric-card total-likes">
+              <div class="metric-icon">💝</div>
+              <div class="metric-content">
+                <h3>{{ report.totalLikesGiven | number }}</h3>
+                <p>Total Likes Dados</p>
+              </div>
+            </div>
+            
+            <div class="metric-card total-matches">
+              <div class="metric-icon">🎯</div>
+              <div class="metric-content">
+                <h3>{{ report.totalSuccessfulMatches | number }}</h3>
+                <p>Matches Exitosos</p>
+              </div>
+            </div>
+            
+            <div class="metric-card conversion-rate">
+              <div class="metric-icon">📈</div>
+              <div class="metric-content">
+                <h3>{{ (report.conversionRate * 100) | number:'1.1-1' }}%</h3>
+                <p>Tasa de Conversión</p>
+              </div>
+            </div>
+            
+            <div class="metric-card avg-matches">
+              <div class="metric-icon">👥</div>
+              <div class="metric-content">
+                <h3>{{ report.averageMatchesPerUser | number:'1.1-1' }}</h3>
+                <p>Promedio Matches/Usuario</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Métricas por Período -->
+        <section class="period-metrics">
+          <h2>Métricas por Período</h2>
+          <div class="period-grid">
+            
+            <!-- Hoy -->
+            <div class="period-card today">
+              <h3>📅 Hoy</h3>
+              <div class="period-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Likes:</span>
+                  <span class="stat-value">{{ report.todayStats.likesGiven | number }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Matches:</span>
+                  <span class="stat-value">{{ report.todayStats.matchesCreated | number }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Conversión:</span>
+                  <span class="stat-value">{{ (report.todayStats.conversionRate * 100) | number:'1.1-1' }}%</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Usuarios Activos:</span>
+                  <span class="stat-value">{{ report.todayStats.activeUsers | number }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Esta Semana -->
+            <div class="period-card week">
+              <h3>📅 Esta Semana</h3>
+              <div class="period-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Likes:</span>
+                  <span class="stat-value">{{ report.thisWeekStats.likesGiven | number }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Matches:</span>
+                  <span class="stat-value">{{ report.thisWeekStats.matchesCreated | number }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Conversión:</span>
+                  <span class="stat-value">{{ (report.thisWeekStats.conversionRate * 100) | number:'1.1-1' }}%</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Usuarios Activos:</span>
+                  <span class="stat-value">{{ report.thisWeekStats.activeUsers | number }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Este Mes -->
+            <div class="period-card month">
+              <h3>📅 Este Mes</h3>
+              <div class="period-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Likes:</span>
+                  <span class="stat-value">{{ report.thisMonthStats.likesGiven | number }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Matches:</span>
+                  <span class="stat-value">{{ report.thisMonthStats.matchesCreated | number }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Conversión:</span>
+                  <span class="stat-value">{{ (report.thisMonthStats.conversionRate * 100) | number:'1.1-1' }}%</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Usuarios Activos:</span>
+                  <span class="stat-value">{{ report.thisMonthStats.activeUsers | number }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Top Usuarios Activos -->
+        <section class="top-users" *ngIf="report.topActiveUsers && report.topActiveUsers.length > 0">
+          <h2>🏆 Top Usuarios Más Activos</h2>
+          <div class="users-table-container">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Posición</th>
+                  <th>Usuario</th>
+                  <th>Total Likes</th>
+                  <th>Total Matches</th>
+                  <th>Tasa de Conversión</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of report.topActiveUsers; let i = index" 
+                    [class]="'position-' + (i + 1)">
+                  <td class="position-cell">
+                    <span class="position-badge">{{ i + 1 }}</span>
+                  </td>
+                  <td class="user-cell">
+                    <div class="user-info">
+                      <div class="user-avatar">{{ getInitials(user.fullName) }}</div>
+                      <span class="user-name">{{ user.fullName }}</span>
+                    </div>
+                  </td>
+                  <td class="likes-cell">{{ user.totalLikes | number }}</td>
+                  <td class="matches-cell">{{ user.totalMatches | number }}</td>
+                  <td class="conversion-cell">
+                    <span class="conversion-badge" 
+                          [class.high]="user.conversionRate > 0.5"
+                          [class.medium]="user.conversionRate > 0.3 && user.conversionRate <= 0.5"
+                          [class.low]="user.conversionRate <= 0.3">
+                      {{ (user.conversionRate * 100) | number:'1.1-1' }}%
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- No Data Message -->
+        <div *ngIf="report.topActiveUsers?.length === 0" class="no-data">
+          <p>📊 No hay datos de usuarios activos para mostrar en este período.</p>
+        </div>
+      </div>
+    </div>

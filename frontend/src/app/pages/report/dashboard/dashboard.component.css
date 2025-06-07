@@ -1,0 +1,195 @@
+.dashboard-container {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .dashboard-header h1 {
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #7f8c8d;
+      font-size: 1.2rem;
+    }
+
+    .loading-container, .error-container {
+      text-align: center;
+      padding: 3rem;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-container p {
+      color: #e74c3c;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .retry-button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .retry-button:hover {
+      background: #2980b9;
+    }
+
+    .metrics-section, .dance-section, .geography-section, .actions-section {
+      margin-bottom: 3rem;
+    }
+
+    .metrics-section h2, .dance-section h2, .geography-section h2, .actions-section h2 {
+      color: #2c3e50;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 0.5rem;
+    }
+
+    .metrics-grid, .dance-grid, .geography-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .metric-card, .dance-card, .geography-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: transform 0.2s ease;
+    }
+
+    .metric-card:hover, .dance-card:hover, .geography-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .metric-icon, .dance-icon, .geography-icon {
+      font-size: 2.5rem;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #ecf0f1;
+    }
+
+    .metric-content h3, .dance-content h3, .geography-content h3 {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 0 0 0.25rem 0;
+    }
+
+    .metric-content p, .dance-content p, .geography-content p {
+      margin: 0;
+      color: #7f8c8d;
+      font-size: 0.95rem;
+    }
+
+    .top-locations {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .top-location-item {
+      background: #f8f9fa;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+    }
+
+    .location-label {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-right: 0.5rem;
+    }
+
+    .location-value {
+      color: #3498db;
+      font-weight: 500;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .action-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 1rem;
+      }
+      
+      .metrics-grid, .dance-grid, .geography-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .top-locations {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .action-button {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
