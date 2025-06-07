@@ -8,7 +8,7 @@ export interface CreateEventRequestDto {
     address?: string;
     capacity?: number;
     price?: number;
-    eventType?: 'CLASE' | 'COMPETENCIA' | 'FESTIVAL';
+    eventType?: 'CLASE' | 'COMPETENCIA' | 'FESTIVAL' | 'SOCIAL';
     // Campos faltantes que espera el backend:
     danceStyles?: string[]; // Conjunto de estilos de baile
     additionalInfo?: string; // Información adicional

@@ -22,7 +22,11 @@ import { PrivacyComponent } from './shared/components/privacy/privacy.component'
 import { OrganizerComponent } from './pages/event/organizer/organizer.component';
 import { DashboardComponent } from './pages/report/dashboard/dashboard.component';
 import { MatchingComponent } from './pages/report/matching/matching.component';
-import { DiversityComponent } from './pages/report/diversity/diversity.component';
+import { RatingDashboardComponent } from './pages/report/rating-dashboard/rating-dashboard.component';
+import { DashboardFinanceComponent } from './pages/report/dashboard-finance/dashboard-finance.component';
+
+
+
 
 
 export const routes: Routes = [
@@ -50,5 +54,6 @@ export const routes: Routes = [
   {path: 'profile-organizer', component: OrganizerComponent},
   {path: 'dashboard', component: DashboardComponent},
   {path: 'reportmatching', component: MatchingComponent },
-  {path: 'diversity', component: DiversityComponent}
+  {path: 'dashboard-rating', component:RatingDashboardComponent },
+  {path: 'dashboard-finance', component:DashboardFinanceComponent },
   ];

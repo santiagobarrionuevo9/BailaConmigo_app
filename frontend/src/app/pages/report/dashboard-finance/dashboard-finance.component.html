@@ -1,0 +1,110 @@
+<div class="report-container">
+      <div class="header">
+        <h1>Reporte General de Eventos</h1>
+        <button class="refresh-btn" (click)="loadReport()" [disabled]="loading">
+          <span *ngIf="!loading">🔄 Actualizar</span>
+          <span *ngIf="loading">⏳ Cargando...</span>
+        </button>
+      </div>
+
+      <div class="loading-container" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Generando reporte...</p>
+      </div>
+
+      <div class="report-content" *ngIf="!loading && reportData">
+        <div class="report-info">
+          <p><strong>Generado:</strong> {{ reportData.generatedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+
+        <!-- Estadísticas generales -->
+        <div class="section">
+          <h2>📊 Estadísticas Generales</h2>
+          <div class="stats-grid">
+            <div class="stat-card primary">
+              <h3>Total de Eventos</h3>
+              <p class="stat-number">{{ reportData.totalEvents }}</p>
+            </div>
+            <div class="stat-card success">
+              <h3>Eventos Activos</h3>
+              <p class="stat-number">{{ reportData.activeEvents }}</p>
+            </div>
+            <div class="stat-card warning">
+              <h3>Eventos Cancelados</h3>
+              <p class="stat-number">{{ reportData.cancelledEvents }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estadísticas de inscripciones -->
+        <div class="section">
+          <h2>👥 Inscripciones</h2>
+          <div class="stats-grid">
+            <div class="stat-card primary">
+              <h3>Total Inscripciones</h3>
+              <p class="stat-number">{{ reportData.totalRegistrations }}</p>
+            </div>
+            <div class="stat-card success">
+              <h3>Confirmadas</h3>
+              <p class="stat-number">{{ reportData.confirmedRegistrations }}</p>
+            </div>
+            <div class="stat-card warning">
+              <h3>Pendientes</h3>
+              <p class="stat-number">{{ reportData.pendingRegistrations }}</p>
+            </div>
+            <div class="stat-card danger">
+              <h3>Canceladas</h3>
+              <p class="stat-number">{{ reportData.cancelledRegistrations }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Métricas financieras -->
+        <div class="section">
+          <h2>💰 Métricas Financieras</h2>
+          <div class="stats-grid">
+            <div class="stat-card financial">
+              <h3>Ingresos Totales</h3>
+              <p class="stat-number">{{ reportData.totalRevenue | currency:'ARS':'symbol':'1.0-0' }}</p>
+            </div>
+            <div class="stat-card info">
+              <h3>Promedio Inscripciones/Evento</h3>
+              <p class="stat-number">{{ reportData.averageRegistrationsPerEvent | number:'1.1-1' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distribución por tipo de evento -->
+        <div class="section">
+          <h2>🎭 Distribución por Tipo de Evento</h2>
+          <div class="chart-container">
+            <div class="chart-item" *ngFor="let item of getEventTypeEntries()">
+              <div class="chart-bar">
+                <div class="bar-fill" [style.width.%]="getPercentage(item.value, reportData.totalEvents)"></div>
+                <span class="bar-label">{{ getEventTypeLabel(item.key) }}</span>
+                <span class="bar-value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popularidad de estilos de baile -->
+        <div class="section">
+          <h2>💃 Popularidad de Estilos de Baile</h2>
+          <div class="chart-container">
+            <div class="chart-item" *ngFor="let item of getDanceStyleEntries()">
+              <div class="chart-bar">
+                <div class="bar-fill dance-style" [style.width.%]="getPercentage(item.value, getTotalDanceStyles())"></div>
+                <span class="bar-label">{{item.key }}</span>
+                <span class="bar-value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        <p>{{ errorMessage }}</p>
+        <button (click)="loadReport()">Reintentar</button>
+      </div>
+    </div>

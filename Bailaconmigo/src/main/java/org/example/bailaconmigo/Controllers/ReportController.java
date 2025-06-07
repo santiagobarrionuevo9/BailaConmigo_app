@@ -159,20 +159,6 @@ public class ReportController {
     }
 
     /**
-     * GET /api/reports/organizers
-     * Obtiene reportes de todos los organizadores
-     */
-    @GetMapping("/organizers")
-    public ResponseEntity<List<OrganizerEventReportDto>> getOrganizerReports() {
-        try {
-            List<OrganizerEventReportDto> reports = userReportService.getOrganizerEventReports();
-            return ResponseEntity.ok(reports);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    /**
      * GET /api/reports/events/{eventId}
      * Obtiene un reporte detallado de un evento específico
      */
@@ -242,40 +228,6 @@ public class ReportController {
         }
     }
 
-    /**
-     * GET /api/reports/upcoming
-     * Obtiene un reporte de eventos próximos
-     * Parámetro opcional: days (default: 30)
-     */
-    @GetMapping("/upcoming")
-    public ResponseEntity<List<UpcomingEventReportDto>> getUpcomingEventsReport(
-            @RequestParam(defaultValue = "30") int days) {
-        try {
-            if (days <= 0 || days > 365) {
-                return ResponseEntity.badRequest().build();
-            }
-            List<UpcomingEventReportDto> reports = userReportService.getUpcomingEventsReport(days);
-            return ResponseEntity.ok(reports);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    /**
-     * GET /api/reports/events/{eventId}/participants
-     * Obtiene solo la lista de participantes de un evento (endpoint específico)
-     */
-    @GetMapping("/events/{eventId}/participants")
-    public ResponseEntity<List<ParticipantInfoDto>> getEventParticipants(@PathVariable Long eventId) {
-        try {
-            EventDetailReportDto report = userReportService.getEventDetailReport(eventId);
-            return ResponseEntity.ok(report.getParticipants());
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
 
     /**
      * GET /api/reports/summary
@@ -327,35 +279,6 @@ public class ReportController {
         }
     }
 
-    /**
-     * GET /api/reports/ratings/events/{eventId}
-     * Detalle de ratings de un evento específico
-     */
-    @GetMapping("/ratings/events/{eventId}")
-    public ResponseEntity<EventRatingDetailDto> getEventRatingDetail(@PathVariable Long eventId) {
-        try {
-            return ResponseEntity.ok(userReportService.getEventRatingDetail(eventId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * GET /api/reports/ratings/profiles/{profileId}
-     * Detalle de ratings de un perfil específico
-     */
-    @GetMapping("/ratings/profiles/{profileId}")
-    public ResponseEntity<ProfileRatingDetailDto> getProfileRatingDetail(@PathVariable Long profileId) {
-        try {
-            return ResponseEntity.ok(userReportService.getProfileRatingDetail(profileId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
 
     /**
      * GET /api/reports/satisfaction/event-types

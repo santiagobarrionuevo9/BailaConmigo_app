@@ -10,6 +10,18 @@ import { StyleCombinationDto } from '../models/style-combination-dto';
 import { GeographicReportDto } from '../models/geographic-report-dto';
 import { QuickDanceMetrics } from '../models/quick-dance-metrics';
 import { QuickGeographyMetrics } from '../models/quick-geography-metrics';
+import { EventRatingsReport } from '../models/event-ratings-report';
+import { QuickRatingMetrics } from '../models/quick-rating-metrics';
+import { RatingDashboard } from '../models/rating-dashboard';
+import { DanceStyleSatisfaction } from '../models/dance-style-satisfaction';
+import { EventTypeSatisfaction } from '../models/event-type-satisfaction';
+import { ProfileRatingsReport } from '../models/profile-ratings-report';
+import { FinancialReportDto } from '../models/financial-report-dto';
+import { DashboardSummaryDto } from '../models/dashboard-summary-dto';
+import { RegistrationReportDto } from '../models/registration-report-dto';
+import { EventDetailReportDto } from '../models/event-detail-report-dto';
+import { EventGeneralReportDto } from '../models/event-general-report-dto';
+
 
 @Injectable({
   providedIn: 'root'
@@ -64,10 +76,7 @@ export class ReportService {
 
   // === GEOGRAFÍA ===
   
-  getGeographicReport(): Observable<GeographicReportDto> {
-    // Asumiendo que existe este endpoint basado en el patrón
-    return this.http.get<GeographicReportDto>(`${this.baseUrl}/geography`);
-  }
+  
 
   // === MÉTRICAS RÁPIDAS ===
   
@@ -78,4 +87,79 @@ export class ReportService {
   getQuickGeographyMetrics(): Observable<QuickGeographyMetrics> {
     return this.http.get<QuickGeographyMetrics>(`${this.baseUrl}/quick/geography`);
   }
+
+  // Reporte general de ratings de eventos
+  getEventRatingsReport(): Observable<EventRatingsReport> {
+    return this.http.get<EventRatingsReport>(`${this.baseUrl}/ratings/events`);
+  }
+
+  // Reporte general de ratings de perfiles
+  getProfileRatingsReport(): Observable<ProfileRatingsReport> {
+    return this.http.get<ProfileRatingsReport>(`${this.baseUrl}/ratings/profiles`);
+  }
+
+  // Satisfacción por tipo de evento
+  getEventTypeSatisfactionReport(): Observable<EventTypeSatisfaction[]> {
+    return this.http.get<EventTypeSatisfaction[]>(`${this.baseUrl}/satisfaction/event-types`);
+  }
+
+  // Satisfacción por estilo de baile
+  getDanceStyleSatisfactionReport(): Observable<DanceStyleSatisfaction[]> {
+    return this.http.get<DanceStyleSatisfaction[]>(`${this.baseUrl}/satisfaction/dance-styles`);
+  }
+
+  // Dashboard completo con métricas de rating
+  getCompleteRatingDashboard(): Observable<RatingDashboard> {
+    return this.http.get<RatingDashboard>(`${this.baseUrl}/dashboard/ratings`);
+  }
+
+  // Métricas rápidas de ratings
+  getQuickRatingMetrics(): Observable<QuickRatingMetrics> {
+    return this.http.get<QuickRatingMetrics>(`${this.baseUrl}/quick/ratings`);
+  }
+
+  /**
+   * Obtiene un reporte general de todos los eventos e inscripciones
+   */
+  getGeneralReport(): Observable<EventGeneralReportDto> {
+    return this.http.get<EventGeneralReportDto>(`${this.baseUrl}/general`);
+  }
+
+  /**
+   * Obtiene un reporte detallado de un evento específico
+   */
+  getEventDetailReport(eventId: number): Observable<EventDetailReportDto> {
+    return this.http.get<EventDetailReportDto>(`${this.baseUrl}/events/${eventId}`);
+  }
+
+  /**
+   * Obtiene un reporte de inscripciones por período
+   */
+  getRegistrationReport(startDate: string, endDate: string): Observable<RegistrationReportDto> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    
+    return this.http.get<RegistrationReportDto>(`${this.baseUrl}/registrations`, { params });
+  }
+
+
+  /**
+   * Obtiene un reporte financiero por período
+   */
+  getFinancialReport(startDate: string, endDate: string): Observable<FinancialReportDto> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    
+    return this.http.get<FinancialReportDto>(`${this.baseUrl}/financial`, { params });
+  }
+
+  /**
+   * Obtiene un resumen rápido para dashboard
+   */
+  getDashboardSummary(): Observable<DashboardSummaryDto> {
+    return this.http.get<DashboardSummaryDto>(`${this.baseUrl}/summary`);
+  }
+
 }

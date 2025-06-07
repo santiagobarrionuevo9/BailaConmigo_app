@@ -1,0 +1,6 @@
+export enum EventType {
+  CLASE = 'CLASE',
+  COMPETENCIA = 'COMPETENCIA',
+  FESTIVAL = 'FESTIVAL',
+  SOCIAL = 'SOCIAL'
+}
