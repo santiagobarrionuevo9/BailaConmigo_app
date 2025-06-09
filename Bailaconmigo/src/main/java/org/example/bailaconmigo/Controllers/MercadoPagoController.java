@@ -2,20 +2,24 @@ package org.example.bailaconmigo.Controllers;
 
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.bailaconmigo.DTOs.MercadoPagoTokenResponse;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Entities.Enum.SubscriptionType;
 import org.example.bailaconmigo.Entities.User;
 import org.example.bailaconmigo.Repositories.UserRepository;
+import org.example.bailaconmigo.Services.AuthService;
 import org.example.bailaconmigo.Services.MercadoPagoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,36 +35,91 @@ public class MercadoPagoController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuthService userService;
+
+    /**
+     * Endpoint para recibir el código de autorización de MercadoPago
+     * y intercambiarlo por un access token
+     */
     @GetMapping("/callback")
-    public ResponseEntity<?> callback(
-            @RequestParam("code") String code,
-            Principal principal
-    ) {
+    public ResponseEntity<?> handleMercadoPagoCallback(
+            @RequestParam("code") String authorizationCode,
+            @RequestParam("state") String userId, // El ID del usuario que inició el proceso
+            HttpServletResponse response) {
+
         try {
-            // 1. Obtener el token de Mercado Pago
-            MercadoPagoTokenResponse token = mercadoService.exchangeCodeForAccessToken(code);
+            // 1. Intercambiar el código por un access token
+            String accessToken = exchangeCodeForToken(authorizationCode);
 
-            // 2. Buscar al usuario logueado
-            String email = principal.getName();
-            Optional<User> optionalUsuario = userRepository.findByEmail(email);
+            // 2. Guardar el token en la base de datos
+            userService.saveMercadoPagoToken(Long.parseLong(userId), accessToken);
 
-            if (optionalUsuario.isPresent()) {
-                User usuario = optionalUsuario.get();
+            // 3. Redireccionar al frontend con éxito
+            response.sendRedirect("http://localhost:4200/pago-exito");
 
-                // 3. Guardar el token en la base de datos
-                usuario.setMercadoPagoToken(token.getAccess_token());
-                userRepository.save(usuario);
-
-                return ResponseEntity.ok("✅ Cuenta de Mercado Pago vinculada correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Usuario no encontrado.");
-            }
+            return null; // No necesitamos retornar nada porque redireccionamos
 
         } catch (Exception e) {
-            logger.error("Error en el callback de Mercado Pago", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("❌ Error al vincular Mercado Pago: " + e.getMessage());
+            try {
+                // Redireccionar al frontend con error
+                response.sendRedirect("http://localhost:4200/pago-rechazado");
+            } catch (IOException ioException) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Error en la vinculación con MercadoPago"));
+            }
+            return null;
         }
+    }
+
+    /**
+     * Método para intercambiar el código de autorización por un access token
+     */
+    private String exchangeCodeForToken(String authorizationCode) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
+
+        // URL del endpoint de MercadoPago para intercambiar código por token
+        String tokenUrl = "https://api.mercadopago.com/oauth/token";
+
+        // Headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Body de la petición
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("client_id", "3552235923798667"); // Reemplaza con tu Client ID
+        requestBody.put("client_secret", "wqwqsitqHVrlHFwvHTx6EId1mh99YPRZ"); // Reemplaza con tu Client Secret
+        requestBody.put("grant_type", "authorization_code");
+        requestBody.put("code", authorizationCode);
+        requestBody.put("redirect_uri", "http://localhost:4200/api/mercadopago/callback"); // Tu redirect URI
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+
+        // Hacer la petición
+        ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, entity, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            return (String) response.getBody().get("access_token");
+        } else {
+            throw new RuntimeException("Error al obtener el access token de MercadoPago");
+        }
+    }
+
+    /**
+     * Endpoint opcional para iniciar el proceso de OAuth (genera la URL de autorización)
+     */
+    @PostMapping("/connect/{userId}")
+    public ResponseEntity<Map<String, String>> generateAuthUrl(@PathVariable Long userId) {
+
+        String clientId = "3552235923798667"; // Reemplaza con tu Client ID
+        String redirectUri = "https://f215-152-171-81-105.ngrok-free.app/api/mercadopago/callback";
+
+        String authUrl = String.format(
+                "https://auth.mercadopago.com/authorization?client_id=%s&response_type=code&platform_id=mp&state=%s&redirect_uri=%s",
+                clientId, userId.toString(), redirectUri
+        );
+
+        return ResponseEntity.ok(Map.of("authUrl", authUrl));
     }
 
 

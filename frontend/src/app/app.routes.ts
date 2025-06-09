@@ -24,6 +24,7 @@ import { DashboardComponent } from './pages/report/dashboard/dashboard.component
 import { MatchingComponent } from './pages/report/matching/matching.component';
 import { RatingDashboardComponent } from './pages/report/rating-dashboard/rating-dashboard.component';
 import { DashboardFinanceComponent } from './pages/report/dashboard-finance/dashboard-finance.component';
+import { VinculacionComponent } from './pages/mercadopago/vinculacion/vinculacion.component';
 
 
 
@@ -56,4 +57,5 @@ export const routes: Routes = [
   {path: 'reportmatching', component: MatchingComponent },
   {path: 'dashboard-rating', component:RatingDashboardComponent },
   {path: 'dashboard-finance', component:DashboardFinanceComponent },
+  {path: 'vinculacion-exitosa', component:VinculacionComponent},
   ];

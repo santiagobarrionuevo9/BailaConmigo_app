@@ -12,6 +12,7 @@ import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.resources.preference.PreferenceItem;
 import com.mercadopago.resources.preference.PreferencePayer;
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import org.example.bailaconmigo.Configs.JwtTokenUtil;
 import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.*;
@@ -500,5 +501,14 @@ public class AuthService {
 
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void saveMercadoPagoToken(Long userId, String accessToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        user.setMercadoPagoToken(accessToken);
+        userRepository.save(user);
     }
 }

@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/api/mercadopago/callback",
                                 "/api/auth/register",
                                 "/api/auth/login",
+                                "/api/mercadopago/connect/{userId}",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
                                 "/api/locations/countries",
@@ -51,7 +52,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/uploads/**" // <-- esto habilita los archivos subidos
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        //.anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -61,7 +63,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*")); // En producción, especifica tus dominios
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:4200",
+                "https://fdd8-152-171-81-105.ngrok-free.app",
+                "https://69b2-152-171-81-105.ngrok-free.app"
+        ));
+        configuration.setAllowCredentials(true);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));

@@ -1,6 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/internal/Observable';
+import { UserContextService } from './user-context.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ export class MercadopagoService {
 
   private apiUrl ='http://localhost:8080/api';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,private userContext: UserContextService) { }
 
   /**
    * Genera un link de pago para la suscripción PRO
@@ -73,5 +74,56 @@ export class MercadopagoService {
   clearSubscriptionData(): void {
     localStorage.removeItem('subscriptionType');
     localStorage.removeItem('subscriptionExpiration');
+  }
+  /**
+   * Crea los headers con el token de autenticación
+   */
+  private createAuthHeaders(): HttpHeaders {
+    const token = this.userContext.token;
+    
+    if (!token) {
+      throw new Error('No hay token de autenticación disponible');
+    }
+
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
+
+   /**
+   * Genera la URL de autorización de MercadoPago para un usuario
+   */
+  generateAuthUrl(userId: number): Observable<{authUrl: string}> {
+    const headers = this.createAuthHeaders();
+    
+    return this.http.post<{authUrl: string}>(
+      `${this.apiUrl}/mercadopago/connect/${userId}`, 
+      {}, // body vacío
+      { headers }
+    );
+  }
+
+  /**
+   * Redirige al usuario a MercadoPago para autorización
+   */
+  redirectToMercadoPago(userId: number): void {
+    this.generateAuthUrl(userId).subscribe({
+      next: (response) => {
+        // Abrir en la misma ventana
+        window.location.href = response.authUrl;
+      },
+      error: (error) => {
+        console.error('Error al generar URL de autorización:', error);
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Verifica si el usuario tiene token de autenticación
+   */
+  hasValidToken(): boolean {
+    return !!this.userContext.token;
   }
 }
