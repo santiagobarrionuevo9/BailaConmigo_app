@@ -25,6 +25,8 @@ import { MatchingComponent } from './pages/report/matching/matching.component';
 import { RatingDashboardComponent } from './pages/report/rating-dashboard/rating-dashboard.component';
 import { DashboardFinanceComponent } from './pages/report/dashboard-finance/dashboard-finance.component';
 import { VinculacionComponent } from './pages/mercadopago/vinculacion/vinculacion.component';
+import { VinculacionErrorComponent } from './pages/mercadopago/vinculacion-error/vinculacion-error.component';
+import { VinculacionExitosaComponent } from './pages/mercadopago/vinculacion-exitosa/vinculacion-exitosa.component';
 
 
 
@@ -57,5 +59,8 @@ export const routes: Routes = [
   {path: 'reportmatching', component: MatchingComponent },
   {path: 'dashboard-rating', component:RatingDashboardComponent },
   {path: 'dashboard-finance', component:DashboardFinanceComponent },
-  {path: 'vinculacion-exitosa', component:VinculacionComponent},
+  {path: 'vinculacion-exitosa', component:VinculacionExitosaComponent},
+  { path: 'vinculacion-rechazado', component: VinculacionErrorComponent},
+  { path: 'vinculacion', component: VinculacionComponent}
+
   ];

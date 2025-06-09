@@ -65,8 +65,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200",
-                "https://fdd8-152-171-81-105.ngrok-free.app",
-                "https://69b2-152-171-81-105.ngrok-free.app"
+                "https://6d8b-152-171-81-105.ngrok-free.app",
+                "https://c7bb-152-171-81-105.ngrok-free.app"
         ));
         configuration.setAllowCredentials(true);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));

@@ -23,6 +23,9 @@ VALUES ('Santiago Fernández', 'santiago@example.com', '$2a$10$dXJ3SW6G7P50lGmMk
 INSERT INTO users (full_name, email, password, gender, birthdate, city_id, country_id, role, subscription_type, subscription_expiration, created_date)
 VALUES ('Santiago Barrionuevo', 'santiagobarrionuevo9@gmail.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Masculino', '1990-01-01', 1, 1, 'ADMIN', 'PRO', '2030-12-31', '2024-01-01 12:00:00');
 
+INSERT INTO users (full_name, email, password, gender, birthdate, city_id, country_id, role, subscription_type, subscription_expiration, created_date)
+VALUES ('Sanagos User', 'sanagos_12@hotmail.com', '$2a$10$7bG2H8a5HO13/5Y0qM7j/OTRZkhnWljzCq5syMV0I1Y3TDeNvY/5C', 'Masculino', '1994-04-10', 1, 1, 'ORGANIZADOR', 'PRO', '2026-12-31', '2024-01-01 12:00:00');
+
 
 -- Insertar perfiles de bailarines
 INSERT INTO dancer_profiles ( user_id, full_name, age, city, level, about_me, availability)

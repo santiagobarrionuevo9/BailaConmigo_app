@@ -1,10 +1,11 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-vinculacion-exitosa',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './vinculacion-exitosa.component.html',
   styleUrl: './vinculacion-exitosa.component.css'
 })
