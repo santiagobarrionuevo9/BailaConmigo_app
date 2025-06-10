@@ -1,6 +1,7 @@
 package org.example.bailaconmigo.Configs;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
 
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 
 import java.util.Arrays;
 
@@ -27,6 +29,12 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthFilter;
+
+    @Value("${backend.url}")
+    private String backendUrl;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,6 +56,8 @@ public class SecurityConfig {
                                 "/api/locations/cities/search",
                                 "/api/locations/cities/search/country/{countryId}",
                                 "/api/locations/cities/country/{countryId}",
+                                "/uploads/**",  // Para archivos subidos
+                                "/api/media/**", // Para el endpoint de media
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/uploads/**" // <-- esto habilita los archivos subidos
@@ -65,8 +75,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200",
-                "https://6d8b-152-171-81-105.ngrok-free.app",
-                "https://c7bb-152-171-81-105.ngrok-free.app"
+                backendUrl,
+                frontendUrl
         ));
         configuration.setAllowCredentials(true);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -77,6 +87,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

@@ -70,6 +70,9 @@ public class MercadoPagoService {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    @Value("${backend.url}")
+    private String backendUrl;
+
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
 
@@ -134,9 +137,9 @@ public class MercadoPagoService {
                 .build();
 
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success(frontendUrl + "/perfil?status=success")
-                .failure(frontendUrl + "/perfil?status=failure")
-                .pending(frontendUrl + "/perfil?status=pending")
+                .success(frontendUrl + "/pago-exito")
+                .failure(frontendUrl + "/pago-rechazado")
+                .pending(frontendUrl + "/pago-pendiente")
                 .build();
 
         // Metadata para identificar la transacción
@@ -146,7 +149,7 @@ public class MercadoPagoService {
         metadata.put("reference_id", referenceId);
 
         // Corrección de la URL del webhook para que coincida con el controlador
-        String notificationUrl = frontendUrl + "/api/mercadopago/webhook";
+        String notificationUrl = backendUrl + "/api/mercadopago/webhook";
         logger.info("Notification URL configured as: {}", notificationUrl);
 
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
@@ -277,9 +280,9 @@ public class MercadoPagoService {
 
             // Configurar URLs de retorno
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(frontendUrl + "/payment/success?registration=" + registrationId)
-                    .pending(frontendUrl + "/payment/pending?registration=" + registrationId)
-                    .failure(frontendUrl + "/payment/failure?registration=" + registrationId)
+                    .success(frontendUrl + "/pago-exito")
+                    .pending(frontendUrl + "/pago-pendiente")
+                    .failure(frontendUrl + "/pago-rechazado")
                     .build();
 
             // Crear la preferencia con marketplace_fee
@@ -287,7 +290,7 @@ public class MercadoPagoService {
                     .backUrls(backUrls)
                     .items(List.of(itemRequest))
                     .externalReference("REG_" + registrationId + "_EVENT_" + event.getId() + "_ORG_" + event.getOrganizer().getId())
-                    .notificationUrl(frontendUrl + "/api/mercadopago/webhook/inscription-notification")
+                    .notificationUrl(backendUrl + "/api/mercadopago/webhook/inscription-notification")
                     .marketplaceFee(marketplaceFee) // 💰 AQUÍ está la clave - marketplace_fee
                     .build();
 

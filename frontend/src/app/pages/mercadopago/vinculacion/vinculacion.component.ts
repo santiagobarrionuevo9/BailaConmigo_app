@@ -12,8 +12,6 @@ import { UserContextService } from '../../../services/user-context.service';
   styleUrl: './vinculacion.component.css'
 })
 export class VinculacionComponent implements OnInit {
-  customUserId: number | null = null;
-  userOption: 'current' | 'custom' = 'current';
   isConnecting = false;
   error: string | null = null;
   userInfo: any = null;
@@ -38,15 +36,7 @@ export class VinculacionComponent implements OnInit {
   }
 
   get canConnect(): boolean {
-    if (this.userOption === 'current') {
-      return !!this.userContext.userId;
-    } else {
-      return !!this.customUserId;
-    }
-  }
-
-  get selectedUserId(): number | null {
-    return this.userOption === 'current' ? this.userContext.userId : this.customUserId;
+    return !!this.userContext.userId;
   }
 
   loadUserInfo(): void {
@@ -58,16 +48,11 @@ export class VinculacionComponent implements OnInit {
     };
   }
 
-  onUserOptionChange(): void {
-    this.error = null;
-    this.customUserId = null;
-  }
-
   connectToMercadoPago(): void {
-    const userId = this.selectedUserId;
+    const userId = this.userContext.userId;
     
     if (!userId) {
-      this.error = 'Por favor selecciona un ID de usuario válido';
+      this.error = 'No se pudo obtener el ID de usuario';
       return;
     }
 

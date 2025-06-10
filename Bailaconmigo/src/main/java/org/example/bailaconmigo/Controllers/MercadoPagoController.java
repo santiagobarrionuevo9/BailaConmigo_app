@@ -13,6 +13,7 @@ import org.example.bailaconmigo.Services.MercadoPagoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +39,14 @@ public class MercadoPagoController {
     @Autowired
     private AuthService userService;
 
+    @Value("${backend.url}")
+    private String backendUrl;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
+
+
     /**
      * Endpoint para recibir el código de autorización de MercadoPago
      * y intercambiarlo por un access token
@@ -56,14 +65,15 @@ public class MercadoPagoController {
             userService.saveMercadoPagoToken(Long.parseLong(userId), accessToken);
 
             // 3. Redireccionar al frontend con éxito
-            response.sendRedirect("https://c7bb-152-171-81-105.ngrok-free.app/vinculacion-exitosa");
+            response.sendRedirect(frontendUrl + "/vinculacion-exitosa");
+
 
             return null; // No necesitamos retornar nada porque redireccionamos
 
         } catch (Exception e) {
             try {
                 // Redireccionar al frontend con error
-                response.sendRedirect("https://c7bb-152-171-81-105.ngrok-free.app/vinculacion-rechazado");
+                response.sendRedirect(frontendUrl + "/vinculacion-rechazado");
             } catch (IOException ioException) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of("error", "Error en la vinculación con MercadoPago"));
@@ -91,7 +101,7 @@ public class MercadoPagoController {
         requestBody.put("client_secret", "wqwqsitqHVrlHFwvHTx6EId1mh99YPRZ"); // Reemplaza con tu Client Secret
         requestBody.put("grant_type", "authorization_code");
         requestBody.put("code", authorizationCode);
-        requestBody.put("redirect_uri", "https://6d8b-152-171-81-105.ngrok-free.app/api/mercadopago/callback"); // Tu redirect URI
+        requestBody.put("redirect_uri",backendUrl + "/api/mercadopago/callback"); // Tu redirect URI
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
@@ -112,7 +122,7 @@ public class MercadoPagoController {
     public ResponseEntity<Map<String, String>> generateAuthUrl(@PathVariable Long userId) {
 
         String clientId = "3552235923798667"; // Reemplaza con tu Client ID
-        String redirectUri = "https://6d8b-152-171-81-105.ngrok-free.app/api/mercadopago/callback";
+        String redirectUri = backendUrl + "/api/mercadopago/callback";
 
         String authUrl = String.format(
                 "https://auth.mercadopago.com/authorization?client_id=%s&response_type=code&platform_id=mp&state=%s&redirect_uri=%s",

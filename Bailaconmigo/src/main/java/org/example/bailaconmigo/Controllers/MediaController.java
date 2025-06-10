@@ -1,5 +1,6 @@
 package org.example.bailaconmigo.Controllers;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,36 +21,49 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/media")
 public class MediaController {
-    // Map to store file hashes and their URLs
+    @Value("${backend.url}")
+    private String backendUrl;
+
     private static final Map<String, String> fileHashMap = new HashMap<>();
+    private static final String UPLOAD_DIR = "uploads/";
 
     @PostMapping("/uploadMedia")
     public String uploadMedia(@RequestParam("file") MultipartFile file) {
         try {
+            // Crear directorio si no existe
+            Path uploadPath = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
             // Calculate MD5 hash of the file content
             String fileHash = calculateMD5(file.getBytes());
 
             // Check if this file has already been uploaded
             if (fileHashMap.containsKey(fileHash)) {
-                // Return the existing URL instead of uploading again
                 return fileHashMap.get(fileHash);
             }
 
             // If it's a new file, proceed with upload
-            String uploadDir = "uploads/";
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(uploadDir + fileName);
-            Files.createDirectories(path.getParent());
-            Files.write(path, file.getBytes());
+            Path filePath = uploadPath.resolve(fileName);
 
-            String fileUrl = "http://localhost:8080/" + uploadDir + fileName;
+            // Escribir el archivo
+            Files.write(filePath, file.getBytes());
+
+            // Generar URL accesible - IMPORTANTE: usar /uploads/ no /api/media/uploads
+            String fileUrl = backendUrl + "/uploads/" + fileName;
 
             // Store hash and URL for future reference
             fileHashMap.put(fileHash, fileUrl);
 
+            System.out.println("Archivo subido: " + fileName);
+            System.out.println("URL generada: " + fileUrl);
+
             return fileUrl;
         } catch (IOException | NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al subir archivo", e);
+            System.err.println("Error subiendo archivo: " + e.getMessage());
+            throw new RuntimeException("Error al subir archivo: " + e.getMessage(), e);
         }
     }
 
