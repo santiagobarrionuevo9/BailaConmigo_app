@@ -36,25 +36,35 @@ public class MediaController {
                 Files.createDirectories(uploadPath);
             }
 
-            // Calculate MD5 hash of the file content
+            // Obtener nombre original y extraer extensión
+            String originalFilename = file.getOriginalFilename(); // ejemplo: WhatsApp.jpg
+            String extension = "";
+
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+
+            // Calcular hash MD5 del contenido del archivo
             String fileHash = calculateMD5(file.getBytes());
 
-            // Check if this file has already been uploaded
+            // Si ya existe ese archivo por su hash, retornar la URL existente
             if (fileHashMap.containsKey(fileHash)) {
                 return fileHashMap.get(fileHash);
             }
 
-            // If it's a new file, proceed with upload
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            // Generar nombre único con la extensión original
+            String fileName = UUID.randomUUID() + extension;
+
+            // Ruta destino
             Path filePath = uploadPath.resolve(fileName);
 
-            // Escribir el archivo
+            // Guardar el archivo
             Files.write(filePath, file.getBytes());
 
-            // Generar URL accesible - IMPORTANTE: usar /uploads/ no /api/media/uploads
+            // Generar URL accesible (IMPORTANTE: usar /uploads/)
             String fileUrl = backendUrl + "/uploads/" + fileName;
 
-            // Store hash and URL for future reference
+            // Guardar hash -> URL
             fileHashMap.put(fileHash, fileUrl);
 
             System.out.println("Archivo subido: " + fileName);
@@ -66,6 +76,7 @@ public class MediaController {
             throw new RuntimeException("Error al subir archivo: " + e.getMessage(), e);
         }
     }
+
 
     /**
      * Calculate MD5 hash of file content

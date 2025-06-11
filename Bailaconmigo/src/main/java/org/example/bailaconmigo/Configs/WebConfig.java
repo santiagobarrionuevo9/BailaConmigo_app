@@ -10,6 +10,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:uploads/")
-                .setCachePeriod(0); // Desactiva el cache en desarrollo
+                .setCachePeriod(3600); // Desactiva el cache en desarrollo
     }
 }

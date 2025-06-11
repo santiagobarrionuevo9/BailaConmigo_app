@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import {  FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ProfileService } from '../../../services/profile.service';
 import { EditDancerProfileDto } from '../../../models/editdancerprofile';
@@ -29,6 +29,8 @@ export class DancerComponent implements OnInit {
   selectedFileNames: Set<string> = new Set();
   countries: Country[] = [];
   cities: City[] = [];
+  processedMediaUrls: string[] = [];
+isLoadingMedia = false;
 
   
   availableDanceStyles: string[] = [];
@@ -39,7 +41,8 @@ export class DancerComponent implements OnInit {
     private profileService: ProfileService,
     private userContext: UserContextService, 
     private auhtservice: AuthService,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -47,7 +50,7 @@ export class DancerComponent implements OnInit {
     next: (countries) => this.countries = countries
   });
 
-  
+    
 
     this.userId = this.userContext.userId!;
     this.form = this.fb.group({
@@ -63,22 +66,6 @@ export class DancerComponent implements OnInit {
     this.auhtservice.getDanceStyles().subscribe(styles => {
       this.availableDanceStyles = styles;
     });
-    
-    this.profileService.getProfile(this.userId).subscribe(profile => {
-    this.profileData = profile;
-    this.form.patchValue(profile);
-    this.mediaPreview = [...profile.mediaUrls];
-    this.selectedStyles = [...profile.danceStyles];
-    this.initializeSelectedFiles();
-
-    // Cargar ciudades del país del perfil actual para vista solo lectura
-    if (profile.countryId) {
-      this.locationService.getCitiesByCountry(profile.countryId).subscribe({
-        next: (cities) => this.cities = cities
-      });
-    }
-    
-  });
 
   this.form.get('countryId')?.valueChanges.subscribe((countryId: number) => {
   if (!countryId) {
@@ -95,7 +82,94 @@ export class DancerComponent implements OnInit {
   });
 });
 
+  this.profileService.getProfile(this.userId).subscribe({
+    next: (profile) => {
+      console.log('=== PROFILE RECEIVED ===');
+      console.log('Profile:', profile);
+      
+      this.profileData = profile;
+      this.form.patchValue(profile);
+      
+      if (profile.mediaUrls && Array.isArray(profile.mediaUrls)) {
+        // Procesar URLs para ngrok
+        this.processMediaUrls(profile.mediaUrls);
+      } else {
+        this.mediaPreview = [];
+      }
+      
+      this.selectedStyles = [...profile.danceStyles];
+      this.initializeSelectedFiles();
+
+      if (profile.countryId) {
+        this.locationService.getCitiesByCountry(profile.countryId).subscribe({
+          next: (cities) => this.cities = cities
+        });
+      }
+      
+      this.cdr.detectChanges();
+    },
+    error: (error) => {
+      console.error('Error loading profile:', error);
+    }
+  });
+
   }
+
+  
+
+// Método para crear URLs seguras para ngrok
+createNgrokSafeUrl(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    // Agregar header para ngrok
+    fetch(url, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true'
+      }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+      const objectURL = URL.createObjectURL(blob);
+      resolve(objectURL);
+    })
+    .catch(error => {
+      console.error('Error creando URL segura:', error);
+      reject(error);
+    });
+  });
+}
+
+// Método mejorado para manejo de errores
+onImageError(event: any): void {
+  console.error('Error cargando imagen:', event.target.src);
+  
+  // Intentar recargar con headers de ngrok
+  const originalUrl = event.target.src;
+  if (originalUrl.includes('ngrok') && !originalUrl.startsWith('blob:')) {
+    console.log('Intentando recargar con headers de ngrok...');
+    this.createNgrokSafeUrl(originalUrl)
+      .then(safeUrl => {
+        event.target.src = safeUrl;
+      })
+      .catch(error => {
+        console.error('No se pudo crear URL segura:', error);
+        // Mostrar imagen de placeholder
+        event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAyNUMyMi43NjE0IDI1IDI1IDIyLjc2MTQgMjUgMjBDMjUgMTcuMjM4NiAyMi43NjE0IDE1IDIwIDE1QzE3LjIzODYgMTUgMTUgMTcuMjM4NiAxNSAyMEMxNSAyMi43NjE0IDE3LjIzODYgMjUgMjAgMjVaIiBmaWxsPSIjOUM5Qzk3Ii8+CjxwYXRoIGQ9Ik0xMCAzMEgzMEwyNSAyMEwyMCAyNUwxNSAyMEwxMCAzMFoiIGZpbGw9IiM5QzlDOTciLz4KPC9zdmc+';
+      });
+  }
+}
+
+// Limpiar URLs de objeto cuando el componente se destruye
+ngOnDestroy(): void {
+  // Limpiar URLs de objeto para evitar memory leaks
+  this.processedMediaUrls.forEach(url => {
+    if (url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  });
+}
 
   // Método para agregar un estilo de baile
   addDanceStyle(style: string): void {
@@ -113,35 +187,31 @@ export class DancerComponent implements OnInit {
     this.form.patchValue({ danceStyles: [...this.selectedStyles] });
   }
   
-  // Métodos para el carrusel tipo Tinder
-  nextMedia(): void {
-    if (this.mediaPreview.length === 0) return;
-    this.currentMediaIndex = (this.currentMediaIndex + 1) % this.mediaPreview.length;
-  }
+  // También asegúrate de que estos métodos estén correctos:
+nextMedia(): void {
+  if (this.mediaPreview.length === 0) return;
+  this.currentMediaIndex = (this.currentMediaIndex + 1) % this.mediaPreview.length;
+  console.log('Siguiente media, índice actual:', this.currentMediaIndex);
+}
+
+previousMedia(): void {
+  if (this.mediaPreview.length === 0) return;
+  this.currentMediaIndex = (this.currentMediaIndex - 1 + this.mediaPreview.length) % this.mediaPreview.length;
+  console.log('Media anterior, índice actual:', this.currentMediaIndex);
+}
+
+// Método para debugging - puedes llamarlo desde la consola del navegador
+debugMediaPreview(): void {
+  console.log('=== DEBUG MEDIA PREVIEW ===');
+  console.log('mediaPreview array:', this.mediaPreview);
+  console.log('currentMediaIndex:', this.currentMediaIndex);
+  console.log('URL actual:', this.mediaPreview[this.currentMediaIndex]);
+  console.log('¿Es video?', this.isVideo(this.mediaPreview[this.currentMediaIndex]));
+  console.log('¿Es imagen?', this.isImage(this.mediaPreview[this.currentMediaIndex]));
+}
+
   
-  previousMedia(): void {
-    if (this.mediaPreview.length === 0) return;
-    this.currentMediaIndex = (this.currentMediaIndex - 1 + this.mediaPreview.length) % this.mediaPreview.length;
-  }
-  
-  // Método para eliminar media en modo edición
-  removeMedia(index: number): void {
-    // Extraer el nombre del archivo para eliminarlo de nuestro Set
-    const url = this.mediaPreview[index];
-    const fileName = this.extractFileNameFromUrl(url);
-    if (fileName) {
-      this.selectedFileNames.delete(fileName);
-    }
-    
-    // Eliminar de la vista previa y actualizar el formulario
-    this.mediaPreview.splice(index, 1);
-    this.form.patchValue({ mediaUrls: [...this.mediaPreview] });
-    
-    // Resetear el índice si era el último elemento
-    if (this.currentMediaIndex >= this.mediaPreview.length) {
-      this.currentMediaIndex = Math.max(0, this.mediaPreview.length - 1);
-    }
-  }
+
 
   // Extract filenames from existing URLs to prevent duplicates
   initializeSelectedFiles(): void {
@@ -213,39 +283,99 @@ export class DancerComponent implements OnInit {
     });
   }
 
+  // Método onFileSelected ACTUALIZADO
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
-    if (file) {
-      // Check if this file has already been selected based on name
-      if (this.selectedFileNames.has(file.name)) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Archivo duplicado',
-          text: 'Ya has seleccionado este archivo anteriormente.',
-          confirmButtonColor: '#ff6600',
-          showConfirmButton: true
-        });
-        return;
-      }
+    if (!file) return;
 
-      const formData = new FormData();
-      formData.append('file', file);
+    console.log('Archivo seleccionado:', file.name);
 
-      this.profileService.uploadMedia(formData).subscribe((url: string) => {
-        const currentUrls = this.form.value.mediaUrls || [];
+    if (this.selectedFileNames.has(file.name)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Archivo duplicado',
+        text: 'Ya has seleccionado este archivo anteriormente.',
+        confirmButtonColor: '#ff6600',
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    console.log('Enviando archivo al backend...');
+
+    this.profileService.uploadMedia(formData).subscribe({
+      next: (response: string) => {
+        console.log('Respuesta del backend:', response);
         
-        // Double check the URL isn't already in our list
+        const url = response.trim();
+        console.log('URL limpia:', url);
+        
+        const currentUrls = this.form.value.mediaUrls || [];
+        console.log('URLs actuales:', currentUrls);
+        
         if (!currentUrls.includes(url)) {
           const newList = [...currentUrls, url];
-          this.form.patchValue({ mediaUrls: newList });
-          this.mediaPreview = newList;
+          console.log('Nueva lista de URLs:', newList);
           
-          // Add to our set of selected files
+          // ACTUALIZAR TANTO EL FORMULARIO COMO LA VISTA
+          this.form.patchValue({ mediaUrls: newList });
+          this.mediaPreview = [...newList]; // Crear nuevo array
+          
+          console.log('mediaPreview actualizado:', this.mediaPreview);
+          
           this.selectedFileNames.add(file.name);
+          this.currentMediaIndex = this.mediaPreview.length - 1;
+          
+          // ← FORZAR DETECCIÓN DE CAMBIOS
+          this.cdr.detectChanges();
+          
+          console.log('Change detection forzado');
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Archivo subido exitosamente',
+            showConfirmButton: false,
+            timer: 1500
+          });
         }
-      });
-    }
+      },
+      error: (error) => {
+        console.error('Error uploading file:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al subir archivo',
+          text: 'Hubo un problema al subir el archivo.',
+          confirmButtonColor: '#ff6600',
+        });
+      }
+    });
+
+    event.target.value = '';
   }
+
+  // También actualizar el método removeMedia
+  removeMedia(index: number): void {
+    const url = this.mediaPreview[index];
+    const fileName = this.extractFileNameFromUrl(url);
+    if (fileName) {
+      this.selectedFileNames.delete(fileName);
+    }
+    
+    // Crear nuevo array en lugar de mutar el existente
+    this.mediaPreview = this.mediaPreview.filter((_, i) => i !== index);
+    this.form.patchValue({ mediaUrls: [...this.mediaPreview] });
+    
+    if (this.currentMediaIndex >= this.mediaPreview.length) {
+      this.currentMediaIndex = Math.max(0, this.mediaPreview.length - 1);
+    }
+    
+    // Forzar detección de cambios
+    this.cdr.detectChanges();
+  }
+
+  
 
   onCountryChange(countryId: number): void {
   if (!countryId) {
@@ -270,5 +400,25 @@ export class DancerComponent implements OnInit {
   isImage(url: string): boolean {
     return /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
   }
-  
+
+  async processMediaUrls(urls: string[]): Promise<void> {
+  this.isLoadingMedia = true;
+
+  const processedUrls = await Promise.all(urls.map(async url => {
+    try {
+      if (url.includes('ngrok')) {
+        return await this.profileService.createObjectURL(url);
+      } else {
+        return url;
+      }
+    } catch (error) {
+      console.error('Error procesando URL:', url, error);
+      return url;
+    }
+  }));
+
+  this.mediaPreview = processedUrls;
+  this.isLoadingMedia = false;
+  this.cdr.detectChanges();
+}
 }

@@ -8,39 +8,63 @@
     </div>
 
     <div class="card-body" *ngIf="profileData">
-      <!-- CARRUSEL TIPO TINDER -->
-      <div *ngIf="mediaPreview.length > 0" class="mb-4">
-        <div id="mediaCarousel" class="carousel slide" data-bs-ride="carousel">
-          <div class="carousel-inner">
-            <div *ngFor="let media of mediaPreview; let i = index" class="carousel-item" [ngClass]="{ active: i === 0 }">
-              <ng-container *ngIf="isVideo(media); else imageTemplate">
-                <video 
-                  [src]="media" 
-                  controls 
-                  class="d-block mx-auto carousel-media"
-                ></video>
-              </ng-container>
-              <ng-template #imageTemplate>
-                <img 
-                  [src]="media" 
-                  class="d-block mx-auto carousel-media" 
-                  alt="media"
-                />
-              </ng-template>
-            </div>
-          </div>
-          <button class="carousel-control-prev" type="button" data-bs-target="#mediaCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-          </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#mediaCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-          </button>
-        </div>
-      </div>
+      <!-- CARRUSEL TIPO TINDER CORREGIDO -->
+<div *ngIf="mediaPreview.length > 0" class="mb-4">
+  <div class="carousel-container">
+    <!-- Imagen/Video actual -->
+    <div class="carousel-item active">
+      <ng-container *ngIf="isVideo(mediaPreview[currentMediaIndex]); else imageTemplate">
+        <video 
+          [src]="mediaPreview[currentMediaIndex]" 
+          controls 
+          class="carousel-media"
+        ></video>
+      </ng-container>
+      <ng-template #imageTemplate>
+        <img 
+        [src]="mediaPreview[currentMediaIndex]" 
+        class="carousel-media" 
+        alt="media"
+        (error)="onImageError($event)"
+      />
+      </ng-template>
+    </div>
 
-      <div class="mb-3"><strong>Nombre completo:</strong> {{ profileData.fullName }}</div>
-      <div class="mb-3"><strong>Edad:</strong> {{ profileData.age }}</div>
-      <div class="mb-3"><strong>Reputación promedio:</strong> {{ profileData.averageRating }}/5</div>
+    <!-- Controles del carrusel -->
+    <div class="carousel-controls">
+      <div class="carousel-left" (click)="previousMedia()">
+        <span class="carousel-control-icon">‹</span>
+      </div>
+      <div class="carousel-right" (click)="nextMedia()">
+        <span class="carousel-control-icon">›</span>
+      </div>
+    </div>
+
+    <!-- Indicadores -->
+    <div class="carousel-indicators" *ngIf="mediaPreview.length > 1">
+      <div 
+        *ngFor="let media of mediaPreview; let i = index" 
+        class="carousel-indicator"
+        [class.active]="i === currentMediaIndex"
+        (click)="currentMediaIndex = i">
+      </div>
+    </div>
+
+    <!-- Botón para eliminar media (solo en modo edición) -->
+    <button 
+      *ngIf="isEditing && mediaPreview.length > 0" 
+      class="btn btn-danger btn-sm position-absolute"
+      style="top: 10px; right: 10px; z-index: 3;"
+      (click)="removeMedia(currentMediaIndex)">
+      ✕
+    </button>
+  </div>
+
+  <!-- Contador de imágenes -->
+  <div class="text-center mt-2" *ngIf="mediaPreview.length > 1">
+    <small class="text-muted">{{ currentMediaIndex + 1 }} de {{ mediaPreview.length }}</small>
+  </div>
+</div>
 
       <!-- FORMULARIO DE EDICIÓN -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="isEditing">
