@@ -2,18 +2,96 @@
 <div class="dancer-match-container">
   <h2 class="text-center mb-4">Encuentra tu compañero/a de baile</h2>
 
-  <!-- Filtros de búsqueda (simplificados) -->
-  <div class="filter-container mb-4">
-    <div class="row">
-      <div class="col-md-4">
-        <input type="text" class="form-control" placeholder="Ciudad" 
-               [(ngModel)]="searchParams.city">
+  <!-- Mostrar tipo de suscripción -->
+  <div class="subscription-info mb-3">
+    <div class="alert" [class.alert-info]="isBasicUser" [class.alert-success]="isProUser">
+      <strong>Suscripción {{ subscriptionType }}:</strong>
+      <span *ngIf="isBasicUser">Búsqueda automática basada en tu perfil</span>
+      <span *ngIf="isProUser">Búsqueda personalizada disponible</span>
+    </div>
+  </div>
+
+  <!-- Filtros de búsqueda (solo para usuarios PRO) -->
+  <div *ngIf="isProUser" class="filter-container mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Filtros de búsqueda</h5>
       </div>
-      <div class="col-md-4">
-        <button class="btn btn-primary w-100" (click)="loadProfiles()">
-          Buscar
-        </button>
+      <div class="card-body">
+        <!-- Ciudad -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="cityInput" class="form-label">Ciudad</label>
+            <input 
+              id="cityInput"
+              type="text" 
+              class="form-control" 
+              placeholder="Escribe la ciudad" 
+              [(ngModel)]="searchParams.city">
+          </div>
+          <div class="col-md-6">
+            <label for="levelSelect" class="form-label">Nivel</label>
+            <select 
+              id="levelSelect"
+              class="form-select" 
+              [(ngModel)]="searchParams.level">
+              <option value="">Todos los niveles</option>
+              <option *ngFor="let level of levels" [value]="level">
+                {{ level }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Estilos de baile -->
+        <div class="mb-3">
+          <label class="form-label">Estilos de baile</label>
+          <div class="row">
+            <div class="col-md-4 col-sm-6" *ngFor="let style of danceStyles">
+              <div class="form-check">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  [id]="'style-' + style"
+                  [checked]="isStyleSelected(style)"
+                  (change)="onStyleChange(style, $event)">
+                <label class="form-check-label" [for]="'style-' + style">
+                  {{ style }}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disponibilidad -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="availabilityInput" class="form-label">Disponibilidad</label>
+            <input 
+              id="availabilityInput"
+              type="text" 
+              class="form-control" 
+              placeholder="Ej: Fines de semana" 
+              [(ngModel)]="searchParams.availability">
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <button class="btn btn-primary w-100" (click)="loadProfiles()">
+              <i class="bi bi-search"></i> Buscar
+            </button>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Para usuarios básicos, mostrar información de búsqueda automática -->
+  <div *ngIf="isBasicUser" class="basic-info mb-4">
+    <div class="alert alert-info">
+      <i class="bi bi-info-circle"></i>
+      <strong>Búsqueda automática:</strong> Encontrando bailarines en tu ciudad con tu mismo nivel y estilos de baile.
+      <button class="btn btn-sm btn-outline-primary ms-2" (click)="loadProfiles()">
+        <i class="bi bi-arrow-clockwise"></i> Actualizar
+      </button>
     </div>
   </div>
 
@@ -35,6 +113,7 @@
 
   <!-- Error -->
   <div *ngIf="error" class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle"></i>
     {{ error }}
   </div>
 
@@ -42,9 +121,10 @@
   <div *ngIf="noMoreProfiles && !isLoading" class="text-center my-5">
     <div class="alert alert-info">
       <h4>No hay más perfiles disponibles</h4>
-      <p>Prueba a cambiar tus criterios de búsqueda</p>
+      <p *ngIf="isProUser">Prueba a cambiar tus criterios de búsqueda</p>
+      <p *ngIf="isBasicUser">No hay más bailarines disponibles en este momento</p>
       <button (click)="restartSearch()" class="btn btn-primary mt-2">
-        Buscar de nuevo
+        <i class="bi bi-arrow-clockwise"></i> Buscar de nuevo
       </button>
     </div>
   </div>
