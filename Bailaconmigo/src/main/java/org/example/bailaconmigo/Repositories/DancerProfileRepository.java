@@ -122,6 +122,12 @@ public interface DancerProfileRepository extends JpaRepository<DancerProfile, Lo
     @Query("SELECT COUNT(dp) FROM DancerProfile dp WHERE SIZE(dp.danceStyles) > 0")
     Long countActiveDancers();
 
+    // Agrega este método a tu DancerProfileRepository
+    @Query("SELECT dp FROM DancerProfile dp LEFT JOIN FETCH dp.ratings WHERE dp.user.id = :userId")
+    Optional<DancerProfile> findByUser_IdWithRatings(@Param("userId") Long userId);
+
+    @Query("SELECT dp FROM DancerProfile dp LEFT JOIN FETCH dp.ratings WHERE dp.id = :profileId")
+    Optional<DancerProfile> findByIdWithRatings(@Param("profileId") Long profileId);
 
 }
 

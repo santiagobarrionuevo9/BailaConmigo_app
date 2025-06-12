@@ -35,6 +35,10 @@ public class EventRegistration {
 
     private String cancelReason;
 
+    // ===== CAMPO DE ASISTENCIA =====
+    @Column(name = "attended", nullable = false, columnDefinition = "boolean default false")
+    private Boolean attended = false;
+
     // ===== CAMPOS DE PAGO =====
 
     // Precio pagado por la inscripción

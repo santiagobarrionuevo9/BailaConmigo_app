@@ -23,10 +23,9 @@ public class MatchController {
             @RequestParam Long userId,
             @RequestParam String city,
             @RequestParam Set<String> styles,
-            @RequestParam(required = false) String level,
-            @RequestParam(required = false) String availability
+            @RequestParam(required = false) String level
     ) {
-        return matchService.searchDancers(userId, city, styles, level, availability);
+        return matchService.searchDancers(userId, city, styles, level);
     }
 
     // ❤️ Dar like a un perfil

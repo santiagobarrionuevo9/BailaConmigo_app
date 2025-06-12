@@ -27,6 +27,8 @@ import { DashboardFinanceComponent } from './pages/report/dashboard-finance/dash
 import { VinculacionComponent } from './pages/mercadopago/vinculacion/vinculacion.component';
 import { VinculacionErrorComponent } from './pages/mercadopago/vinculacion-error/vinculacion-error.component';
 import { VinculacionExitosaComponent } from './pages/mercadopago/vinculacion-exitosa/vinculacion-exitosa.component';
+import { MyRegistrationsComponent } from './pages/profile/my-registrations/my-registrations.component';
+import { RegistrastionsComponent } from './pages/event/registrastions/registrastions.component';
 
 
 
@@ -61,6 +63,7 @@ export const routes: Routes = [
   {path: 'dashboard-finance', component:DashboardFinanceComponent },
   {path: 'vinculacion-exitosa', component:VinculacionExitosaComponent},
   { path: 'vinculacion-rechazado', component: VinculacionErrorComponent},
-  { path: 'vinculacion', component: VinculacionComponent}
-
+  { path: 'vinculacion', component: VinculacionComponent},
+  {path: 'my-registrations', component: MyRegistrationsComponent},
+  {path: 'registrations/:eventId', component: RegistrastionsComponent},
   ];

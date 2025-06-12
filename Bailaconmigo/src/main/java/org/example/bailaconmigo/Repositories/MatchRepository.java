@@ -6,11 +6,13 @@ import org.example.bailaconmigo.Entities.Match;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface MatchRepository extends JpaRepository<Match, Long> {
@@ -74,9 +76,13 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     List<UserMatchingStatsDto> findTopActiveUsers(Pageable pageable);
 
 
+    // Agregar este método a tu MatchRepository
+    @Query("SELECT DISTINCT CASE WHEN m.liker.id = :userId THEN m.likedUser.id ELSE m.liker.id END " +
+            "FROM Match m " +
+            "WHERE m.liker.id = :userId OR m.likedUser.id = :userId")
+    Set<Long> findInteractedUserIds(@Param("userId") Long userId);
 
-
-
-
+    @Query("SELECT m.likedUser.id FROM Match m WHERE m.liker.id = :userId")
+    Set<Long> findUserIdsLikedByUser(@Param("userId") Long userId);
 
 }

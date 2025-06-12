@@ -1,0 +1,14 @@
+/* Usa tus estilos personalizados si lo deseas */
+.text-orange {
+  color: #ff7a00;
+}
+.border-orange {
+  border-color: #ff7a00;
+}
+.btn-orange {
+  background-color: #ff7a00;
+  color: white;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border-radius: 0.375rem;
+}

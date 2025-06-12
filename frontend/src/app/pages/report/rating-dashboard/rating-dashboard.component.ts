@@ -101,7 +101,7 @@ export class RatingDashboardComponent implements OnInit, OnDestroy {
       [Level.PRINCIPIANTE]: 'Principiante',
       [Level.INTERMEDIO]: 'Intermedio',
       [Level.AVANZADO]: 'Avanzado',
-      [Level.EXPERTO]: 'Profesional'
+      [Level.PROFESIONAL]: 'Profesional'
     };
     return names[level] || level;
   }

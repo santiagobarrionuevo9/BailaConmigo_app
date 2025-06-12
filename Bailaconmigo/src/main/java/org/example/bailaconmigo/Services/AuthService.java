@@ -346,6 +346,7 @@ public class AuthService {
     /**
      * Califica un perfil
      */
+    @Transactional
     public void rateProfile(Long raterId, RatingRequestDto dto) {
         if (raterId == null || dto.getProfileId() == null) {
             throw new RuntimeException("IDs inválidos.");
@@ -362,7 +363,7 @@ public class AuthService {
         User rater = userRepository.findById(raterId)
                 .orElseThrow(() -> new RuntimeException("Usuario calificador no encontrado"));
 
-        DancerProfile profile = profileRepository.findById(dto.getProfileId())
+        DancerProfile profile = profileRepository.findByUser_Id(dto.getProfileId())
                 .orElseThrow(() -> new RuntimeException("Perfil a calificar no encontrado"));
 
         Rating rating = new Rating();
@@ -371,14 +372,22 @@ public class AuthService {
         rating.setStars(dto.getStars());
         rating.setComment(dto.getComment());
 
+        // Guardar el rating primero
         ratingRepository.save(rating);
+
+        // Agregar el rating a la lista del profile para mantener la relación bidireccional
+        profile.getRatings().add(rating);
+
+        // Guardar el profile actualizado
+        profileRepository.save(profile);
     }
 
     /**
      * Obtiene el perfil de un bailarín por ID de usuario
      */
     public DancerProfileResponseDto getDancerProfileById(Long id) {
-        DancerProfile profile = profileRepository.findByUser_Id(id)
+        // Usar el método que carga los ratings
+        DancerProfile profile = profileRepository.findByUser_IdWithRatings(id)
                 .orElseThrow(() -> new RuntimeException("Perfil no encontrado"));
 
         DancerProfileResponseDto dto = new DancerProfileResponseDto();
@@ -402,7 +411,12 @@ public class AuthService {
                 .collect(Collectors.toList());
         dto.setMediaUrls(mediaUrls);
 
+        // Ahora debería calcular correctamente el promedio
         dto.setAverageRating(profile.getAverageRating());
+
+        // Debug: agregar log para verificar
+        logger.info("Profile ID: {}, Number of ratings: {}, Average: {}",
+                profile.getId(), profile.getRatings().size(), profile.getAverageRating());
 
         return dto;
     }

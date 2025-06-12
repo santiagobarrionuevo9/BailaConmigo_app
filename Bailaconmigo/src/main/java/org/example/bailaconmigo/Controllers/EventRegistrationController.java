@@ -1,9 +1,6 @@
 package org.example.bailaconmigo.Controllers;
 
-import org.example.bailaconmigo.DTOs.CancelRegistrationRequestDto;
-import org.example.bailaconmigo.DTOs.EventRegistrationRequestDto;
-import org.example.bailaconmigo.DTOs.EventRegistrationResponseDto;
-import org.example.bailaconmigo.DTOs.PaymentInitiationResponseDto;
+import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Services.EventRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -114,6 +111,27 @@ public class EventRegistrationController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al obtener las inscripciones: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Actualiza el estado de asistencia de una inscripción
+     * PUT /api/registrations/{registrationId}/attendance
+     */
+    @PutMapping("/{registrationId}/attendance")
+    public ResponseEntity<EventRegistrationResponseDto> updateAttendance(
+            @PathVariable Long registrationId,
+            @RequestBody UpdateAttendanceRequestDto dto) {
+
+        try {
+            EventRegistrationResponseDto updatedRegistration =
+                    registrationService.updateAttendance(registrationId, dto);
+
+            return ResponseEntity.ok(updatedRegistration);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(null);
         }
     }
 }

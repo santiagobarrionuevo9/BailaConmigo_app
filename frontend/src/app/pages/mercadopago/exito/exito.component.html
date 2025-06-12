@@ -1,14 +1,21 @@
 <div class="container">
   <div class="row">
-    <!-- Matches ilimitados -->
+    <!-- Likes y matches ilimitados -->
     <div class="col-md-6 mb-4">
       <div class="card h-100 shadow">
         <div class="card-body">
           <h4 class="card-title">
-            <i class="bi bi-people-fill text-info me-2"></i>
-            Matches ilimitados
+            <i class="bi bi-heart-fill text-danger me-2"></i>
+            Likes y matches ilimitados
           </h4>
-          <p class="card-text">Conecta con todos los bailarines que desees sin restricciones de cantidad.</p>
+          <p class="card-text">
+            Da todos los likes que quieras y haz tantos matches como puedas, sin restricciones diarias.
+          </p>
+          <ul class="mb-0">
+            <li>👍 Likes ilimitados por día</li>
+            <li>💞 Matches ilimitados por día</li>
+            <li>🚫 Sin límites como los usuarios básicos (20 likes, 3 matches por día)</li>
+          </ul>
         </div>
         <div class="card-footer">
           <a routerLink="/find-dancers" class="btn btn-outline-primary btn-sm">Explorar bailarines</a>
@@ -16,26 +23,22 @@
       </div>
     </div>
 
-    <!-- Perfil destacado / Más vistas -->
+    <!-- Búsqueda avanzada -->
     <div class="col-md-6 mb-4">
       <div class="card h-100 shadow">
         <div class="card-body">
           <h4 class="card-title">
-            <i class="bi bi-trophy text-primary me-2"></i>
-            Perfil destacado
+            <i class="bi bi-search text-success me-2"></i>
+            Búsqueda avanzada
           </h4>
-          <p class="card-text">Tu perfil aparecerá en posiciones destacadas en las búsquedas, aumentando tu visibilidad.</p>
-          <div class="card bg-light p-3 mt-3">
-            <div class="d-flex align-items-center">
-              <div class="border border-warning rounded-circle p-2 me-3">
-                <i class="bi bi-person-fill text-primary fs-1"></i>
-              </div>
-              <div>
-                <h5 class="mb-1">Tu perfil <span class="badge bg-warning text-dark">PRO</span></h5>
-                <p class="mb-0 text-muted">Recibe hasta 5 veces más visitas</p>
-              </div>
-            </div>
-          </div>
+          <p class="card-text">
+            Filtra bailarines no solo por ciudad y estilos, sino también por su nivel de baile.
+          </p>
+          <ul class="mb-0">
+            <li>🎯 Filtro por <strong>nivel</strong> de baile</li>
+            <li>🌍 Filtros por ciudad y estilos también disponibles</li>
+            <li>🔒 Usuarios básicos no pueden filtrar por nivel</li>
+          </ul>
         </div>
         <div class="card-footer">
           <a href="#" class="btn btn-outline-primary btn-sm">Editar mi perfil</a>

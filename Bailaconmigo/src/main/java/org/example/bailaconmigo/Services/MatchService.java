@@ -43,7 +43,7 @@ public class MatchService {
     private static final int DAILY_MATCH_LIMIT_BASIC = 3;
     private static final int DAILY_LIKE_LIMIT_BASIC = 20;
 
-    public List<DancerProfileResponseDto> searchDancers(Long userId, String city, Set<String> styles, String level, String availability) {
+    public List<DancerProfileResponseDto> searchDancers(Long userId, String city, Set<String> styles, String level) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -60,8 +60,13 @@ public class MatchService {
                 })
                 .collect(Collectors.toSet());
 
-        // Si es usuario PRO, usar búsqueda avanzada
-        if (type == SubscriptionType.PRO && level != null && availability != null) {
+        // Obtener IDs de usuarios a los que YO di like
+        Set<Long> myLikedUserIds = matchRepository.findUserIdsLikedByUser(userId);
+
+        List<DancerProfile> results;
+
+        // Si es usuario PRO y especifica nivel, usar búsqueda avanzada
+        if (type == SubscriptionType.PRO && level != null && !level.isEmpty()) {
             Level levelEnum;
             try {
                 levelEnum = Level.valueOf(level.toUpperCase());
@@ -69,17 +74,55 @@ public class MatchService {
                 throw new RuntimeException("Nivel inválido: " + level);
             }
 
-            List<DancerProfile> advancedResults = dancerProfileRepository
-                    .findByCityAndDanceStylesInAndLevelAndAvailability(city, styleEnums, levelEnum, availability);
+            // Búsqueda PRO con nivel específico
+            results = dancerProfileRepository.findAll().stream()
+                    .filter(profile -> {
+                        // Excluir el usuario actual
+                        if (profile.getUser().getId().equals(userId)) return false;
 
-            return advancedResults.stream().map(this::toDto).collect(Collectors.toList());
+                        // Excluir usuarios a los que YA di like
+                        if (myLikedUserIds.contains(profile.getUser().getId())) return false;
+
+                        // Filtrar por ciudad (coincidencia exacta OBLIGATORIA)
+                        if (profile.getUser().getCity() == null ||
+                                !city.equalsIgnoreCase(profile.getUser().getCity().getName())) return false;
+
+                        // Filtrar por nivel (coincidencia exacta)
+                        if (!levelEnum.equals(profile.getLevel())) return false;
+
+                        // Filtrar por estilos - DEBE tener AL MENOS uno de los estilos buscados
+                        boolean hasMatchingStyle = profile.getDanceStyles().stream()
+                                .anyMatch(styleEnums::contains);
+                        if (!hasMatchingStyle) return false;
+
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            // Búsqueda básica (sin filtro de nivel)
+            results = dancerProfileRepository.findAll().stream()
+                    .filter(profile -> {
+                        // Excluir el usuario actual
+                        if (profile.getUser().getId().equals(userId)) return false;
+
+                        // Excluir usuarios a los que YA di like
+                        if (myLikedUserIds.contains(profile.getUser().getId())) return false;
+
+                        // Filtrar por ciudad (coincidencia exacta OBLIGATORIA)
+                        if (profile.getUser().getCity() == null ||
+                                !city.equalsIgnoreCase(profile.getUser().getCity().getName())) return false;
+
+                        // Filtrar por estilos - DEBE tener AL MENOS uno de los estilos buscados
+                        boolean hasMatchingStyle = profile.getDanceStyles().stream()
+                                .anyMatch(styleEnums::contains);
+                        if (!hasMatchingStyle) return false;
+
+                        return true;
+                    })
+                    .collect(Collectors.toList());
         }
 
-        // Si es básico o no hay filtros extra, usar búsqueda simple
-        List<DancerProfile> basicResults = dancerProfileRepository
-                .findByCityAndDanceStylesIn(city, styleEnums);
-
-        return basicResults.stream().map(this::toDto).collect(Collectors.toList());
+        return results.stream().map(this::toDto).collect(Collectors.toList());
     }
 
 

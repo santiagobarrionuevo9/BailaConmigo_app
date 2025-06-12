@@ -104,10 +104,7 @@ export class RegisterComponent implements OnInit {
     if (this.registerForm.get('role')?.value !== 'ORGANIZADOR') return;
 
     if (isAcademy) {
-      // Para academias: género "OTRO" y fecha que garantice mayoría de edad
-      const eighteenYearsAgo = new Date();
-      eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
-      const formattedDate = eighteenYearsAgo.toISOString().split('T')[0];
+      const formattedDate = '2000-06-11';
 
       this.registerForm.patchValue({
         birthdate: formattedDate,

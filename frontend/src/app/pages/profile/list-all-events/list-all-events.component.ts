@@ -200,7 +200,7 @@ export class ListAllEventsComponent implements OnInit {
   proceedToPayment(): void {
     if (this.paymentDetails?.preferenceId) {
       // Abrir URL de pago en una nueva ventana
-      window.open(this.paymentDetails.preferenceId, '_blank', 'width=800,height=600');
+      window.location.href = this.paymentDetails.preferenceId;
       this.closePaymentModal();
     }
   }

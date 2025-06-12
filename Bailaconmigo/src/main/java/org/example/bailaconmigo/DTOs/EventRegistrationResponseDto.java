@@ -16,6 +16,8 @@ public class EventRegistrationResponseDto {
     private String dancerName;
     private LocalDateTime registrationDate;
     private RegistrationStatus status;
+    // ===== CÓDIGO DINÁMICO =====
+    private String codigoDinamico;  // NUEVO CAMPO
 
     // ===== CAMPOS DE PAGO =====
     private BigDecimal paidAmount;
@@ -27,6 +29,9 @@ public class EventRegistrationResponseDto {
     private String paymentReference;
     private LocalDateTime paymentDate;
     private String paymentMethod;
+
+    // Campo de asistencia
+    private Boolean attended;
 
     // URL de pago para redirigir al usuario
     private String paymentUrl;

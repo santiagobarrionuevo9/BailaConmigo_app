@@ -1,10 +1,7 @@
 package org.example.bailaconmigo.Services;
 
 import jakarta.transaction.Transactional;
-import org.example.bailaconmigo.DTOs.CancelRegistrationRequestDto;
-import org.example.bailaconmigo.DTOs.EventRegistrationRequestDto;
-import org.example.bailaconmigo.DTOs.EventRegistrationResponseDto;
-import org.example.bailaconmigo.DTOs.PaymentInitiationResponseDto;
+import org.example.bailaconmigo.DTOs.*;
 import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.RegistrationStatus;
 import org.example.bailaconmigo.Entities.Event;
@@ -205,7 +202,57 @@ public class EventRegistrationService {
     }
 
     /**
-     * Cancela la inscripción de un bailarín a un evento
+     * Cancela todas las inscripciones de un evento y envía notificaciones
+     */
+    @Transactional
+    public void cancelAllEventRegistrations(Long eventId, String cancellationReason) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+
+        // Obtener todas las inscripciones activas del evento
+        List<EventRegistration> activeRegistrations = registrationRepository.findByEvent(event)
+                .stream()
+                .filter(registration -> !RegistrationStatus.CANCELADO.equals(registration.getStatus()))
+                .collect(Collectors.toList());
+
+        if (activeRegistrations.isEmpty()) {
+            throw new RuntimeException("No hay inscripciones activas para cancelar en este evento");
+        }
+
+        // Procesar cada inscripción
+        for (EventRegistration registration : activeRegistrations) {
+            // Reembolso si aplica
+            if (RegistrationStatus.CONFIRMADO.equals(registration.getStatus()) &&
+                    "approved".equalsIgnoreCase(registration.getPaymentStatus()) &&
+                    registration.getPaymentId() != null) {
+                try {
+                    mercadoPagoService.refundPayment(
+                            registration.getPaymentId(),
+                            registration.getEvent().getOrganizer().getUser().getMercadoPagoToken()
+                    );
+                    registration.setPaymentStatus("refunded");
+                    registration.setCancelReason("Evento cancelado - Reembolso automático procesado");
+                } catch (Exception e) {
+                    registration.setCancelReason("Evento cancelado - Error en reembolso: " + e.getMessage());
+                    System.err.println("Error al reembolsar pago " + registration.getPaymentId() + ": " + e.getMessage());
+                }
+            } else {
+                registration.setCancelReason(cancellationReason != null ?
+                        "Evento cancelado - " + cancellationReason :
+                        "Evento cancelado por el organizador");
+            }
+
+            // Cancelar inscripción
+            registration.setStatus(RegistrationStatus.CANCELADO);
+            registrationRepository.save(registration);
+        }
+
+        // Enviar notificaciones a todos los bailarines
+        notificationService.sendEventCancellationNotifications(activeRegistrations, cancellationReason);
+    }
+
+    /**
+     * Método original mantenido para cancelar inscripciones individuales
      */
     @Transactional
     public void cancelRegistration(Long dancerId, Long eventId, CancelRegistrationRequestDto dto) {
@@ -244,7 +291,7 @@ public class EventRegistrationService {
         registrationRepository.save(registration);
 
         // Notificar al usuario (opcional)
-        notificationService.sendCancelationPackage(registration);
+        notificationService.sendCancelationPackage(registration, dto.getCancelReason());
     }
 
     /**
@@ -271,6 +318,31 @@ public class EventRegistrationService {
                 .collect(Collectors.toList());
     }
 
+
+
+    /**
+     * Actualiza el estado de asistencia de una inscripción
+     */
+    @Transactional
+    public EventRegistrationResponseDto updateAttendance(Long registrationId, UpdateAttendanceRequestDto dto) {
+        EventRegistration registration = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new RuntimeException("Inscripción no encontrada"));
+
+        // Validar que la inscripción esté confirmada
+        if (registration.getStatus() != RegistrationStatus.CONFIRMADO) {
+            throw new RuntimeException("Solo se puede marcar asistencia en inscripciones confirmadas");
+        }
+
+        // Actualizar el estado de asistencia
+        registration.setAttended(dto.getAttended());
+
+        EventRegistration savedRegistration = registrationRepository.save(registration);
+
+        return convertToDto(savedRegistration);
+    }
+
+
+
     /**
      * Convierte una inscripción a su DTO correspondiente
      */
@@ -284,6 +356,42 @@ public class EventRegistrationService {
         dto.setDancerName(registration.getDancer().getFullName());
         dto.setRegistrationDate(registration.getRegistrationDate());
         dto.setStatus(registration.getStatus());
+        dto.setAttended(registration.getAttended() != null ? registration.getAttended() : false);
+
+        // ===== GENERAR CÓDIGO DINÁMICO =====
+        String codigoDinamico = generarCodigoDinamico(registration);
+        dto.setCodigoDinamico(codigoDinamico);
+
         return dto;
+    }
+
+    /**
+     * Genera un código dinámico único para la inscripción
+     */
+    private String generarCodigoDinamico(EventRegistration registration) {
+        LocalDateTime registrationDate = registration.getRegistrationDate();
+
+        // Formatear fecha como YYYYMMDD
+        String fechaFormateada = String.format("%04d%02d%02d",
+                registrationDate.getYear(),
+                registrationDate.getMonthValue(),
+                registrationDate.getDayOfMonth());
+
+        // Obtener iniciales del nombre del bailarín
+        String fullName = registration.getDancer().getFullName().trim();
+        String[] nombres = fullName.split(" ");
+        String iniciales;
+
+        if (nombres.length >= 2) {
+            // Si tiene al menos 2 nombres, tomar primera letra de cada uno
+            iniciales = nombres[0].substring(0, 1) + nombres[1].substring(0, 1);
+        } else {
+            // Si solo tiene un nombre, tomar las primeras 2 letras
+            iniciales = nombres[0].length() >= 2 ?
+                    nombres[0].substring(0, 2) :
+                    nombres[0] + "X"; // Agregar X si el nombre tiene solo 1 letra
+        }
+
+        return fechaFormateada + "-" + iniciales.toUpperCase();
     }
 }

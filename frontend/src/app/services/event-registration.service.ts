@@ -5,6 +5,7 @@ import { PaymentInitiationResponseDto } from '../models/PaymentInitiationRespons
 import { Observable } from 'rxjs/internal/Observable';
 import { EventRegistrationResponseDto } from '../models/EventRegistrationResponseDto';
 import { CancelRegistrationRequestDto } from '../models/CancelRegistrationRequestDto';
+import { UpdateAttendanceRequestDto } from '../models/update-attendance-request-dto';
 
 @Injectable({
   providedIn: 'root'
@@ -78,4 +79,14 @@ export class EventRegistrationService {
       responseType: 'text'
     });
   }
+
+  
+
+  /**
+   * Actualiza el estado de asistencia de una inscripción
+   */
+  updateAttendance(registrationId: number, dto: UpdateAttendanceRequestDto): Observable<EventRegistrationResponseDto> {
+    return this.http.put<EventRegistrationResponseDto>(`${this.apiUrl}/${registrationId}/attendance`, dto);
+  }
+
 }

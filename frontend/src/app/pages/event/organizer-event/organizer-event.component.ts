@@ -44,7 +44,10 @@ export class OrganizerEventComponent implements OnInit {
     this.router.navigate(['/edit-event', eventId]);
   }
 
-  
+  // NUEVO MÉTODO: Navegar a las inscripciones del evento
+  onViewRegistrations(eventId: number): void {
+    this.router.navigate(['/registrations', eventId]);
+  }
 
   onCancelEvent(eventId: number): void {
   this.cancelEventIdToProcess = eventId;
