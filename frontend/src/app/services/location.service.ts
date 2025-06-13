@@ -5,12 +5,13 @@ import { Country } from '../models/Country';
 import { catchError } from 'rxjs/internal/operators/catchError';
 import { City } from '../models/City';
 import { map, throwError } from 'rxjs';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LocationService {
-  private readonly baseUrl = `https://0f78-152-171-81-105.ngrok-free.app/api/locations`;
+  private readonly baseUrl = environment.apiUrl +`/api/locations`;
 
   constructor(private http: HttpClient) {}
 

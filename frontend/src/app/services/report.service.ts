@@ -21,13 +21,14 @@ import { DashboardSummaryDto } from '../models/dashboard-summary-dto';
 import { RegistrationReportDto } from '../models/registration-report-dto';
 import { EventDetailReportDto } from '../models/event-detail-report-dto';
 import { EventGeneralReportDto } from '../models/event-general-report-dto';
+import { environment } from '../models/environments';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReportService {
-  private readonly baseUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/reports'; // Ajusta según tu configuración
+  private readonly baseUrl = environment.apiUrl +'/api/reports'; // Ajusta según tu configuración
 
   constructor(private http: HttpClient) {}
 

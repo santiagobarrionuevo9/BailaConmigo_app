@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { LoginResponseDto } from '../models/login-response';
 import { LoginRequestDto } from '../models/login-request';
 import { DancerProfileResponseDto } from '../models/dancerprofileresponse';
+import { environment } from '../models/environments';
 
 
 @Injectable({
@@ -11,7 +12,7 @@ import { DancerProfileResponseDto } from '../models/dancerprofileresponse';
 })
 export class AuthService {
 
-  private apiUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/auth'; // Ajustá la URL real
+  private apiUrl = environment.apiUrl +'/api/auth'; // Ajustá la URL real
 
   constructor(private http: HttpClient) {}
 

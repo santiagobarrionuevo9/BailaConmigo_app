@@ -2,13 +2,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/internal/Observable';
 import { UserContextService } from './user-context.service';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MercadopagoService {
 
-  private apiUrl ='https://0f78-152-171-81-105.ngrok-free.app/api';
+  private apiUrl =environment.apiUrl +'/api';
 
   constructor(private http: HttpClient,private userContext: UserContextService) { }
 

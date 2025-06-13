@@ -5,13 +5,14 @@ import { Observable } from 'rxjs/internal/Observable';
 import { MatchResponse } from '../models/MatchResponse';
 import { UserContextService } from './user-context.service';
 import { AuthService } from './auth.service';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MatchService {
 
-  private apiUrl = `https://0f78-152-171-81-105.ngrok-free.app/api/match`;
+  private apiUrl = environment.apiUrl +`/api/match`;
   
   constructor(
     private http: HttpClient,

@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { MessageDto } from '../models/MessageDto';
 import { Observable } from 'rxjs/internal/Observable';
 import { ChatMessageDto } from '../models/ChatMessageDto';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
 
-  private apiUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/chat';
+  private apiUrl = environment.apiUrl +'/api/chat';
 
   constructor(private http: HttpClient) {}
 

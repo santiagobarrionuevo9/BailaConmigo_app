@@ -6,13 +6,14 @@ import { CreateEventRequestDto } from '../models/createeventrequest';
 import { EditEventRequestDto } from '../models/EditEventRequestDto';
 import { CancelEventRequestDto } from '../models/CancelEventRequestDto';
 import { RatingEventDto } from '../models/RatingeventDto';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventService {
 
-  private apiUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/events';
+  private apiUrl = environment.apiUrl +'/api/events';
 
   constructor(private http: HttpClient) {}
 

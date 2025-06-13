@@ -5,12 +5,13 @@ import { OrganizerProfileResponseDto } from '../models/OrganizerProfileResponseD
 import { catchError } from 'rxjs/internal/operators/catchError';
 import { EditOrganizerProfileDto } from '../models/EditOrganizerProfileDto';
 import { throwError } from 'rxjs/internal/observable/throwError';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrganizerService {
-  private readonly baseUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/auth';
+  private readonly baseUrl = environment.apiUrl +'/api/auth';
 
   constructor(private http: HttpClient) {}
 
@@ -42,7 +43,7 @@ export class OrganizerService {
    * Sube archivos multimedia (reutilizamos el endpoint del profile service)
    */
   uploadMedia(formData: FormData): Observable<string> {
-    return this.http.post('http://localhost:8080/api/media/uploadMedia', formData, { responseType: 'text' });
+    return this.http.post(environment.apiUrl +'/api/media/uploadMedia', formData, { responseType: 'text' });
   }
 
   private handleError(error: any): Observable<never> {

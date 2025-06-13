@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/internal/Observable';
 import { DancerProfileResponseDto } from '../models/dancerprofileresponse';
 import { EditDancerProfileDto } from '../models/editdancerprofile';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProfileService {
-  private baseUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/auth'; // Ajustar si cambia
+  private baseUrl = environment.apiUrl +'/api/auth'; // Ajustar si cambia
 
   constructor(private http: HttpClient) {}
 
@@ -22,7 +23,7 @@ export class ProfileService {
   }
 
   uploadMedia(formData: FormData): Observable<string> {
-    return this.http.post('https://0f78-152-171-81-105.ngrok-free.app/api/media/uploadMedia', formData, { responseType: 'text' });
+    return this.http.post(environment.apiUrl +'/api/media/uploadMedia', formData, { responseType: 'text' });
   }
 
   // Método para obtener la imagen con headers de ngrok

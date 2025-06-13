@@ -6,13 +6,14 @@ import { Observable } from 'rxjs/internal/Observable';
 import { EventRegistrationResponseDto } from '../models/EventRegistrationResponseDto';
 import { CancelRegistrationRequestDto } from '../models/CancelRegistrationRequestDto';
 import { UpdateAttendanceRequestDto } from '../models/update-attendance-request-dto';
+import { environment } from '../models/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventRegistrationService {
   
-  private apiUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/event-registrations';
+  private apiUrl = environment.apiUrl +'/api/event-registrations';
 
   constructor(private http: HttpClient) {}
 
