@@ -1,5 +1,234 @@
-.btn-warning {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  color: #000;
+.matches-container {
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.matches-container h2 {
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.matches-container h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(135deg, #ff6b35, #ff8559);
+  border-radius: 2px;
+}
+
+/* Loading spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3em;
+}
+
+.text-primary .spinner-border {
+  border-color: #ff6b35;
+  border-right-color: transparent;
+}
+
+/* Error alert */
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+}
+
+/* No matches alert */
+.alert-info {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 133, 89, 0.1));
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  color: #333;
+  border-radius: 15px;
+  padding: 2rem;
+}
+
+.alert-info h4 {
+  color: #ff6b35;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Match cards */
+.match-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+}
+
+.match-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.2);
+}
+
+.match-img {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+}
+
+.match-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.match-card:hover .match-img img {
+  transform: scale(1.05);
+}
+
+.match-info {
+  padding: 1.5rem;
+}
+
+.match-info h3 {
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.location {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.location i {
+  color: #ff6b35;
+}
+
+/* Dance styles badges */
+.dance-styles {
+  margin-bottom: 1rem;
+}
+
+.badge {
+  background: linear-gradient(135deg, #ff6b35, #ff8559) !important;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+}
+
+/* Rating stars */
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stars {
+  display: flex;
+  gap: 0.1rem;
+}
+
+.stars i {
+  color: #ff6b35;
+  font-size: 0.9rem;
+}
+
+.rating-value {
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-outline-primary {
+  border: 2px solid #ff6b35;
+  color: #ff6b35;
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: #ff6b35;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #34ce57);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #218838, #28a745);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff6b35, #ff8559);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #e55a2e, #e5744a);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .matches-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .match-img {
+    height: 200px;
+  }
+  
+  .match-info {
+    padding: 1rem;
+  }
+  
+  .match-info h3 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .col-md-6 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .match-card {
+    margin: 0 0.5rem;
+  }
 }

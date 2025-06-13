@@ -1,19 +1,41 @@
 <div class="modal-backdrop" *ngIf="visible">
-  <div class="modal-content p-4">
-    <h5 class="mb-3">Valorar perfil</h5>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Valorar perfil</h5>
+    </div>
     
-    <div class="mb-2">
-      <span *ngFor="let i of [1,2,3,4,5]" (click)="setStars(i)">
-        <i class="bi" [class.bi-star-fill]="i <= stars" [class.bi-star]="i > stars"></i>
-      </span>
+    <div class="modal-body">
+      <div class="rating-section" *ngIf="!alreadyRated">
+        <p class="rating-label">Tu valoración:</p>
+        <div class="stars-container">
+          <span *ngFor="let i of [1,2,3,4,5]" 
+                class="star" 
+                (click)="setStars(i)"
+                [class.filled]="i <= stars">
+            <i class="bi" [class.bi-star-fill]="i <= stars" [class.bi-star]="i > stars"></i>
+          </span>
+        </div>
+      </div>
+      
+      <div class="already-rated-message" *ngIf="alreadyRated">
+        <div class="alert alert-warning mt-2">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <h6>Ya valoraste este perfil</h6>
+          <p>Solo puedes valorar cada perfil una vez.</p>
+        </div>
+      </div>
     </div>
 
-    <textarea [(ngModel)]="comment" rows="3" class="form-control mb-3" placeholder="Comentario..."></textarea>
-
-    <div class="text-end">
-      <button class="btn btn-secondary me-2" (click)="reset()">Cancelar</button>
-      <button class="btn btn-primary" [disabled]="stars === 0" (click)="sendRating()">Enviar</button>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="reset()">
+        <i class="bi bi-x-circle"></i> Cerrar
+      </button>
+      <button class="btn btn-primary" 
+              *ngIf="!alreadyRated"
+              [disabled]="stars === 0" 
+              (click)="sendRating()">
+        <i class="bi bi-check-circle"></i> Enviar valoración
+      </button>
     </div>
   </div>
 </div>
-

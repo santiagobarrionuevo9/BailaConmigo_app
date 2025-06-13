@@ -8,9 +8,11 @@ import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -332,4 +334,82 @@ public class EventService {
 
         return dto;
     }
+
+    /**
+     * Busca eventos que necesitan recordatorio de 24 horas y envía las notificaciones
+     * Este método debería ser llamado por un job programado
+     */
+    @Transactional
+    public void sendReminders24Hours() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime reminderTime = now.plusHours(24);
+
+        // Buscar eventos que ocurren en las próximas 24 horas (con un margen de 1 hora)
+        LocalDateTime startRange = reminderTime.minusHours(1);
+        LocalDateTime endRange = reminderTime.plusHours(1);
+
+        List<Event> eventsToRemind = eventRepository.findByDateTimeBetweenAndStatus(
+                startRange, endRange, EventStatus.ACTIVO);
+
+        System.out.println("Buscando eventos para recordatorio 24h entre " +
+                startRange.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
+                " y " + endRange.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+
+        if (eventsToRemind.isEmpty()) {
+            System.out.println("No se encontraron eventos para enviar recordatorios 24h");
+            return;
+        }
+
+        for (Event event : eventsToRemind) {
+            try {
+                // Verificar que el evento tenga inscripciones activas
+                if (event.getRegistrations() != null && !event.getRegistrations().isEmpty()) {
+                    emailService.sendEventReminder24Hours(event);
+                    System.out.println("Recordatorios enviados para evento: " + event.getName());
+                } else {
+                    System.out.println("Evento sin inscripciones: " + event.getName());
+                }
+            } catch (Exception e) {
+                System.out.println("Error enviando recordatorios para evento " +
+                        event.getName() + ": " + e.getMessage());
+            }
+        }
+
+        System.out.println("Proceso de recordatorios 24h completado. Eventos procesados: " + eventsToRemind.size());
+    }
+
+    /**
+     * Método manual para enviar recordatorio de un evento específico
+     */
+    @Transactional
+    public void sendReminderForSpecificEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+
+        if (event.getStatus() != EventStatus.ACTIVO) {
+            throw new RuntimeException("Solo se pueden enviar recordatorios para eventos activos");
+        }
+
+        if (event.getRegistrations() == null || event.getRegistrations().isEmpty()) {
+            throw new RuntimeException("El evento no tiene inscripciones");
+        }
+
+        emailService.sendEventReminder24Hours(event);
+    }
+
+    /**
+     * Se ejecuta cada hora para verificar si hay eventos que necesiten recordatorio 24h
+     * Cron expression: "0 0 * * * *" = cada hora en punto
+     */
+    @Scheduled(cron = "0 0 * * * *", zone = "America/Argentina/Cordoba")
+    public void sendDailyReminders() {
+        try {
+            System.out.println("Iniciando proceso automático de recordatorios 24h...");
+            sendReminders24Hours();
+        } catch (Exception e) {
+            System.out.println("Error en proceso automático de recordatorios: " + e.getMessage());
+        }
+    }
+
+
 }

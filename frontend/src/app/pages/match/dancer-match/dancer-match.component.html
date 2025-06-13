@@ -18,16 +18,19 @@
         <h5 class="mb-0">Filtros de búsqueda</h5>
       </div>
       <div class="card-body">
-        <!-- Ciudad -->
+        <!-- Ciudad y Nivel -->
         <div class="row mb-3">
           <div class="col-md-6">
-            <label for="cityInput" class="form-label">Ciudad</label>
-            <input 
-              id="cityInput"
-              type="text" 
-              class="form-control" 
-              placeholder="Escribe la ciudad" 
-              [(ngModel)]="searchParams.city">
+            <label for="citySelect" class="form-label">Ciudad</label>
+            <select 
+              id="citySelect"
+              class="form-select" 
+              [(ngModel)]="searchParams.cityName">
+              <option value="">Todas las ciudades</option>
+              <option *ngFor="let city of cities" [value]="city.name">
+                {{ city.name }}, {{ city.countryName }}
+              </option>
+            </select>
           </div>
           <div class="col-md-6">
             <label for="levelSelect" class="form-label">Nivel</label>
@@ -63,19 +66,10 @@
           </div>
         </div>
 
-        <!-- Disponibilidad -->
+        <!-- Botón de búsqueda -->
         <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="availabilityInput" class="form-label">Disponibilidad</label>
-            <input 
-              id="availabilityInput"
-              type="text" 
-              class="form-control" 
-              placeholder="Ej: Fines de semana" 
-              [(ngModel)]="searchParams.availability">
-          </div>
-          <div class="col-md-6 d-flex align-items-end">
-            <button class="btn btn-primary w-100" (click)="loadProfiles()">
+          <div class="col-12 d-flex justify-content-center">
+            <button class="btn btn-primary" (click)="loadProfiles()">
               <i class="bi bi-search"></i> Buscar
             </button>
           </div>
@@ -185,11 +179,6 @@
         <!-- Nivel -->
         <p class="mb-2">
           <strong>Nivel:</strong> {{ currentProfile.level }}
-        </p>
-
-        <!-- Disponibilidad -->
-        <p class="mb-2">
-          <strong>Disponibilidad:</strong> {{ currentProfile.availability }}
         </p>
 
         <!-- Sobre mí -->

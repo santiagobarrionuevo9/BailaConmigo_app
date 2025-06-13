@@ -1,4 +1,3 @@
-
 <!-- Actualización del template organizer-event.component.html -->
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -71,19 +70,29 @@
               {{ expandedEvents[i] ? 'Ver menos' : 'Ver más' }}
             </button>
             
-            <!-- NUEVA SECCIÓN: Botón para ver inscripciones -->
+            <!-- SECCIÓN ACTUALIZADA: Botón para ver inscripciones deshabilitado si está cancelado -->
             <div class="mt-2">
-              <button class="btn btn-sm btn-outline-info w-100" (click)="onViewRegistrations(event.id)">
+              <button 
+                class="btn btn-sm btn-outline-info w-100" 
+                (click)="onViewRegistrations(event.id)"
+                [disabled]="event.status === eventStatusEnum.CANCELADO">
                 <i class="bi bi-people-fill me-1"></i> Ver Inscripciones
               </button>
             </div>
             
             <div class="d-flex justify-content-between mt-2">
-            <button class="btn btn-sm btn-outline-primary" (click)="onEditEvent(event.id)">
+            <!-- BOTÓN ACTUALIZADO: Editar deshabilitado si está cancelado -->
+            <button 
+              class="btn btn-sm btn-outline-primary" 
+              (click)="onEditEvent(event.id)"
+              [disabled]="event.status === eventStatusEnum.CANCELADO">
               <i class="bi bi-pencil-fill me-1"></i> Editar
             </button>
 
-            <button class="btn btn-sm btn-outline-danger" (click)="onCancelEvent(event.id)" [disabled]="event.status === 'CANCELADO'">
+            <button 
+              class="btn btn-sm btn-outline-danger" 
+              (click)="onCancelEvent(event.id)" 
+              [disabled]="event.status === eventStatusEnum.CANCELADO">
               <i class="bi bi-x-circle-fill me-1"></i> Cancelar
             </button>
           </div>

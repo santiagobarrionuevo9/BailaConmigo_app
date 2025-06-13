@@ -141,6 +141,115 @@ public class EmailService {
         }
     }
 
+    /**
+     * Envía recordatorios a todos los inscritos cuando faltan 24 horas para el evento
+     */
+    public void sendEventReminder24Hours(Event event) {
+        if (event.getRegistrations() == null || event.getRegistrations().isEmpty()) {
+            System.out.println("No hay inscripciones para el evento: " + event.getName());
+            return;
+        }
+
+        String organizerEmail = event.getOrganizer().getContactEmail();
+        String eventLocationInfo = event.getCityName() != null && event.getCountryName() != null
+                ? event.getCityName() + ", " + event.getCountryName()
+                : "Ubicación por confirmar";
+
+        for (EventRegistration registration : event.getRegistrations()) {
+            User dancer = registration.getDancer();
+
+            // Generar código dinámico para el recordatorio
+            String codigoDinamico = generarCodigoDinamicoParaEmail(registration);
+
+            try {
+                MimeMessage message = javaMailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                helper.setTo(dancer.getEmail());
+                helper.setSubject("¡Recordatorio! Tu evento es mañana - " + event.getName());
+
+                String htmlContent = """
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #17a2b8;">🕺 ¡Tu evento es mañana! 💃</h2>
+              <p>Hola <strong>%s</strong>,</p>
+              
+              <p>Te recordamos que <strong>mañana</strong> es el evento <strong>"%s"</strong> al que estás inscrito/a.</p>
+              
+              <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #1976d2; margin-bottom: 15px;">📋 Detalles del evento:</h3>
+                <ul style="list-style: none; padding: 0;">
+                  <li style="margin-bottom: 8px;"><strong>📅 Fecha y hora:</strong> %s</li>
+                  <li style="margin-bottom: 8px;"><strong>📍 Ubicación:</strong> %s</li>
+                  <li style="margin-bottom: 8px;"><strong>🏠 Dirección:</strong> %s</li>
+                  <li style="margin-bottom: 8px;"><strong>💰 Precio:</strong> %s</li>
+                  <li style="margin-bottom: 8px;"><strong>🎵 Estilos:</strong> %s</li>
+                </ul>
+              </div>
+              
+              <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; border-left: 4px solid #ffc107;">
+                <h3 style="color: #856404; margin-bottom: 10px;">🎫 Tu código de acceso:</h3>
+                <div style="font-size: 20px; font-weight: bold; color: #495057; letter-spacing: 1px; 
+                            background-color: white; padding: 10px; border-radius: 5px; 
+                            border: 2px solid #ffc107;">
+                  %s
+                </div>
+                <p style="margin-top: 10px; font-size: 14px; color: #856404;">
+                  <strong>¡No olvides llevarlo!</strong> Lo necesitarás para ingresar al evento.
+                </p>
+              </div>
+              
+              <h3 style="color: #28a745;">✅ Preparativos para mañana:</h3>
+              <ul>
+                <li>🎽 Vestite cómodo y listo para bailar</li>
+                <li>💧 Llevá agua para mantenerte hidratado</li>
+                <li>📱 Asegurate de tener tu código de acceso a mano</li>
+                <li>🚗 Planificá tu llegada con tiempo suficiente</li>
+                <li>😊 ¡Vení con la mejor energía!</li>
+              </ul>
+              
+              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>💬 ¿Tenés alguna consulta de último momento?</strong></p>
+                <p>Contactá al organizador: <strong>%s</strong></p>
+              </div>
+              
+              <p style="text-align: center; margin: 30px 0; font-size: 18px; color: #d63384;">
+                <strong>¡Nos vemos mañana en la pista! 🎉</strong>
+              </p>
+              
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>El equipo de Baila Conmigo</strong></p>
+              
+              <hr />
+              <small style="color: #aaa;">
+                Este es un correo automático. Por favor, no respondas a este mensaje.
+              </small>
+            </body>
+            </html>
+            """.formatted(
+                        dancer.getFullName(),
+                        event.getName(),
+                        event.getDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm")),
+                        eventLocationInfo,
+                        event.getAddress(),
+                        event.getPrice() != null ? "$" + event.getPrice() : "Gratuito",
+                        event.getDanceStyles() != null ? event.getDanceStyles() : "Varios estilos",
+                        codigoDinamico,
+                        organizerEmail
+                );
+
+                helper.setText(htmlContent, true);
+                javaMailSender.send(message);
+
+            } catch (MessagingException e) {
+                System.out.println("Error al enviar recordatorio 24h a " + dancer.getEmail() + ": " + e.getMessage());
+            }
+        }
+
+        System.out.println("Recordatorios 24h enviados para el evento: " + event.getName() +
+                " (" + event.getRegistrations().size() + " inscriptos)");
+    }
+
     public void sendMatchNotificationEmail(String to, String fullName, String matchedWithName) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -381,6 +490,9 @@ public class EmailService {
     }
 
     public void notifyEventUpdate(Event event, String updateDetails) {
+        // Obtener el correo del organizador
+        String organizerEmail = event.getOrganizer().getContactEmail();
+
         for (EventRegistration registration : event.getRegistrations()) {
             User dancer = registration.getDancer();
 
@@ -392,38 +504,39 @@ public class EmailService {
                 helper.setSubject("Actualización del evento - " + event.getName());
 
                 String htmlContent = """
-                <html>
-                <body style="font-family: Arial, sans-serif; color: #333;">
-                  <h2 style="color: #ffc107;">Actualización importante</h2>
-                  <p>Hola <strong>%s</strong>,</p>
-                  
-                  <p>El evento <strong>"%s"</strong> al que estás inscrito ha sido actualizado.</p>
-                  
-                  <h3>Detalles de la actualización:</h3>
-                  <p>%s</p>
-                  
-                  <h3>Información actualizada del evento:</h3>
-                  <ul>
-                    <li><strong>Fecha y hora:</strong> %s</li>
-                    <li><strong>Lugar:</strong> %s</li>
-                    <li><strong>Dirección:</strong> %s</li>
-                  </ul>
-                  
-                  <p>Si tenés alguna pregunta, por favor contactá al organizador.</p>
-                  
-                  <p style="color: #888;">Con ritmo,</p>
-                  <p><strong>Equipo de Baila Conmigo</strong></p>
-                  <hr />
-                  <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
-                </body>
-                </html>
-                """.formatted(
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #ffc107;">Actualización importante</h2>
+              <p>Hola <strong>%s</strong>,</p>
+              
+              <p>El evento <strong>"%s"</strong> al que estás inscrito ha sido actualizado.</p>
+              
+              <h3>Detalles de la actualización:</h3>
+              <p>%s</p>
+              
+              <h3>Información actualizada del evento:</h3>
+              <ul>
+                <li><strong>Fecha y hora:</strong> %s</li>
+                <li><strong>Lugar:</strong> %s</li>
+                <li><strong>Dirección:</strong> %s</li>
+              </ul>
+              
+              <p>Si tenés alguna pregunta, por favor contactá al organizador en: <strong>%s</strong></p>
+              
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>Equipo de Baila Conmigo</strong></p>
+              <hr />
+              <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+            </body>
+            </html>
+            """.formatted(
                         dancer.getFullName(),
                         event.getName(),
                         updateDetails,
                         event.getDateTime(),
                         event.getAddress(),
-                        event.getAddress()
+                        event.getAddress(),
+                        organizerEmail // Añadir el correo del organizador
                 );
 
                 helper.setText(htmlContent, true);
@@ -433,6 +546,7 @@ public class EmailService {
             }
         }
     }
+
 
     public void notifyEventCancellation(Event event, String cancellationReason) {
         for (EventRegistration registration : event.getRegistrations()) {
@@ -485,9 +599,14 @@ public class EmailService {
         }
 
         Event event = registrations.get(0).getEvent(); // Todas las inscripciones pertenecen al mismo evento
+        String organizerEmail = event.getOrganizer().getContactEmail(); // Obtener el correo del organizador
 
         for (EventRegistration registration : registrations) {
             User dancer = registration.getDancer();
+
+            // Verificar si hay pago > 0
+            boolean hasPaidRegistration = registration.getPaidAmount() != null &&
+                    registration.getPaidAmount().compareTo(BigDecimal.ZERO) > 0;
 
             try {
                 MimeMessage message = javaMailSender.createMimeMessage();
@@ -496,39 +615,38 @@ public class EmailService {
                 helper.setTo(dancer.getEmail());
                 helper.setSubject("Cancelación del evento - " + event.getName());
 
-                // Determinar si hubo pago para mostrar información de reembolso
-                boolean hasPaidRegistration = registration.getPaidAmount() != null &&
-                        registration.getPaidAmount().compareTo(BigDecimal.ZERO) > 0;
-
-                String refundInfo = hasPaidRegistration ?
-                        "<p><strong>Información de reembolso:</strong> El reembolso de tu inscripción será procesado automáticamente y se reflejará en tu cuenta <strong>dentro de 18 días hábiles</strong>.</p>" :
-                        "";
+                String refundInfo = hasPaidRegistration
+                        ? """
+                        <p><strong>Información de reembolso:</strong> El reembolso de tu inscripción será procesado automáticamente y se reflejará en tu cuenta <strong>dentro de 18 días hábiles</strong>.</p>
+                      """
+                        : "";
 
                 String htmlContent = """
-            <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-              <h2 style="color: #dc3545;">Cancelación del evento</h2>
-              <p>Hola <strong>%s</strong>,</p>
-              
-              <p>Lamentamos informarte que el evento <strong>"%s"</strong> ha sido cancelado por el organizador.</p>
-              
-              <p><strong>Motivo de cancelación:</strong> %s</p>
-              
-              %s
-              
-              <p>Sentimos las molestias que esto pueda ocasionar. Si tenés alguna pregunta o necesitás más información, por favor contactá al organizador del evento.</p>
-              
-              <p style="color: #888;">Con ritmo,</p>
-              <p><strong>Equipo de Baila Conmigo</strong></p>
-              <hr />
-              <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
-            </body>
-            </html>
-            """.formatted(
+                <html>
+                <body style="font-family: Arial, sans-serif; color: #333;">
+                  <h2 style="color: #dc3545;">Cancelación del evento</h2>
+                  <p>Hola <strong>%s</strong>,</p>
+                  
+                  <p>Lamentamos informarte que el evento <strong>"%s"</strong> ha sido cancelado por el organizador.</p>
+                  
+                  <p><strong>Motivo de cancelación:</strong> %s</p>
+                  
+                  %s
+                  
+                  <p>Sentimos las molestias que esto pueda ocasionar. Si tenés alguna pregunta o necesitás más información, por favor contactá al organizador del evento: <strong>%s</strong>.</p>
+                  
+                  <p style="color: #888;">Con ritmo,</p>
+                  <p><strong>Equipo de Baila Conmigo</strong></p>
+                  <hr />
+                  <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+                </body>
+                </html>
+                """.formatted(
                         dancer.getFullName(),
                         event.getName(),
                         cancellationReason != null ? cancellationReason : "No especificado",
-                        refundInfo
+                        refundInfo,
+                        organizerEmail
                 );
 
                 helper.setText(htmlContent, true);
@@ -539,6 +657,7 @@ public class EmailService {
             }
         }
     }
+
 
     /**
      * Método actualizado para cancelación individual con información de reembolso

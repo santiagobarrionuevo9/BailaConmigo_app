@@ -32,10 +32,16 @@ public class LocationService {
      * Obtiene todos los países
      */
     public List<CountryDto> getAllCountries() {
-        return countryRepository.findAll().stream()
+        // Traemos todos los países que tengan al menos una ciudad
+        List<Country> countriesWithCities = countryRepository.findAll().stream()
+                .filter(country -> cityRepository.existsByCountryId(country.getId()))
+                .collect(Collectors.toList());
+
+        return countriesWithCities.stream()
                 .map(this::convertToCountryDto)
                 .collect(Collectors.toList());
     }
+
 
     /**
      * Obtiene ciudades por país

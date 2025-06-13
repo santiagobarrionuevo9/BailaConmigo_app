@@ -17,8 +17,9 @@ export class MatchprofileModalComponent {
   @Output() close = new EventEmitter<void>();
 
   ratingStars: number = 0;
-  comment: string = '';
+  comment: string = '------------';
   submitted: boolean = false;
+   alreadyRated: boolean = false;
 
   constructor(private authService: AuthService) {}
 
@@ -27,21 +28,27 @@ export class MatchprofileModalComponent {
   }
 
   submitRating() {
-    if (!this.ratingStars || !this.comment.trim()) return;
+  if (!this.ratingStars || !this.comment.trim()) return;
 
-    const ratingData = {
-      profileId: this.dancer.userId,
-      stars: this.ratingStars,
-      comment: this.comment
-    };
+  const ratingData = {
+    profileId: this.dancer.userId,
+    stars: this.ratingStars,
+    comment: this.comment
+  };
 
-    this.authService.rateProfile(this.currentUserId, ratingData).subscribe({
-      next: () => {
-        this.submitted = true;
-      },
-      error: err => console.error('Error enviando rating:', err)
-    });
-  }
+  this.authService.rateProfile(this.currentUserId, ratingData).subscribe({
+    next: () => {
+      this.submitted = true;
+    },
+    error: err => {
+      console.error('Error enviando rating:', err);
+      if (err.error?.message?.includes('Ya has calificado a este perfil')) {
+        this.alreadyRated = true;
+      }
+    }
+  });
+}
+
 
   closeModal() {
     this.close.emit();

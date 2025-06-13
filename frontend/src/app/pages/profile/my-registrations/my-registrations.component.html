@@ -1,22 +1,112 @@
 <div class="p-4">
-  <h2 class="text-orange text-2xl mb-4">Mis Inscripciones</h2>
-
-  <div *ngIf="registrations.length === 0" class="text-gray-500">
-    No estás inscrito a ningún evento.
+  <!-- Header -->
+  <div class="mb-4">
+    <h2 class="text-orange fw-bold mb-1">
+      <i class="bi bi-person-lines-fill me-2"></i>
+      Mis Inscripciones
+    </h2>
+    <p class="text-muted">Gestiona tus inscripciones a eventos</p>
   </div>
 
-  <div *ngFor="let reg of registrations" class="border border-orange rounded-lg p-4 mb-4">
-    <h3 class="text-xl font-bold mb-2">{{ reg.eventName }}</h3>
-    <p><strong>Fecha:</strong> {{ reg.eventDateTime  }}</p>
-    <p><strong>Estado:</strong> {{ reg.status }}</p>
-    <p><strong>Monto pagado:</strong> {{ reg.paidAmount | number:'1.0-0' }}</p>
-    <p><strong>Código dinámico:</strong> {{ reg.codigoDinamico }}</p>
-    <p *ngIf="reg.attended" class="text-green-600 font-semibold">✔ Asististe</p>
-    <a *ngIf="reg.paymentUrl"
-       class="btn-orange mt-3 inline-block"
-       [href]="reg.paymentUrl"
-       target="_blank">
-      Ver detalles del pago
-    </a>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border text-orange" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 text-muted">Cargando inscripciones...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {{ error }}
+    <button class="btn btn-outline-danger btn-sm ms-2" (click)="refreshRegistrations()">
+      <i class="bi bi-arrow-clockwise me-1"></i>
+      Reintentar
+    </button>
+  </div>
+
+  <!-- Estado vacío -->
+  <div *ngIf="!loading && !error && registrations.length === 0" class="empty-state">
+    <i class="bi bi-calendar-x text-orange"></i>
+    <h4 class="text-muted">No tienes inscripciones</h4>
+    <p class="text-muted">No estás inscrito a ningún evento actualmente.</p>
+  </div>
+
+  <!-- Lista de inscripciones -->
+  <div *ngIf="!loading && !error && registrations.length > 0">
+    <div *ngFor="let reg of registrations; trackBy: trackByRegistrationId" class="card mb-4 fade-in">
+      <div class="card-body">
+        <!-- Header con título y estado -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h3 class="text-orange fw-bold mb-0">{{ reg.eventName }}</h3>
+          <span class="badge badge-status" [ngClass]="getStatusBadgeClass(reg.status)">
+            {{ reg.status }}
+          </span>
+        </div>
+
+        <!-- Información básica -->
+        <div class="mb-3">
+          <p class="mb-2">
+            <i class="bi bi-calendar-event me-2 text-orange"></i>
+            <strong>Fecha:</strong> {{ formatEventDateTime(reg.eventDateTime) }}
+          </p>
+          <p class="mb-2">
+            <i class="bi bi-currency-dollar me-2 text-orange"></i>
+            <strong>Monto pagado:</strong> ${{ reg.paidAmount }}
+          </p>
+        </div>
+
+        <!-- Código dinámico destacado -->
+        <div class="codigo-dinamico">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-qr-code-scan me-2 text-orange fs-5"></i>
+            <div>
+              <strong class="text-orange">Código de Inscripción:</strong>
+              <div class="codigo-text mt-1">{{ reg.codigoDinamico }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado de asistencia -->
+        <div class="mb-3" *ngIf="reg.attended">
+          <p class="asistencia-presente mb-0">Asististe a este evento</p>
+        </div>
+
+        <!-- Botón de acción para pago pendiente -->
+        <div class="d-grid mb-2" *ngIf="shouldShowPaymentButton(reg)">
+          <a [href]="reg.paymentUrl" 
+             target="_blank"
+             class="btn btn-orange btn-sm">
+            <i class="bi bi-credit-card me-2"></i>
+            Completar pago
+          </a>
+        </div>
+
+        <!-- Botón para ver detalles del pago -->
+        <div class="d-grid" *ngIf="reg.paymentUrl && !shouldShowPaymentButton(reg)">
+          <a [href]="reg.paymentUrl" 
+             target="_blank"
+             class="btn btn-outline-orange btn-sm">
+            <i class="bi bi-receipt me-2"></i>
+            Ver detalles del pago
+          </a>
+        </div>
+
+        <!-- Información adicional si no hay URL de pago -->
+        <div *ngIf="!reg.paymentUrl && !reg.attended" class="text-muted text-center py-2">
+          <i class="bi bi-clock me-2"></i>
+          <small>Evento próximo</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón para refrescar -->
+    <div class="text-center mt-4">
+      <button class="btn btn-outline-orange" (click)="refreshRegistrations()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise me-2"></i>
+        Actualizar inscripciones
+      </button>
+    </div>
   </div>
 </div>

@@ -12,24 +12,33 @@ import { FormsModule } from '@angular/forms';
 export class RatingModalComponent {
   @Input() visible = false;
   @Input() profileId!: number;
-  @Output() close = new EventEmitter<void>();
+  @Input() raterId!: number;
+  @Output() close = new EventEmitter();
   @Output() submit = new EventEmitter<{ stars: number, comment: string }>();
 
   stars = 0;
-  comment = '';
+  alreadyRated = false;
 
   setStars(value: number) {
-    this.stars = value;
+    if (!this.alreadyRated) {
+      this.stars = value;
+    }
   }
 
   sendRating() {
-    this.submit.emit({ stars: this.stars, comment: this.comment });
-    this.reset();
+    if (!this.alreadyRated && this.stars > 0) {
+      this.submit.emit({ stars: this.stars, comment: '' });
+    }
+  }
+
+  handleAlreadyRated() {
+    this.alreadyRated = true;
+    this.stars = 0;
   }
 
   reset() {
     this.stars = 0;
-    this.comment = '';
+    this.alreadyRated = false;
     this.close.emit();
   }
 }

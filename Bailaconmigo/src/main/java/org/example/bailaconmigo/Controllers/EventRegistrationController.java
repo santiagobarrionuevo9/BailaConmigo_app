@@ -78,7 +78,7 @@ public class EventRegistrationController {
                                                 @PathVariable Long eventId,
                                                 @RequestBody CancelRegistrationRequestDto dto) {
         try {
-            registrationService.cancelRegistration(dancerId, eventId, dto);
+            registrationService.cancelAllEventRegistrations( eventId, dto.getCancelReason() );
             return ResponseEntity.ok("Inscripción cancelada exitosamente");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

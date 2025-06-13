@@ -7,6 +7,8 @@ import { MatchResponse } from '../../../models/MatchResponse';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Level } from '../../../models/level';
+import { City } from '../../../models/City';
+import { LocationService } from '../../../services/location.service';
 
 @Component({
   selector: 'app-dancer-match',
@@ -24,27 +26,31 @@ export class DancerMatchComponent implements OnInit {
   showMatchAlert: boolean = false;
   noMoreProfiles: boolean = false;
   danceStyles: string[] = [];
+  cities: City[] = [];
   subscriptionType: string | null = null;
   
   // Niveles disponibles del enum
   levels = Object.values(Level);
 
   searchParams = {
-    city: '',
+    cityName: '',
     styles: [] as string[],
-    level: '',
-    availability: ''
+    level: ''
   };
   
   constructor(
     private matchService: MatchService,
     private authService: AuthService,
-    private userContext: UserContextService
+    private userContext: UserContextService,
+    private locationService: LocationService
   ) { }
 
   ngOnInit(): void {
     this.userId = this.userContext.userId!;
     this.subscriptionType = this.userContext.SubscriptionType;
+    
+    // Cargar ciudades disponibles
+    this.loadCities();
     
     // Cargar estilos de baile disponibles
     this.authService.getDanceStyles().subscribe({
@@ -67,12 +73,29 @@ export class DancerMatchComponent implements OnInit {
   }
 
   /**
+   * Carga todas las ciudades disponibles
+   */
+  private loadCities(): void {
+    // Puedes usar searchCities con string vacío para obtener todas las ciudades
+    // o implementar un método específico en tu LocationService
+    this.locationService.searchCities('').subscribe({
+      next: (cities) => {
+        this.cities = cities;
+      },
+      error: (err) => {
+        console.error('Error al cargar ciudades:', err);
+        // Continuar sin mostrar error, ya que es un campo opcional
+      }
+    });
+  }
+
+  /**
    * Carga valores por defecto del perfil del usuario para usuarios PRO
    */
   private loadUserProfileDefaults(): void {
     this.authService.getProfileById(this.userId).subscribe({
       next: (profile) => {
-        this.searchParams.city = profile.cityName;
+        this.searchParams.cityName = profile.cityName;
         this.searchParams.level = profile.level;
         this.searchParams.styles = Array.from(profile.danceStyles || []);
         
@@ -100,10 +123,9 @@ export class DancerMatchComponent implements OnInit {
       // Para usuarios PRO, enviar parámetros personalizados
       this.matchService.searchDancers(
         this.userId,
-        this.searchParams.city,
+        this.searchParams.cityName,
         this.searchParams.styles,
-        this.searchParams.level,
-        this.searchParams.availability
+        this.searchParams.level
       ).subscribe({
         next: (data) => this.handleProfilesResponse(data),
         error: (err) => this.handleProfilesError(err)
@@ -119,7 +141,7 @@ export class DancerMatchComponent implements OnInit {
   }
 
   private handleProfilesError(err: any): void {
-    this.error = 'Error al cargar perfiles. Por favor intenta de nuevo.';
+    this.error = 'No se encontraron bailarines.';
     this.isLoading = false;
     console.error('Error cargando perfiles:', err);
   }

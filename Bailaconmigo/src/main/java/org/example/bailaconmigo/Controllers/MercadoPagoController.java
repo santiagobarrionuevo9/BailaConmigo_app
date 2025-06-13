@@ -45,6 +45,12 @@ public class MercadoPagoController {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    @Value("${mercadopago.client-id}")
+    private String clientIdmp;
+
+    @Value("${mercadopago.client-secret}")
+    private String clientSecret;
+
 
 
     /**
@@ -97,8 +103,8 @@ public class MercadoPagoController {
 
         // Body de la petición
         Map<String, String> requestBody = new HashMap<>();
-        requestBody.put("client_id", "3552235923798667"); // Reemplaza con tu Client ID
-        requestBody.put("client_secret", "wqwqsitqHVrlHFwvHTx6EId1mh99YPRZ"); // Reemplaza con tu Client Secret
+        requestBody.put("client_id", clientIdmp); // Usar la variable de configuración
+        requestBody.put("client_secret", clientSecret);// Reemplaza con tu Client Secret
         requestBody.put("grant_type", "authorization_code");
         requestBody.put("code", authorizationCode);
         requestBody.put("redirect_uri",backendUrl + "/api/mercadopago/callback"); // Tu redirect URI
@@ -121,7 +127,7 @@ public class MercadoPagoController {
     @PostMapping("/connect/{userId}")
     public ResponseEntity<Map<String, String>> generateAuthUrl(@PathVariable Long userId) {
 
-        String clientId = "3552235923798667"; // Reemplaza con tu Client ID
+        String clientId = clientIdmp; // Reemplaza con tu Client ID
         String redirectUri = backendUrl + "/api/mercadopago/callback";
 
         String authUrl = String.format(

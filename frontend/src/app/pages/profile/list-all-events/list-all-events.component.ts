@@ -9,6 +9,9 @@ import { PaymentInitiationResponseDto } from '../../../models/PaymentInitiationR
 import { EventRegistrationService } from '../../../services/event-registration.service';
 import { EventRegistrationRequestDto } from '../../../models/EventRegistrationRequestDto';
 import { EventRegistrationResponseDto } from '../../../models/EventRegistrationResponseDto';
+import { Country } from '../../../models/Country';
+import { LocationService } from '../../../services/location.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-list-all-events',
@@ -21,7 +24,7 @@ export class ListAllEventsComponent implements OnInit {
   events: EventResponseDto[] = [];
   filteredEvents: EventResponseDto[] = [];
   expandedEvents: { [key: number]: boolean } = {};
-  locations: string[] = [];
+  countries: Country[] = [];
   eventTypes: string[] = [];
   EventStatus = {
     ACTIVO: 'ACTIVO',
@@ -30,10 +33,9 @@ export class ListAllEventsComponent implements OnInit {
   };
   
   // Filtros
-  selectedStyle: string | null = null;
-  selectedLocation: string = '';
+  selectedStyle: string = '';
+  selectedCountry: string = '';
   selectedEventType: string = '';
-  dEvents: EventResponseDto[] = [];
   
   // Lista de todos los estilos de baile disponibles
   danceStyles: string[] = [];
@@ -62,21 +64,35 @@ export class ListAllEventsComponent implements OnInit {
   constructor(
     private eventService: EventService,
     private eventRegistrationService: EventRegistrationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private locationService: LocationService
   ) {}
 
   ngOnInit(): void {
     this.loadEvents();
     this.loadDanceStyles();
+    this.loadCountries();
   }
 
   loadDanceStyles(): void {
     this.authService.getDanceStyles().subscribe({
       next: (styles) => {
         this.danceStyles = styles;
+        console.log('Estilos cargados:', styles);
       },
       error: (err) => {
         console.error('Error al cargar estilos de baile:', err);
+      }
+    });
+  }
+
+  loadCountries(): void {
+    this.locationService.getAllCountries().subscribe({
+      next: (countries) => {
+        this.countries = countries;
+      },
+      error: (err) => {
+        console.error('Error al cargar países:', err);
       }
     });
   }
@@ -85,9 +101,10 @@ export class ListAllEventsComponent implements OnInit {
     this.eventService.getAllEvents().subscribe({
       next: (data) => {
         this.events = data;
+        console.log('Eventos cargados:', data);
         this.filteredEvents = [...this.events];
-        
         this.extractEventTypes();
+        this.extractDanceStylesFromEvents();
       },
       error: (err) => {
         console.error('Error al cargar eventos:', err);
@@ -95,7 +112,27 @@ export class ListAllEventsComponent implements OnInit {
     });
   }
 
-  
+  extractDanceStylesFromEvents(): void {
+    const stylesFromEvents = new Set<string>();
+    
+    this.events.forEach(event => {
+      if (event.danceStyles && Array.isArray(event.danceStyles)) {
+        event.danceStyles.forEach(style => {
+          if (style && typeof style === 'object' && style.name) {
+            stylesFromEvents.add(style.name);
+          } else if (typeof style === 'string') {
+            stylesFromEvents.add(style);
+          }
+        });
+      }
+    });
+    
+    if (this.danceStyles.length === 0) {
+      this.danceStyles = Array.from(stylesFromEvents);
+    }
+    
+    console.log('Estilos extraídos de eventos:', Array.from(stylesFromEvents));
+  }
 
   extractEventTypes(): void {
     this.eventTypes = [...new Set(this.events.map(event => event.eventType))].filter(Boolean);
@@ -105,14 +142,14 @@ export class ListAllEventsComponent implements OnInit {
     this.expandedEvents[index] = !this.expandedEvents[index];
   }
 
-  // Devuelve true si la fecha del evento ya pasó
   isPastEvent(event: any): boolean {
     if (!event || !event.dateTime) return false;
     return new Date(event.dateTime) < new Date();
   }
+
   resetFilters(): void {
-    this.selectedStyle = null;
-    this.selectedLocation = '';
+    this.selectedStyle = '';
+    this.selectedCountry = '';
     this.selectedEventType = '';
     this.filteredEvents = [...this.events];
     
@@ -126,24 +163,67 @@ export class ListAllEventsComponent implements OnInit {
   }
 
   applyFilters(): void {
+    console.log('Aplicando filtros:', {
+      selectedStyle: this.selectedStyle,
+      selectedCountry: this.selectedCountry,
+      selectedEventType: this.selectedEventType
+    });
+
     this.filteredEvents = this.events.filter(event => {
-      // Filtrar por ubicación si se ha seleccionado una
-      const locationMatch = !this.selectedLocation || event.countryName === this.selectedLocation;
+      const countryMatch = !this.selectedCountry || event.countryName === this.selectedCountry;
       
-      // Filtrar por estilo de baile si se ha seleccionado uno
       let styleMatch = true;
       if (this.selectedStyle) {
-        styleMatch = event.danceStyles?.some(style => style.name === this.selectedStyle) || false;
+        console.log('Filtrando por estilo:', this.selectedStyle);
+        console.log('Estilos del evento:', event.danceStyles);
+        
+        if (event.danceStyles && Array.isArray(event.danceStyles)) {
+          styleMatch = event.danceStyles.some(style => {
+            if (typeof style === 'object' && style.name) {
+              return style.name === this.selectedStyle;
+            } else if (typeof style === 'string') {
+              return style === this.selectedStyle;
+            }
+            return false;
+          });
+        } else {
+          styleMatch = false;
+        }
       }
       
-      // Filtrar por tipo de evento si se ha seleccionado uno
       const typeMatch = !this.selectedEventType || event.eventType === this.selectedEventType;
       
-      return locationMatch && styleMatch && typeMatch;
+      console.log(`Evento ${event.name}:`, { countryMatch, styleMatch, typeMatch });
+      
+      return countryMatch && styleMatch && typeMatch;
     });
+
+    console.log('Eventos filtrados:', this.filteredEvents.length);
   }
 
-  // Método principal de inscripción
+  getUniqueCountries(): string[] {
+    const countryNames = this.events
+      .map(event => event.countryName)
+      .filter(Boolean) as string[];
+    return [...new Set(countryNames)];
+  }
+
+  getEventDanceStyleNames(event: EventResponseDto): string[] {
+    if (!event.danceStyles || !Array.isArray(event.danceStyles)) {
+      return [];
+    }
+    
+    return event.danceStyles.map(style => {
+      if (typeof style === 'object' && style.name) {
+        return style.name;
+      } else if (typeof style === 'string') {
+        return style;
+      }
+      return '';
+    }).filter(name => name !== '');
+  }
+
+  // Método principal de inscripción con SweetAlert2
   registrarseEvento(event: EventResponseDto): void {
     const userId = this.getCurrentUserId();
     
@@ -153,6 +233,67 @@ export class ListAllEventsComponent implements OnInit {
       return;
     }
 
+    const hasPrice = event.price && event.price > 0;
+
+    if (!hasPrice) {
+      // Mostrar SweetAlert2 para eventos gratuitos
+      this.showFreeEventConfirmation(event);
+    } else {
+      // Para eventos con pago, proceder directamente
+      this.proceedWithRegistration(event);
+    }
+  }
+
+  // Método para mostrar confirmación de evento gratuito con SweetAlert2
+  private showFreeEventConfirmation(event: EventResponseDto): void {
+    Swal.fire({
+      title: '¡Evento Gratuito!',
+      html: `
+        <div class="text-center">
+          <i class="fas fa-gift fa-3x text-success mb-3"></i>
+          <h4>${event.name}</h4>
+          <p class="text-muted mb-2">
+            <i class="fas fa-calendar me-2"></i>
+            ${new Date(event.dateTime).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </p>
+          <p class="text-muted mb-3">
+            <i class="fas fa-map-marker-alt me-2"></i>
+            ${event.cityName ? event.cityName + ', ' : ''}${event.countryName || ''}
+          </p>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Este evento es completamente <strong>GRATUITO</strong>
+          </div>
+          <p>¿Confirmas tu inscripción?</p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: '<i class="fas fa-check me-2"></i>Sí, inscribirme',
+      cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+      customClass: {
+        popup: 'swal-wide',
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-secondary'
+      },
+      buttonsStyling: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.proceedWithRegistration(event);
+      }
+    });
+  }
+
+  // Método para proceder con la inscripción
+  private proceedWithRegistration(event: EventResponseDto): void {
     this.isRegistering = true;
     this.registrationError = '';
     this.registrationSuccess = '';
@@ -161,12 +302,11 @@ export class ListAllEventsComponent implements OnInit {
       eventId: event.id
     };
 
-    // Verificar si el evento tiene precio
     const hasPrice = event.price && event.price > 0;
 
     if (hasPrice) {
       // Evento con pago
-      this.eventRegistrationService.registerForEventWithPayment(userId, registrationRequest).subscribe({
+      this.eventRegistrationService.registerForEventWithPayment(this.getCurrentUserId()!, registrationRequest).subscribe({
         next: (paymentResponse: PaymentInitiationResponseDto) => {
           this.isRegistering = false;
           this.paymentDetails = paymentResponse;
@@ -174,53 +314,96 @@ export class ListAllEventsComponent implements OnInit {
         },
         error: (err) => {
           this.isRegistering = false;
-          this.registrationError = this.getErrorMessage(err);
-          this.showRegistrationNotification();
+          this.handleRegistrationError(err);
         }
       });
-    } 
-    else {
+    } else {
       // Evento gratuito
-      this.eventRegistrationService.registerForEvent(userId, registrationRequest).subscribe({
+      this.eventRegistrationService.registerForEvent(this.getCurrentUserId()!, registrationRequest).subscribe({
         next: (registrationResponse: EventRegistrationResponseDto) => {
           this.isRegistering = false;
-          this.registrationSuccess = `¡Te has inscrito exitosamente en ${event.name}!`;
-          this.showRegistrationNotification();
+          this.showSuccessAlert(event);
         },
         error: (err) => {
           this.isRegistering = false;
-          this.registrationError = this.getErrorMessage(err);
-          this.showRegistrationNotification();
+          this.handleRegistrationError(err);
         }
       });
     }
+  }
+
+  // Método para mostrar alerta de éxito con SweetAlert2
+  private showSuccessAlert(event: EventResponseDto): void {
+    Swal.fire({
+      title: '¡Inscripción Exitosa!',
+      html: `
+        <div class="text-center">
+          <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+          <h4>Te has inscrito exitosamente en:</h4>
+          <h5 class="text-primary">${event.name}</h5>
+          <p class="text-muted">
+            <i class="fas fa-calendar me-2"></i>
+            ${new Date(event.dateTime).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </p>
+          <div class="alert alert-success">
+            <i class="fas fa-envelope me-2"></i>
+            Recibirás una confirmación por email
+          </div>
+        </div>
+      `,
+      icon: 'success',
+      confirmButtonColor: '#28a745',
+      confirmButtonText: '<i class="fas fa-thumbs-up me-2"></i>¡Genial!',
+      customClass: {
+        confirmButton: 'btn btn-success'
+      },
+      buttonsStyling: false
+    });
+  }
+
+  // Método para manejar errores de inscripción
+  private handleRegistrationError(err: any): void {
+    const errorMessage = this.getErrorMessage(err);
+    
+    Swal.fire({
+      title: 'Error en la inscripción',
+      text: errorMessage,
+      icon: 'error',
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: '<i class="fas fa-times me-2"></i>Entendido',
+      customClass: {
+        confirmButton: 'btn btn-danger'
+      },
+      buttonsStyling: false
+    });
   }
 
   // Método para proceder al pago
   proceedToPayment(): void {
     if (this.paymentDetails?.preferenceId) {
-      // Abrir URL de pago en una nueva ventana
       window.location.href = this.paymentDetails.preferenceId;
       this.closePaymentModal();
     }
   }
 
-  // Método para cerrar el modal de pago
   closePaymentModal(): void {
     this.showPaymentModal = false;
     this.paymentDetails = null;
   }
 
-  // Método para mostrar notificaciones de inscripción
   private showRegistrationNotification(): void {
-    // Mostrar por 5 segundos
     setTimeout(() => {
       this.registrationError = '';
       this.registrationSuccess = '';
     }, 5000);
   }
 
-  // Método para extraer mensaje de error
   private getErrorMessage(error: any): string {
     if (error.error) {
       if (typeof error.error === 'string') {
@@ -232,18 +415,15 @@ export class ListAllEventsComponent implements OnInit {
     return error.message || 'Error al procesar la inscripción';
   }
 
-  // Verificar si el usuario puede inscribirse
   canRegister(event: EventResponseDto): boolean {
     const userId = this.getCurrentUserId();
     return userId !== null && event.status === 'ACTIVO';
   }
 
-  // Verificar si el evento está disponible
   isEventAvailable(event: EventResponseDto): boolean {
     return event.status === 'ACTIVO' && (event.availableCapacity ?? 0) > 0;
   }
 
-  // Obtener texto del botón de inscripción
   getRegistrationButtonText(event: EventResponseDto): string {
     if (!this.canRegister(event)) {
       return 'Iniciar sesión para inscribirse';
@@ -261,7 +441,7 @@ export class ListAllEventsComponent implements OnInit {
     return hasPrice ? `Inscribirse ($${event.price})` : 'Inscribirse Gratis';
   }
 
-  // Métodos para el modal de calificación (mantener los existentes)
+  // Métodos para el modal de calificación
   openRatingModal(event: EventResponseDto): void {
     this.selectedEventId = event.id;
     this.selectedEventName = event.name;

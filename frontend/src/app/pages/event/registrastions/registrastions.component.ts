@@ -107,7 +107,7 @@ export class RegistrastionsComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/organizer-events']);
+    this.router.navigate(['/events']);
   }
 
   getStatusBadgeClass(status: RegistrationStatus): string {

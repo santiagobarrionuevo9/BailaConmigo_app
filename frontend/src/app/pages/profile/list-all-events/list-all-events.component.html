@@ -1,6 +1,5 @@
-<!-- list-all-events.component.html -->
 <div class="container mt-4">
-  <h2 class="mb-4">Todos los Eventos</h2>
+  <h2 class="mb-4 text-orange">Todos los Eventos</h2>
 
   <!-- Notificaciones de inscripción -->
   <div *ngIf="registrationSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -18,47 +17,41 @@
   <!-- Filtros -->
   <div class="row mb-4">
     <div class="col-md-3">
-      <label class="form-label">Estilo de Baile</label>
-      <select class="form-select" [(ngModel)]="selectedStyle" (change)="applyFilters()">
+      <label class="form-label text-orange">Estilo de Baile</label>
+      <select class="form-select border-orange text-orange" [(ngModel)]="selectedStyle" (change)="applyFilters()">
         <option value="">Todos los estilos</option>
         <option *ngFor="let style of danceStyles" [value]="style">{{ style }}</option>
       </select>
     </div>
 
     <div class="col-md-3">
-      <label class="form-label">Pais</label>
-      <select class="form-select" [(ngModel)]="selectedLocation" (change)="applyFilters()">
-        <option value="">Todas las ubicaciones</option>
-        <option *ngFor="let location of locations" [value]="location">{{ location }}</option>
+      <label class="form-label text-orange">País</label>
+      <select class="form-select border-orange text-orange" [(ngModel)]="selectedCountry" (change)="applyFilters()">
+        <option value="">Todos los países</option>
+        <option *ngFor="let country of getUniqueCountries()" [value]="country">{{ country }}</option>
       </select>
     </div>
 
     <div class="col-md-3">
-      <label class="form-label">Tipo de Evento</label>
-      <select class="form-select" [(ngModel)]="selectedEventType" (change)="applyFilters()">
+      <label class="form-label text-orange">Tipo de Evento</label>
+      <select class="form-select border-orange text-orange" [(ngModel)]="selectedEventType" (change)="applyFilters()">
         <option value="">Todos los tipos</option>
         <option *ngFor="let type of eventTypes" [value]="type">{{ type }}</option>
       </select>
     </div>
 
     <div class="col-md-3 d-flex align-items-end">
-      <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+      <button class="btn btn-outline-orange w-100" (click)="resetFilters()">
         <i class="fas fa-refresh me-2"></i>Limpiar Filtros
       </button>
     </div>
   </div>
 
-  <!-- Notificación de filtros limpiados -->
-  <div id="filter-notification" class="alert alert-info d-none">
-    <i class="fas fa-info-circle me-2"></i>
-    Filtros limpiados. Mostrando todos los eventos.
-  </div>
-
   <!-- Lista de eventos -->
   <div class="row">
     <div *ngFor="let event of filteredEvents; let i = index" class="col-md-6 col-lg-4 mb-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-header bg-primary text-white">
+      <div class="card h-100 shadow-sm border-orange">
+        <div class="card-header bg-orange text-white">
           <h5 class="card-title mb-0">{{ event.name }}</h5>
           <small class="opacity-75">
             <i class="fas fa-calendar me-1"></i>
@@ -67,7 +60,18 @@
         </div>
 
         <div class="card-body">
-          
+          <!-- Ubicación -->
+          <div class="mb-2">
+            <small class="text-muted">
+              <i class="fas fa-map-marker-alt me-1"></i>
+              <span *ngIf="event.cityName && event.countryName">
+                {{ event.cityName }}, {{ event.countryName }}
+              </span>
+              <span *ngIf="!event.cityName && event.countryName">{{ event.countryName }}</span>
+              <span *ngIf="event.cityName && !event.countryName">{{ event.cityName }}</span>
+            </small>
+          </div>
+
           <p class="text-muted mb-2">
             <i class="fas fa-tag me-1"></i>
             {{ event.eventType }}
@@ -96,8 +100,8 @@
             </div>
           </div>
 
-          <!-- Estado del evento -->
-          <span class="badge mb-2" 
+          <!-- Estado -->
+          <span class="badge mb-2"
                 [ngClass]="{
                   'bg-success': event.status === 'ACTIVO',
                   'bg-secondary': event.status === EventStatus.FINALIZADO,
@@ -106,54 +110,68 @@
             {{ event.status }}
           </span>
 
-          <!-- Descripción colapsible -->
+          <!-- Estilos de Baile -->
+          <div *ngIf="getEventDanceStyleNames(event).length > 0" class="mb-2">
+            <small class="text-muted d-block">
+              <i class="fas fa-music me-1"></i>
+              <strong>Estilos:</strong>
+            </small>
+            <div class="mt-1">
+              <span *ngFor="let styleName of getEventDanceStyleNames(event)" class="badge bg-info me-1 mb-1">
+                {{ styleName }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Descripción Expandible -->
           <div class="collapse" [ngClass]="{'show': expandedEvents[i]}" [id]="'collapse' + i">
             <div class="card card-body mt-2 bg-light">
-              <p class="mb-2"><strong>Descripción:</strong></p>
-              <p class="small">{{ event.description }}</p>
-              
-              <div *ngIf="event.danceStyles && event.danceStyles.length > 0" class="mb-2">
-                <strong>Estilos de baile:</strong>
-                <div class="mt-1">
-                  <span *ngFor="let style of event.danceStyles" class="badge bg-secondary me-1 mb-1">
-                    {{ style.name }}
-                  </span>
-                </div>
+              <div *ngIf="event.description" class="mb-3">
+                <p class="mb-2"><strong>Descripción:</strong></p>
+                <p class="small">{{ event.description }}</p>
+              </div>
+
+              <div *ngIf="event.address" class="mb-2">
+                <strong>Dirección:</strong>
+                <p class="small mb-0">{{ event.address }}</p>
               </div>
 
               <div *ngIf="event.averageRating && event.averageRating > 0" class="mb-2">
                 <strong>Calificación promedio:</strong>
                 <div class="mt-1">
                   <span class="text-warning">
-                    <i *ngFor="let star of [1,2,3,4,5]" 
-                       class="fas" 
-                       [ngClass]="star <= event.averageRating ? 'fa-star' : 'fa-star-o'">
-                    </i>
+                    <i *ngFor="let star of [1,2,3,4,5]" class="fas"
+                       [ngClass]="star <= event.averageRating ? 'fa-star' : 'fa-star-o'"></i>
                   </span>
                   <small class="text-muted ms-2">({{ event.averageRating.toFixed(1) }})</small>
                 </div>
+              </div>
+
+              <div *ngIf="event.organizerName" class="mb-2">
+                <strong>Organizador:</strong>
+                <span class="ms-1">{{ event.organizerName }}</span>
+              </div>
+
+              <div *ngIf="event.additionalInfo" class="mb-2">
+                <strong>Información adicional:</strong>
+                <p class="small mb-0">{{ event.additionalInfo }}</p>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- Footer -->
         <div class="card-footer bg-light">
           <div class="d-flex justify-content-between align-items-center">
-            <!-- Botón para ver detalles -->
-            <button 
-              class="btn btn-outline-primary btn-sm" 
-              type="button" 
-              (click)="toggleExpand(i)"
-              [attr.aria-expanded]="expandedEvents[i]" 
-              [attr.aria-controls]="'collapse' + i">
+            <button class="btn btn-outline-orange btn-sm" type="button" 
+                    (click)="toggleExpand(i)"
+                    [attr.aria-expanded]="expandedEvents[i]" 
+                    [attr.aria-controls]="'collapse' + i">
               <i class="fas" [ngClass]="expandedEvents[i] ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
               {{ expandedEvents[i] ? 'Ocultar' : 'Ver más' }}
             </button>
 
-            <!-- Botón de inscripción -->
-            <button 
-              type="button"
-              class="btn btn-sm ms-2"
+            <button type="button" class="btn btn-sm ms-2"
               [ngClass]="{
                 'btn-success': canRegister(event) && isEventAvailable(event) && (!event.price || event.price === 0),
                 'btn-warning': canRegister(event) && isEventAvailable(event) && event.price && event.price > 0,
@@ -172,12 +190,10 @@
             </button>
           </div>
 
-          <!-- Botón de calificación (solo para eventos pasados) -->
+          <!-- Calificar -->
           <div class="mt-2" *ngIf="isPastEvent(event)">
-            <button 
-              type="button" 
-              class="btn btn-outline-warning btn-sm w-100"
-              (click)="openRatingModal(event)">
+            <button type="button" class="btn btn-outline-warning btn-sm w-100"
+                    (click)="openRatingModal(event)">
               <i class="fas fa-star me-1"></i>
               Calificar Evento
             </button>
@@ -187,13 +203,14 @@
     </div>
   </div>
 
-  <!-- Mensaje cuando no hay eventos -->
+  <!-- Sin resultados -->
   <div *ngIf="filteredEvents.length === 0" class="text-center py-5">
     <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
     <h4 class="text-muted">No se encontraron eventos</h4>
     <p class="text-muted">Intenta ajustar los filtros o verifica más tarde.</p>
   </div>
 </div>
+
 
 <!-- Modal de Detalles de Pago -->
 <div class="modal fade" [ngClass]="{'show d-block': showPaymentModal}" 
@@ -254,7 +271,7 @@
   </div>
 </div>
 
-<!-- Modal de Calificación (mantener el existente) -->
+<!-- Modal de Calificación -->
 <div class="modal fade" [ngClass]="{'show d-block': showRatingModal}" 
      *ngIf="showRatingModal" 
      tabindex="-1" 

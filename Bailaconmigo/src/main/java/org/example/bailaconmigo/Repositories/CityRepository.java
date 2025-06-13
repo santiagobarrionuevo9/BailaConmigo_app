@@ -12,6 +12,9 @@ import java.util.List;
 public interface CityRepository extends JpaRepository<City, Long> {
     List<City> findByCountryId(Long countryId);
 
+    boolean existsByCountryId(Long countryId);
+
+
     @Query("SELECT c FROM City c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<City> findByNameContainingIgnoreCase(@Param("name") String name);
 

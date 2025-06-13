@@ -39,36 +39,51 @@ export class OrganizerEventComponent implements OnInit {
     this.expandedEvents[index] = !this.expandedEvents[index];
   }
 
-  // Ir a la vista de edición (debes tener una ruta tipo /edit-event/:id)
+  // Ir a la vista de edición (con validación de estado)
   onEditEvent(eventId: number): void {
+    const event = this.events.find(e => e.id === eventId);
+    if (event && event.status === EventStatus.CANCELADO) {
+      alert('No se puede editar un evento cancelado.');
+      return;
+    }
     this.router.navigate(['/edit-event', eventId]);
   }
 
-  // NUEVO MÉTODO: Navegar a las inscripciones del evento
+  // Ver inscripciones del evento (con validación de estado)
   onViewRegistrations(eventId: number): void {
+    const event = this.events.find(e => e.id === eventId);
+    if (event && event.status === EventStatus.CANCELADO) {
+      alert('No se pueden ver las inscripciones de un evento cancelado.');
+      return;
+    }
     this.router.navigate(['/registrations', eventId]);
   }
 
   onCancelEvent(eventId: number): void {
-  this.cancelEventIdToProcess = eventId;
-  this.cancelPromptVisible = true;
+    const event = this.events.find(e => e.id === eventId);
+    if (event && event.status === EventStatus.CANCELADO) {
+      alert('El evento ya está cancelado.');
+      return;
+    }
+    this.cancelEventIdToProcess = eventId;
+    this.cancelPromptVisible = true;
   }
 
-confirmCancel(reason: string): void {
-  const dto: CancelEventRequestDto = { cancellationReason: reason };
-  const organizerId = this.userContext.userId!;
+  confirmCancel(reason: string): void {
+    const dto: CancelEventRequestDto = { cancellationReason: reason };
+    const organizerId = this.userContext.userId!;
 
-  this.eventService.cancelEvent(this.cancelEventIdToProcess, organizerId, dto).subscribe({
-    next: () => {
-      this.cancelPromptVisible = false;
-      this.ngOnInit(); // recargar
-    },
-    error: err => {
-      const message = err?.error?.message || 'Ocurrió un error al cancelar el evento.';
-      // Mostrar error personalizado si lo deseas
-      alert('Error: ' + message);
-      this.cancelPromptVisible = false;
-    }
-  });
-}
+    this.eventService.cancelEvent(this.cancelEventIdToProcess, organizerId, dto).subscribe({
+      next: () => {
+        this.cancelPromptVisible = false;
+        this.ngOnInit(); // recargar
+      },
+      error: err => {
+        const message = err?.error?.message || 'Ocurrió un error al cancelar el evento.';
+        // Mostrar error personalizado si lo deseas
+        alert('Error: ' + message);
+        this.cancelPromptVisible = false;
+      }
+    });
+  }
 }

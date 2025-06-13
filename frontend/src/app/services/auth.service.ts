@@ -48,9 +48,10 @@ export class AuthService {
   }
 
   // src/app/services/auth.service.ts
-  rateProfile(raterId: number, rating: { profileId: number, stars: number, comment: string }): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/rate?raterId=${raterId}`, rating);
-  }
+  rateProfile(raterId: number, rating: { profileId: number; stars: number; comment: string }): Observable<void> {
+  return this.http.post<void>(`${this.apiUrl}/rate?raterId=${raterId}`, rating);
+}
+
   
   
 }
