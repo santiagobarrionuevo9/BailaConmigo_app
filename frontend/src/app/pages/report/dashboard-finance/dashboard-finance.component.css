@@ -44,6 +44,19 @@
       padding: 60px;
     }
 
+    .btn-orange {
+  background-color: #ff6b35;
+  border-color: #ff6b35;
+  color: white;
+}
+
+.btn-orange:hover {
+  background-color: #e55a2b;
+  border-color: #e55a2b;
+  color: white;
+}
+
+
     .spinner {
       width: 40px;
       height: 40px;

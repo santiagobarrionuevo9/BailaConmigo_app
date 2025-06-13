@@ -18,7 +18,7 @@ export class DashboardFinanceComponent implements OnInit {
   loading = false;
   errorMessage = '';
 
-  constructor(private reportService: ReportService) {}
+  constructor(private reportService: ReportService, private router: Router) {}
 
   ngOnInit() {
     this.loadReport();
@@ -77,5 +77,9 @@ export class DashboardFinanceComponent implements OnInit {
   getTotalDanceStyles(): number {
     if (!this.reportData?.danceStylePopularity) return 0;
     return Object.values(this.reportData.danceStylePopularity).reduce((sum, count) => sum + count, 0);
+  }
+
+   goBack(): void {
+    this.router.navigate(['/dashboard']);
   }
 }

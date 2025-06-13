@@ -12,7 +12,7 @@ import { UpdateAttendanceRequestDto } from '../models/update-attendance-request-
 })
 export class EventRegistrationService {
   
-  private apiUrl = 'http://localhost:8080/api/event-registrations';
+  private apiUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/event-registrations';
 
   constructor(private http: HttpClient) {}
 

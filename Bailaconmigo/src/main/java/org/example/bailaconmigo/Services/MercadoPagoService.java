@@ -137,7 +137,7 @@ public class MercadoPagoService {
                 .build();
 
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success(frontendUrl + "/pago-exito")
+                .success(frontendUrl + "/login")
                 .failure(frontendUrl + "/pago-rechazado")
                 .pending(frontendUrl + "/pago-pendiente")
                 .build();

@@ -3,6 +3,7 @@ import { ReportService } from '../../../services/report.service';
 import { MatchingReportDto } from '../../../models/matching-report-dto';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Route, Router } from '@angular/router';
 
 @Component({
   selector: 'app-matching',
@@ -12,6 +13,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   styleUrl: './matching.component.css'
 })
 export class MatchingComponent implements OnInit {
+
   report: MatchingReportDto | null = null;
   loading = false;
   error: string | null = null;
@@ -19,7 +21,7 @@ export class MatchingComponent implements OnInit {
   startDate: string = '';
   endDate: string = '';
 
-  constructor(private reportsService: ReportService) {}
+  constructor(private reportsService: ReportService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadReport();
@@ -70,4 +72,9 @@ export class MatchingComponent implements OnInit {
       .toUpperCase()
       .substring(0, 2);
   }
+
+  goBack(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
 }

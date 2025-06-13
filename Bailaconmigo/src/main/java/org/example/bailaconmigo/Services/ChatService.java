@@ -26,6 +26,9 @@ public class ChatService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     public Message sendMessage(MessageDto dto) {
         User sender = userRepository.findById(dto.getSenderId())
                 .orElseThrow(() -> new RuntimeException("Remitente no encontrado"));
@@ -48,8 +51,19 @@ public class ChatService {
         message.setContent(dto.getContent());
         message.setTimestamp(LocalDateTime.now());
 
-        return messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
+
+        // Notificación al destinatario
+        emailService.sendNewMessageNotification(
+                recipient.getEmail(),
+                recipient.getFullName(),
+                sender.getFullName(),
+                dto.getContent()
+        );
+
+        return savedMessage;
     }
+
 
     public List<ChatMessageDto> getChatHistory(Long user1Id, Long user2Id) {
         List<Message> messages = messageRepository.findChatHistory(user1Id, user2Id);

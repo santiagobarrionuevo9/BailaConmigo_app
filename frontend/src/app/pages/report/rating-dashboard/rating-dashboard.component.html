@@ -1,10 +1,20 @@
 <div class="ratings-dashboard">
       <div class="dashboard-header">
-        <h1>Dashboard de Ratings</h1>
-        <button (click)="refreshData()" class="refresh-btn" [disabled]="loading">
-          {{ loading ? 'Cargando...' : 'Actualizar' }}
-        </button>
-      </div>
+  <h1 class="dashboard-title">⭐ Reporte de Ratings</h1>
+
+  <div class="header-actions">
+    <button class="refresh-btn" (click)="refreshData()" [disabled]="loading">
+      <span *ngIf="!loading">🔄 Actualizar</span>
+      <span *ngIf="loading">⏳ Cargando...</span>
+    </button>
+    <button class="btn btn-orange" (click)="goBack()">
+      <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+    </button>
+  </div>
+</div>
+
+</div>
+
 
       <!-- Métricas Rápidas -->
       <div class="quick-metrics" *ngIf="quickMetrics">
@@ -177,42 +187,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Satisfacción por Tipo de Evento -->
-        <div class="report-section" *ngIf="eventTypeSatisfaction">
-          <h2>Satisfacción por Tipo de Evento</h2>
-          <div class="satisfaction-grid">
-            <div *ngFor="let satisfaction of eventTypeSatisfaction" class="satisfaction-item">
-              <div class="satisfaction-header">
-                <h4>{{ satisfaction.eventTypeName }}</h4>
-                <span class="rating">{{ satisfaction.averageRating | number:'1.1-1' }}★</span>
-              </div>
-              <div class="satisfaction-stats">
-                <span>{{ satisfaction.totalRatedEvents }} de {{ satisfaction.totalEvents }} eventos calificados</span>
-                <div class="satisfaction-progress">
-                  <div class="progress-fill" [style.width.%]="(satisfaction.totalRatedEvents / satisfaction.totalEvents) * 100"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Satisfacción por Estilo de Baile -->
-        <div class="report-section" *ngIf="danceStyleSatisfaction">
-          <h2>Satisfacción por Estilo de Baile</h2>
-          <div class="satisfaction-grid">
-            <div *ngFor="let satisfaction of danceStyleSatisfaction" class="satisfaction-item">
-              <div class="satisfaction-header">
-                <h4>{{ satisfaction.styleName }}</h4>
-                <span class="rating">{{ satisfaction.averageRating | number:'1.1-1' }}★</span>
-              </div>
-              <div class="satisfaction-stats">
-                <span>{{ satisfaction.totalRatedEvents }} eventos calificados</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Loading State -->
       <div *ngIf="loading" class="loading-overlay">

@@ -10,7 +10,7 @@ import { map, throwError } from 'rxjs';
   providedIn: 'root'
 })
 export class LocationService {
-  private readonly baseUrl = `http://localhost:8080/api/locations`;
+  private readonly baseUrl = `https://0f78-152-171-81-105.ngrok-free.app/api/locations`;
 
   constructor(private http: HttpClient) {}
 

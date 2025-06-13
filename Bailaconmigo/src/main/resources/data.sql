@@ -193,10 +193,10 @@ INSERT INTO events (name, description, date_time, address, capacity, price, even
 VALUES (
            'Milonga Clásica Buenos Aires',
            'Una noche especial de tango con música en vivo y pista libre para todos los niveles.',
-           '2025-08-20 21:00:00',
+           '2025-06-14 15:07:00',
            'Av. Corrientes 1234, Buenos Aires',
            100,
-           1500.00,
+           0,
            'CLASE',
            'Vestimenta formal sugerida. Traer calzado adecuado para pista de baile.',
            'ACTIVO',

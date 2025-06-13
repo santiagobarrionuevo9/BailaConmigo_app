@@ -1,16 +1,19 @@
 <div class="report-container">
-      <div class="header">
-        <h1>Reporte General de Eventos</h1>
-        <button class="refresh-btn" (click)="loadReport()" [disabled]="loading">
-          <span *ngIf="!loading">🔄 Actualizar</span>
-          <span *ngIf="loading">⏳ Cargando...</span>
-        </button>
-      </div>
+     <div class="header">
+    <h1>📋 Reporte de Registros</h1>
+    <button class="refresh-btn" (click)="loadReport()" [disabled]="loading">
+      <span *ngIf="!loading">🔄 Actualizar</span>
+      <span *ngIf="loading">⏳ Cargando...</span>
+    </button>
+    <button class="btn btn-orange" (click)="goBack()">
+      <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+    </button>
+  </div>
 
-      <div class="loading-container" *ngIf="loading">
-        <div class="spinner"></div>
-        <p>Generando reporte...</p>
-      </div>
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando datos detallados...</p>
+  </div>
 
       <div class="report-content" *ngIf="!loading && reportData">
         <div class="report-info">

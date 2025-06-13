@@ -7,6 +7,7 @@ import org.example.bailaconmigo.Entities.Enum.EventStatus;
 import org.example.bailaconmigo.Entities.Enum.EventType;
 import org.example.bailaconmigo.Entities.Enum.Role;
 import org.example.bailaconmigo.Repositories.*;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -348,8 +349,9 @@ public class EventService {
         LocalDateTime startRange = reminderTime.minusHours(1);
         LocalDateTime endRange = reminderTime.plusHours(1);
 
-        List<Event> eventsToRemind = eventRepository.findByDateTimeBetweenAndStatus(
+        List<Event> eventsToRemind = eventRepository.findByDateTimeBetweenAndStatusWithOrganizer(
                 startRange, endRange, EventStatus.ACTIVO);
+
 
         System.out.println("Buscando eventos para recordatorio 24h entre " +
                 startRange.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
@@ -361,17 +363,18 @@ public class EventService {
         }
 
         for (Event event : eventsToRemind) {
-            try {
-                // Verificar que el evento tenga inscripciones activas
-                if (event.getRegistrations() != null && !event.getRegistrations().isEmpty()) {
-                    emailService.sendEventReminder24Hours(event);
-                    System.out.println("Recordatorios enviados para evento: " + event.getName());
-                } else {
-                    System.out.println("Evento sin inscripciones: " + event.getName());
+            Hibernate.initialize(event.getRegistrations());
+            {
+                try {
+                    if (event.getRegistrations() != null && !event.getRegistrations().isEmpty()) {
+                        emailService.sendEventReminder24Hours(event);
+                    } else {
+                        System.out.println("Evento sin inscripciones: " + event.getName());
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error enviando recordatorios para evento " +
+                            event.getName() + ": " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.out.println("Error enviando recordatorios para evento " +
-                        event.getName() + ": " + e.getMessage());
             }
         }
 
@@ -401,7 +404,7 @@ public class EventService {
      * Se ejecuta cada hora para verificar si hay eventos que necesiten recordatorio 24h
      * Cron expression: "0 0 * * * *" = cada hora en punto
      */
-    @Scheduled(cron = "0 0 * * * *", zone = "America/Argentina/Cordoba")
+    @Scheduled(cron = "0 */5 * * * *", zone = "America/Argentina/Cordoba")
     public void sendDailyReminders() {
         try {
             System.out.println("Iniciando proceso automático de recordatorios 24h...");

@@ -8,7 +8,7 @@ import { UserContextService } from './user-context.service';
 })
 export class MercadopagoService {
 
-  private apiUrl ='http://localhost:8080/api';
+  private apiUrl ='https://0f78-152-171-81-105.ngrok-free.app/api';
 
   constructor(private http: HttpClient,private userContext: UserContextService) { }
 

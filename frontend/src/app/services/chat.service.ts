@@ -9,7 +9,7 @@ import { ChatMessageDto } from '../models/ChatMessageDto';
 })
 export class ChatService {
 
-  private apiUrl = 'http://localhost:8080/api/chat';
+  private apiUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/chat';
 
   constructor(private http: HttpClient) {}
 

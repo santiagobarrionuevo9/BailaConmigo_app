@@ -27,7 +27,7 @@ import { EventGeneralReportDto } from '../models/event-general-report-dto';
   providedIn: 'root'
 })
 export class ReportService {
-  private readonly baseUrl = 'http://localhost:8080/api/reports'; // Ajusta según tu configuración
+  private readonly baseUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/reports'; // Ajusta según tu configuración
 
   constructor(private http: HttpClient) {}
 

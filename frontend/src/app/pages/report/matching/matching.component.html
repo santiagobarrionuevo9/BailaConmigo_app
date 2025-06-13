@@ -1,8 +1,20 @@
 <div class="matching-report-container">
       <div class="report-header">
-        <h1>📊 Reporte de Actividad de Matching</h1>
-        <p class="subtitle">Análisis detallado de likes, matches y conversiones</p>
-      </div>
+  <h1>📊 Reporte de Matching </h1>
+  <div class="header-actions">
+    <button class="refresh-btn" (click)="loadReport()" [disabled]="loading">
+      <span *ngIf="!loading">🔄 Actualizar</span>
+      <span *ngIf="loading">⏳ Cargando...</span>
+    </button>
+
+    <button class="btn btn-orange" (click)="goBack()">
+      <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+    </button>
+  </div>
+</div>
+
+
+
 
       <!-- Date Range Filter -->
       <div class="filters-section">

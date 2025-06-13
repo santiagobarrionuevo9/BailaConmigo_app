@@ -12,6 +12,7 @@ import { takeUntil } from 'rxjs/internal/operators/takeUntil';
 
 import { Level } from '../../../models/level';
 import { EventType } from '../../../models/event-type';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-rating-dashboard',
@@ -32,7 +33,7 @@ export class RatingDashboardComponent implements OnInit, OnDestroy {
   danceStyleSatisfaction: DanceStyleSatisfaction[] = [];
   quickMetrics: QuickRatingMetrics | null = null;
 
-  constructor(private ratingsReportsService: ReportService) {}
+  constructor(private ratingsReportsService: ReportService, private router: Router) {}
 
   ngOnInit() {
     this.loadAllData();
@@ -106,5 +107,8 @@ export class RatingDashboardComponent implements OnInit, OnDestroy {
     return names[level] || level;
   }
 
+  goBack(): void {
+    this.router.navigate(['/dashboard']);
+  }
   
 }

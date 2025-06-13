@@ -10,7 +10,7 @@ import { throwError } from 'rxjs/internal/observable/throwError';
   providedIn: 'root'
 })
 export class OrganizerService {
-  private readonly baseUrl = 'http://localhost:8080/api/auth';
+  private readonly baseUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/auth';
 
   constructor(private http: HttpClient) {}
 

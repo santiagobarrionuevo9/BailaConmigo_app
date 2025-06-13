@@ -12,7 +12,7 @@ import { RatingEventDto } from '../models/RatingeventDto';
 })
 export class EventService {
 
-  private apiUrl = 'http://localhost:8080/api/events';
+  private apiUrl = 'https://0f78-152-171-81-105.ngrok-free.app/api/events';
 
   constructor(private http: HttpClient) {}
 

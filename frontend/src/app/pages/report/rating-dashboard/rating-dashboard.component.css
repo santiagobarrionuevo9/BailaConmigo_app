@@ -11,30 +11,31 @@
       margin-bottom: 30px;
     }
 
-    .dashboard-header h1 {
-      color: #333;
-      margin: 0;
+    .header h1 {
+      color: #2c3e50;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
     }
 
     .refresh-btn {
-      background: #007bff;
+      background: #3498db;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
+      padding: 12px 24px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s;
+      font-weight: 600;
+      transition: background 0.3s ease;
     }
 
     .refresh-btn:hover:not(:disabled) {
-      background: #0056b3;
+      background: #2980b9;
     }
 
     .refresh-btn:disabled {
-      background: #ccc;
+      opacity: 0.6;
       cursor: not-allowed;
     }
-
     .quick-metrics {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -89,6 +90,56 @@
       margin-bottom: 25px;
     }
 
+    .btn-orange {
+  background-color: #ff6b35;
+  border-color: #ff6b35;
+  color: white;
+}
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap; /* por si en pantallas pequeñas no entra todo */
+}
+
+.dashboard-title {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* opcional para responsividad */
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap; /* para que se ajuste bien en pantallas pequeñas */
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.8em;
+  color: #333;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+
+.btn-orange:hover {
+  background-color: #e55a2b;
+  border-color: #e55a2b;
+  color: white;
+}
     .stat-item {
       display: flex;
       justify-content: space-between;

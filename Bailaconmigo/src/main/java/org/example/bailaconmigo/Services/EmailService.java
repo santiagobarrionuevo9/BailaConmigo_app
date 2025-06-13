@@ -77,6 +77,54 @@ public class EmailService {
         }
     }
 
+    public void sendNewMessageNotification(String to, String recipientName, String senderName, String messageContent) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject("📩 Nuevo mensaje en Baila Conmigo");
+
+            String htmlContent = """
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #d63384;">📬 ¡Tenés un nuevo mensaje!</h2>
+              <p>Hola <strong>%s</strong>,</p>
+
+              <p>Recibiste un nuevo mensaje de <strong>%s</strong> en la plataforma <strong>Baila Conmigo</strong>:</p>
+
+              <blockquote style="background-color: #f9f9f9; border-left: 4px solid #d63384; margin: 20px; padding: 15px; font-style: italic;">
+                %s
+              </blockquote>
+
+              <p>¡Iniciá sesión para responder y seguir la conversación!</p>
+
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="%s" style="background-color: #d63384; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+                  Ir al chat
+                </a>
+              </p>
+
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>El equipo de Baila Conmigo</strong></p>
+
+              <hr />
+              <small style="color: #aaa;">
+                Este es un correo automático. Por favor, no respondas a este mensaje.
+              </small>
+            </body>
+            </html>
+        """.formatted(recipientName, senderName, messageContent, frontendUrl + "/chat");
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+
+        } catch (MessagingException e) {
+            System.out.println("Error al enviar notificación de nuevo mensaje: " + e.getMessage());
+        }
+    }
+
+
     public void sendPasswordResetEmail(String to, String fullName, String resetToken) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -144,6 +192,9 @@ public class EmailService {
     /**
      * Envía recordatorios a todos los inscritos cuando faltan 24 horas para el evento
      */
+    /**
+     * Envía recordatorios a todos los inscritos cuando faltan 24 horas para el evento
+     */
     public void sendEventReminder24Hours(Event event) {
         if (event.getRegistrations() == null || event.getRegistrations().isEmpty()) {
             System.out.println("No hay inscripciones para el evento: " + event.getName());
@@ -151,9 +202,7 @@ public class EmailService {
         }
 
         String organizerEmail = event.getOrganizer().getContactEmail();
-        String eventLocationInfo = event.getCityName() != null && event.getCountryName() != null
-                ? event.getCityName() + ", " + event.getCountryName()
-                : "Ubicación por confirmar";
+        String address = event.getAddress() != null ? event.getAddress() : "Ubicación por confirmar";
 
         for (EventRegistration registration : event.getRegistrations()) {
             User dancer = registration.getDancer();
@@ -180,10 +229,8 @@ public class EmailService {
                 <h3 style="color: #1976d2; margin-bottom: 15px;">📋 Detalles del evento:</h3>
                 <ul style="list-style: none; padding: 0;">
                   <li style="margin-bottom: 8px;"><strong>📅 Fecha y hora:</strong> %s</li>
-                  <li style="margin-bottom: 8px;"><strong>📍 Ubicación:</strong> %s</li>
-                  <li style="margin-bottom: 8px;"><strong>🏠 Dirección:</strong> %s</li>
+                  <li style="margin-bottom: 8px;"><strong>📍 Dirección:</strong> %s</li>
                   <li style="margin-bottom: 8px;"><strong>💰 Precio:</strong> %s</li>
-                  <li style="margin-bottom: 8px;"><strong>🎵 Estilos:</strong> %s</li>
                 </ul>
               </div>
               
@@ -230,10 +277,8 @@ public class EmailService {
                         dancer.getFullName(),
                         event.getName(),
                         event.getDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm")),
-                        eventLocationInfo,
-                        event.getAddress(),
+                        address,
                         event.getPrice() != null ? "$" + event.getPrice() : "Gratuito",
-                        event.getDanceStyles() != null ? event.getDanceStyles() : "Varios estilos",
                         codigoDinamico,
                         organizerEmail
                 );
@@ -249,6 +294,8 @@ public class EmailService {
         System.out.println("Recordatorios 24h enviados para el evento: " + event.getName() +
                 " (" + event.getRegistrations().size() + " inscriptos)");
     }
+
+
 
     public void sendMatchNotificationEmail(String to, String fullName, String matchedWithName) {
         try {
