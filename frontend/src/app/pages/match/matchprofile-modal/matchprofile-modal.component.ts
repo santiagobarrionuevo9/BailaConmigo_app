@@ -17,7 +17,6 @@ export class MatchprofileModalComponent {
   @Output() close = new EventEmitter<void>();
 
   ratingStars: number = 0;
-  comment: string = '';
   submitted: boolean = false;
   alreadyRated: boolean = false;
 
@@ -29,12 +28,12 @@ export class MatchprofileModalComponent {
   }
 
   submitRating() {
-    if (!this.ratingStars || !this.comment.trim() || this.alreadyRated || this.submitted) return;
+    if (!this.ratingStars || this.alreadyRated || this.submitted) return;
 
     const ratingData = {
       profileId: this.dancer.userId,
       stars: this.ratingStars,
-      comment: this.comment
+      comment: '----'  // Comentario fijo
     };
 
     this.authService.rateProfile(this.currentUserId, ratingData).subscribe({

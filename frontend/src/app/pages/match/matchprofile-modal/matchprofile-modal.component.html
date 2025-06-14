@@ -1,7 +1,7 @@
 <div class="modal-backdrop">
   <div class="modal-content">
     <button class="close-btn" (click)="closeModal()">×</button>
-
+    
     <h2>{{ dancer.fullName }}, {{ dancer.age }}</h2>
     <p><i class="bi bi-geo-alt-fill"></i> {{ dancer.cityName }}</p>
     <p><i class="bi bi-flag-fill"></i> {{ dancer.countryName }}</p>
@@ -9,33 +9,33 @@
     <p><strong>Nivel:</strong> {{ dancer.level }}</p>
     <p><strong>Sobre mí:</strong> {{ dancer.aboutMe }}</p>
     <p><strong>Disponibilidad:</strong> {{ dancer.availability }}</p>
-
+    
     <div class="rating-section" *ngIf="!alreadyRated && !submitted">
-  <h5>Dejar valoración</h5>
-  <div class="stars">
-    <i *ngFor="let i of [1,2,3,4,5]"
-       class="bi"
-       [ngClass]="i <= ratingStars ? 'bi-star-fill' : 'bi-star'"
-       (click)="setRating(i)"
-       [style.cursor]="(alreadyRated || submitted) ? 'not-allowed' : 'pointer'">
-    </i>
+      <h5>Dejar valoración</h5>
+      <div class="stars">
+        <i *ngFor="let i of [1,2,3,4,5]"
+           class="bi"
+           [ngClass]="i <= ratingStars ? 'bi-star-fill' : 'bi-star'"
+           (click)="setRating(i)"
+           [style.cursor]="(alreadyRated || submitted) ? 'not-allowed' : 'pointer'">
+        </i>
+      </div>
+      
+      <button class="btn btn-primary mt-2" 
+              (click)="submitRating()" 
+              [disabled]="!ratingStars || alreadyRated || submitted">
+        Enviar valoración
+      </button>
+    </div>
+
+    <div *ngIf="alreadyRated" class="alert alert-warning mt-3">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Ya valoraste este perfil. Solo puedes hacerlo una vez.
+    </div>
+
+    <div *ngIf="submitted" class="alert alert-success mt-3">
+      ¡Gracias por tu valoración!
+    </div>
+    
   </div>
-
-  <textarea [(ngModel)]="comment" [disabled]="alreadyRated || submitted" placeholder="Deja un comentario"></textarea>
-
-  <button class="btn btn-primary mt-2" (click)="submitRating()" [disabled]="alreadyRated || submitted">Enviar valoración</button>
 </div>
-
-<div *ngIf="alreadyRated" class="alert alert-warning mt-3">
-  <i class="bi bi-exclamation-triangle-fill"></i>
-  Ya valoraste este perfil. Solo puedes hacerlo una vez.
-</div>
-
-<div *ngIf="submitted" class="alert alert-success mt-3">
-  ¡Gracias por tu valoración!
-</div>
-
-
-  </div>
-</div>
-

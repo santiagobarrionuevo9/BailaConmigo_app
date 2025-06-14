@@ -166,6 +166,7 @@ public class AuthService {
 
     /**
      * Permite a un usuario iniciar sesión y obtener un token JWT
+     * Verifica si la suscripción PRO ha expirado y la cambia a BASICO si es necesario
      */
     public LoginResponseDto login(LoginRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -173,6 +174,22 @@ public class AuthService {
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Contraseña incorrecta");
+        }
+
+        // Verificar si la suscripción PRO ha expirado y cambiarla a BASICO
+        if (user.getRole() == Role.BAILARIN &&
+                user.getSubscriptionType() == SubscriptionType.PRO &&
+                user.getSubscriptionExpiration() != null &&
+                user.getSubscriptionExpiration().isBefore(LocalDate.now())) {
+
+            // La suscripción PRO ha expirado, cambiar a BASICO
+            user.setSubscriptionType(SubscriptionType.BASICO);
+            user.setSubscriptionExpiration(LocalDate.now().plusDays(15)); // 15 días de BASICO
+
+            // Guardar los cambios en la base de datos
+            userRepository.save(user);
+
+            logger.info("Usuario {} cambió de PRO expirado a BASICO", user.getEmail());
         }
 
         String token = jwtTokenUtil.generateToken(user.getEmail(), user.getId(), user.getRole().toString());
