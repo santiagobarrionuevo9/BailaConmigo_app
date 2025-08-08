@@ -98,19 +98,28 @@ export class ListAllEventsComponent implements OnInit {
   }
 
   loadEvents(): void {
-    this.eventService.getAllEvents().subscribe({
-      next: (data) => {
-        this.events = data;
-        console.log('Eventos cargados:', data);
-        this.filteredEvents = [...this.events];
-        this.extractEventTypes();
-        this.extractDanceStylesFromEvents();
-      },
-      error: (err) => {
-        console.error('Error al cargar eventos:', err);
-      }
-    });
-  }
+  this.eventService.getAllEvents().subscribe({
+    next: (data) => {
+      // Filtrar eventos: solo futuros y no cancelados
+      this.events = data.filter(event => {
+        const eventDate = new Date(event.dateTime);
+        const currentDate = new Date();
+        const isFutureEvent = eventDate > currentDate;
+        const isNotCancelled = event.status !== 'CANCELADO';
+        
+        return isFutureEvent && isNotCancelled;
+      });
+      
+      console.log('Eventos cargados y filtrados:', this.events);
+      this.filteredEvents = [...this.events];
+      this.extractEventTypes();
+      this.extractDanceStylesFromEvents();
+    },
+    error: (err) => {
+      console.error('Error al cargar eventos:', err);
+    }
+  });
+}
 
   extractDanceStylesFromEvents(): void {
     const stylesFromEvents = new Set<string>();
@@ -163,43 +172,55 @@ export class ListAllEventsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    console.log('Aplicando filtros:', {
-      selectedStyle: this.selectedStyle,
-      selectedCountry: this.selectedCountry,
-      selectedEventType: this.selectedEventType
-    });
+  console.log('Aplicando filtros:', {
+    selectedStyle: this.selectedStyle,
+    selectedCountry: this.selectedCountry,
+    selectedEventType: this.selectedEventType
+  });
 
-    this.filteredEvents = this.events.filter(event => {
-      const countryMatch = !this.selectedCountry || event.countryName === this.selectedCountry;
+  this.filteredEvents = this.events.filter(event => {
+    // Filtros base: solo eventos futuros y no cancelados (ya aplicados en loadEvents)
+    const eventDate = new Date(event.dateTime);
+    const currentDate = new Date();
+    const isFutureEvent = eventDate > currentDate;
+    const isNotCancelled = event.status !== 'CANCELADO';
+    
+    // Si no pasa los filtros base, excluir
+    if (!isFutureEvent || !isNotCancelled) {
+      return false;
+    }
+    
+    // Filtros adicionales del usuario
+    const countryMatch = !this.selectedCountry || event.countryName === this.selectedCountry;
+    
+    let styleMatch = true;
+    if (this.selectedStyle) {
+      console.log('Filtrando por estilo:', this.selectedStyle);
+      console.log('Estilos del evento:', event.danceStyles);
       
-      let styleMatch = true;
-      if (this.selectedStyle) {
-        console.log('Filtrando por estilo:', this.selectedStyle);
-        console.log('Estilos del evento:', event.danceStyles);
-        
-        if (event.danceStyles && Array.isArray(event.danceStyles)) {
-          styleMatch = event.danceStyles.some(style => {
-            if (typeof style === 'object' && style.name) {
-              return style.name === this.selectedStyle;
-            } else if (typeof style === 'string') {
-              return style === this.selectedStyle;
-            }
-            return false;
-          });
-        } else {
-          styleMatch = false;
-        }
+      if (event.danceStyles && Array.isArray(event.danceStyles)) {
+        styleMatch = event.danceStyles.some(style => {
+          if (typeof style === 'object' && style.name) {
+            return style.name === this.selectedStyle;
+          } else if (typeof style === 'string') {
+            return style === this.selectedStyle;
+          }
+          return false;
+        });
+      } else {
+        styleMatch = false;
       }
-      
-      const typeMatch = !this.selectedEventType || event.eventType === this.selectedEventType;
-      
-      console.log(`Evento ${event.name}:`, { countryMatch, styleMatch, typeMatch });
-      
-      return countryMatch && styleMatch && typeMatch;
-    });
+    }
+    
+    const typeMatch = !this.selectedEventType || event.eventType === this.selectedEventType;
+    
+    console.log(`Evento ${event.name}:`, { countryMatch, styleMatch, typeMatch });
+    
+    return countryMatch && styleMatch && typeMatch;
+  });
 
-    console.log('Eventos filtrados:', this.filteredEvents.length);
-  }
+  console.log('Eventos filtrados:', this.filteredEvents.length);
+}
 
   getUniqueCountries(): string[] {
     const countryNames = this.events

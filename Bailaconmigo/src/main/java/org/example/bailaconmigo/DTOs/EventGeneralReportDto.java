@@ -30,4 +30,6 @@ public class EventGeneralReportDto {
     // Distribuciones
     private Map<EventType, Long> eventsByType;
     private Map<DanceStyle, Long> danceStylePopularity;
+
+    private double averageAttendanceRate;
 }

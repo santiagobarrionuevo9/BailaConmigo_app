@@ -356,6 +356,7 @@ public class EventRegistrationService {
         dto.setDancerName(registration.getDancer().getFullName());
         dto.setRegistrationDate(registration.getRegistrationDate());
         dto.setStatus(registration.getStatus());
+        dto.setPaidAmount(registration.getPaidAmount());
         dto.setAttended(registration.getAttended() != null ? registration.getAttended() : false);
 
         // ===== GENERAR CÓDIGO DINÁMICO =====

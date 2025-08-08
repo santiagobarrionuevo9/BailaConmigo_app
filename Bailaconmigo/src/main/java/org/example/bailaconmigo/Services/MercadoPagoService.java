@@ -127,7 +127,7 @@ public class MercadoPagoService {
                 .title("Suscripción PRO - Baila Conmigo")
                 .description("Acceso a funcionalidades premium por 3 meses")
                 .quantity(1)
-                .unitPrice(new BigDecimal("1.00"))
+                .unitPrice(new BigDecimal("15000.00"))
                 .id(referenceId)
                 .build();
 

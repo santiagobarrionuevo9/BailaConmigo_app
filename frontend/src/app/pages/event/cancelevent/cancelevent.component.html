@@ -7,8 +7,11 @@
     <textarea [(ngModel)]="reason" rows="3" class="form-control mb-3" placeholder="Motivo de la cancelación..."></textarea>
 
     <div class="text-end">
-      <button class="btn btn-outline-secondary me-2" (click)="onClose()">Cerrar</button>
-      <button class="btn btn-orange" [disabled]="!reason.trim()" (click)="onSubmit()">Confirmar cancelación</button>
-    </div>
+  <button class="btn btn-outline-secondary me-2" (click)="onClose()">Cerrar</button>
+  <button class="btn btn-danger-cancelar" [disabled]="!reason.trim()" (click)="onSubmit()">
+    Confirmar cancelación
+  </button>
+</div>
+
   </div>
 </div>

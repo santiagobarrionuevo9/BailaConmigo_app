@@ -11,6 +11,27 @@
   border-color: #ff7b25 !important;
 }
 
+.events-container h2 {
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.events-container h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(135deg, #ff6b35, #ff8559);
+  border-radius: 2px;
+}
+
+
+
 /* === Botones personalizados === */
 .btn-orange {
   background-color: #ff7b25;

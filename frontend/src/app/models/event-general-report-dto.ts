@@ -13,4 +13,5 @@ export interface EventGeneralReportDto {
   averageRegistrationsPerEvent: number;
   eventsByType: Record<EventType, number>;
   danceStylePopularity: Record<string, number>;
+  averageAttendanceRate: number;
 }

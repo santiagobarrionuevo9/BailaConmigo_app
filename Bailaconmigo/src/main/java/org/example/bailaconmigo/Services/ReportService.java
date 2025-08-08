@@ -608,8 +608,21 @@ public class ReportService {
                 .collect(Collectors.groupingBy(style -> style, Collectors.counting()));
         report.setDanceStylePopularity(stylePopularity);
 
+        // NUEVO: promedio de asistencia
+        long totalConfirmed = allRegistrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO)
+                .count();
+
+        long totalAttended = allRegistrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.CONFIRMADO && Boolean.TRUE.equals(r.getAttended()))
+                .count();
+
+        double attendanceRate = totalConfirmed == 0 ? 0.0 : (totalAttended * 100.0) / totalConfirmed;
+        report.setAverageAttendanceRate(attendanceRate);
+
         return report;
     }
+
 
     /**
      * Reporte de eventos por organizador

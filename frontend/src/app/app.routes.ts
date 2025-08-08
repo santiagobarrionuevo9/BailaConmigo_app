@@ -28,7 +28,7 @@ import { VinculacionComponent } from './pages/mercadopago/vinculacion/vinculacio
 import { VinculacionErrorComponent } from './pages/mercadopago/vinculacion-error/vinculacion-error.component';
 import { VinculacionExitosaComponent } from './pages/mercadopago/vinculacion-exitosa/vinculacion-exitosa.component';
 import { MyRegistrationsComponent } from './pages/profile/my-registrations/my-registrations.component';
-import { RegistrastionsComponent } from './pages/event/registrastions/registrastions.component';
+import { RegistrastionsComponent } from './pages/event/registrastions/registrations.component';
 
 
 

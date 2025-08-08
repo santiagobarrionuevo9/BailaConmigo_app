@@ -1,0 +1,230 @@
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-orange mb-1">Inscripciones del Evento</h2>
+      <h5 class="text-muted" *ngIf="event">{{ event.name }}</h5>
+    </div>
+    <button class="btn btn-outline-orange" (click)="goBack()">
+      <i class="bi bi-arrow-left me-2"></i>Volver a mis eventos
+    </button>
+  </div>
+
+  <!-- Event Info Card -->
+  <div class="card mb-4 border-orange" *ngIf="event">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <p class="mb-2">
+            <i class="bi bi-calendar-event me-2 text-orange"></i>
+            <strong>Fecha:</strong> {{ event.dateTime | date:'fullDate' }} - {{ event.dateTime | date:'shortTime' }}
+          </p>
+          <p class="mb-2" *ngIf="event.address">
+            <i class="bi bi-geo-alt-fill me-2 text-orange"></i>
+            <strong>Dirección:</strong> {{ event.address }}
+          </p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-2" *ngIf="event.availableCapacity">
+            <i class="bi bi-people-fill me-2 text-orange"></i>
+            <strong>Capacidad:</strong> {{ event.availableCapacity }}
+          </p>
+          <p class="mb-2">
+            <i class="bi bi-person-check-fill me-2 text-orange"></i>
+            <strong>Inscripciones:</strong> {{ filteredRegistrations.length }}
+          </p>
+        </div>
+      </div>
+      <!-- Event Status Alert -->
+      <div class="alert alert-info mt-3" *ngIf="isEventPassed()">
+        <i class="bi bi-clock-history me-2"></i>
+        <strong>Evento finalizado:</strong> No se puede marcar asistencia en eventos pasados.
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="card mb-4 border-orange">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="input-group">
+            <span class="input-group-text bg-orange text-white">
+              <i class="bi bi-search"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Buscar por código de inscripción o nombre del participante..."
+              [(ngModel)]="searchTerm"
+              (input)="onSearchChange()"
+            >
+          </div>
+        </div>
+        <div class="col-md-4 d-flex align-items-center justify-content-end">
+          <button 
+            class="btn btn-outline-orange"
+            (click)="clearSearch()"
+            [disabled]="!searchTerm">
+            <i class="bi bi-x-circle me-1"></i>
+            Limpiar
+          </button>
+        </div>
+      </div>
+      <small class="text-muted" *ngIf="searchTerm">
+        Mostrando {{ filteredRegistrations.length }} de {{ registrations.length }} inscripciones
+      </small>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="text-center py-5" *ngIf="loading">
+    <div class="spinner-border text-orange" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-3 text-muted">Cargando inscripciones...</p>
+  </div>
+
+  <!-- No Registrations State -->
+  <div class="text-center py-5" *ngIf="!loading && registrations.length === 0">
+    <i class="bi bi-person-x display-1 text-muted"></i>
+    <h4 class="mt-3 text-muted">No hay inscripciones</h4>
+    <p class="text-muted">Aún no hay personas inscritas en este evento.</p>
+  </div>
+
+  <!-- No Results State -->
+  <div class="text-center py-5" *ngIf="!loading && registrations.length > 0 && filteredRegistrations.length === 0">
+    <i class="bi bi-search display-1 text-muted"></i>
+    <h4 class="mt-3 text-muted">No se encontraron resultados</h4>
+    <p class="text-muted">No hay inscripciones que coincidan con "{{ searchTerm }}"</p>
+  </div>
+
+  <!-- Registrations List -->
+  <div class="row" *ngIf="!loading && filteredRegistrations.length > 0">
+    <div class="col-md-6 col-lg-4 mb-4" *ngFor="let registration of filteredRegistrations; let i = index">
+      <div class="card h-100 shadow border-orange">
+        <div class="card-body">
+          <!-- Header with Status -->
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <h5 class="card-title text-orange fw-semibold mb-0">{{ registration.dancerName }}</h5>
+            <span class="badge {{ getStatusBadgeClass(registration.status) }} text-white px-3 py-2 rounded-pill">
+              {{ registration.status }}
+            </span>
+          </div>
+
+          <!-- Código Dinámico - RESALTADO -->
+          <div class="alert alert-warning border-warning mb-3" style="background-color: #fff3cd;">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-qr-code-scan me-2 text-warning fs-5"></i>
+              <div>
+                <strong class="text-warning">Código de Inscripción:</strong>
+                <div class="fw-bold fs-6 text-dark mt-1" style="font-family: 'Courier New', monospace; letter-spacing: 1px;">
+                  {{ registration.codigoDinamico }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic Info -->
+          <p class="text-muted mb-2">
+            <i class="bi bi-calendar-plus me-2 text-orange"></i>
+            <small>Inscrito el: {{ registration.registrationDate | date:'short' }}</small>
+          </p>
+
+          <!-- Payment Status Warning -->
+          <div class="alert alert-warning mb-3" *ngIf="registration.status === registrationStatusEnum.PENDIENTE">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Pago pendiente:</strong> No se puede marcar asistencia hasta confirmar el pago.
+          </div>
+
+          <!-- Attendance Status -->
+          <div class="mb-3 p-2 rounded" [ngClass]="{
+            'bg-light': registration.attended === undefined || registration.attended === null,
+            'bg-success bg-opacity-10': registration.attended === true,
+            'bg-danger bg-opacity-10': registration.attended === false
+          }">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>
+                <i class="bi bi-person-check-fill me-2 text-orange"></i>
+                <strong>Asistencia:</strong>
+                <span [ngClass]="getAttendanceClass(registration.attended)" class="ms-2">
+                  {{ getAttendanceText(registration.attended) }}
+                </span>
+              </span>
+              <button 
+                class="btn btn-sm"
+                [ngClass]="{
+                  'btn-outline-orange': canToggleAttendance(registration),
+                  'btn-outline-secondary': !canToggleAttendance(registration)
+                }"
+                [disabled]="!canToggleAttendance(registration)"
+                (click)="onToggleAttendance(registration)"
+                [title]="getAttendanceButtonTooltip(registration)">
+                <i class="bi" [ngClass]="registration.attended ? 'bi-person-x' : 'bi-person-check'"></i>
+                {{ registration.attended ? 'Marcar ausente' : 'Marcar presente' }}
+              </button>
+            </div>
+            
+            <!-- Validation Messages -->
+            <div class="mt-2" *ngIf="!canToggleAttendance(registration)">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ getValidationMessage(registration) }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Modal -->
+<div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5)" *ngIf="attendanceModalVisible">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-person-check me-2 text-orange"></i>
+          Confirmar Asistencia
+        </h5>
+        <button type="button" class="btn-close" (click)="cancelAttendanceModal()"></button>
+      </div>
+      <div class="modal-body" *ngIf="selectedRegistration">
+        <p class="mb-3">
+          <strong>Participante:</strong> {{ selectedRegistration.dancerName }}
+        </p>
+        <p class="mb-3">
+          <strong>Código:</strong> 
+          <span class="badge bg-warning text-dark ms-2" style="font-family: 'Courier New', monospace;">
+            {{ selectedRegistration.codigoDinamico }}
+          </span>
+        </p>
+        <p class="mb-4">
+          <strong>Estado actual:</strong> 
+          <span [ngClass]="getAttendanceClass(selectedRegistration.attended)" class="ms-2">
+            {{ getAttendanceText(selectedRegistration.attended) }}
+          </span>
+        </p>
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          ¿Deseas marcar a este participante como 
+          <strong>{{ selectedRegistration.attended ? 'AUSENTE' : 'PRESENTE' }}</strong>?
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelAttendanceModal()">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn"
+          [ngClass]="selectedRegistration?.attended ? 'btn-danger' : 'btn-success'"
+          (click)="confirmAttendanceToggle(!selectedRegistration?.attended)">
+          <i class="bi" [ngClass]="selectedRegistration?.attended ? 'bi-person-x' : 'bi-person-check'"></i>
+          {{ selectedRegistration?.attended ? 'Marcar Ausente' : 'Marcar Presente' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

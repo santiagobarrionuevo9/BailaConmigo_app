@@ -17,3 +17,20 @@
   max-width: 500px;
   width: 90%;
 }
+
+.btn-danger-cancelar {
+  background-color: #dc3545; /* Rojo Bootstrap */
+  color: #fff;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.btn-danger-cancelar:hover {
+  background-color: #b02a37; /* Rojo más oscuro */
+}
+
+.btn-danger-cancelar:disabled {
+  background-color: #f5c2c7; /* Rojo claro */
+  cursor: not-allowed;
+}
+

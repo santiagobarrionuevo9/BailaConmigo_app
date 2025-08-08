@@ -1,202 +1,117 @@
 <div class="ratings-dashboard">
-      <div class="dashboard-header">
-  <h1 class="dashboard-title">⭐ Reporte de Ratings</h1>
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">⭐ Reporte de Ratings</h1>
 
-  <div class="header-actions">
-    <button class="refresh-btn" (click)="refreshData()" [disabled]="loading">
-      <span *ngIf="!loading">🔄 Actualizar</span>
-      <span *ngIf="loading">⏳ Cargando...</span>
-    </button>
-    <button class="btn btn-orange" (click)="goBack()">
-      <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
-    </button>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="refreshData()" [disabled]="loading">
+        <span *ngIf="!loading">🔄 Actualizar</span>
+        <span *ngIf="loading">⏳ Cargando...</span>
+      </button>
+      <button class="btn btn-orange" (click)="goBack()">
+        <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+      </button>
+    </div>
   </div>
 </div>
 
+<!-- Métricas Rápidas -->
+<div class="quick-metrics" *ngIf="quickMetrics">
+  <div class="metric-card">
+    <h3>{{ quickMetrics.totalProfileRatings }}</h3>
+    <p>Ratings de Perfiles</p>
+  </div>
+  <div class="metric-card">
+    <h3>{{ quickMetrics.averageProfileRating | number:'1.1-1' }}</h3>
+    <p>Promedio Perfiles</p>
+  </div>
 </div>
 
-
-      <!-- Métricas Rápidas -->
-      <div class="quick-metrics" *ngIf="quickMetrics">
-        <div class="metric-card">
-          <h3>{{ quickMetrics.totalEventRatings }}</h3>
-          <p>Ratings de Eventos</p>
+<!-- Reporte de Perfiles -->
+<div class="reports-container">
+  <div class="report-section" *ngIf="profileRatingsReport">
+    <h2>Reporte de Ratings de Perfiles</h2>
+    <div class="report-content">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-label">Total de Ratings:</span>
+          <span class="stat-value">{{ profileRatingsReport.totalProfileRatings }}</span>
         </div>
-        <div class="metric-card">
-          <h3>{{ quickMetrics.totalProfileRatings }}</h3>
-          <p>Ratings de Perfiles</p>
-        </div>
-        <div class="metric-card">
-          <h3>{{ quickMetrics.averageEventRating | number:'1.1-1' }}</h3>
-          <p>Promedio Eventos</p>
-        </div>
-        <div class="metric-card">
-          <h3>{{ quickMetrics.averageProfileRating | number:'1.1-1' }}</h3>
-          <p>Promedio Perfiles</p>
+        <div class="stat-item">
+          <span class="stat-label">Rating Promedio:</span>
+          <span class="stat-value">{{ profileRatingsReport.averageProfileRating | number:'1.1-1' }}</span>
         </div>
       </div>
 
-      <!-- Reportes Detallados -->
-      <div class="reports-container">
-        <!-- Reporte de Eventos -->
-        <div class="report-section" *ngIf="eventRatingsReport">
-          <h2>Reporte de Ratings de Eventos</h2>
-          <div class="report-content">
-            <div class="stats-grid">
-              <div class="stat-item">
-                <span class="stat-label">Total de Ratings:</span>
-                <span class="stat-value">{{ eventRatingsReport.totalEventRatings }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Rating Promedio:</span>
-                <span class="stat-value">{{ eventRatingsReport.averageEventRating | number:'1.1-1' }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">% con Comentarios:</span>
-                <span class="stat-value">{{ eventRatingsReport.commentPercentage | number:'1.1-1' }}%</span>
-              </div>
+      <!-- Distribución de Estrellas -->
+      <div class="stars-distribution">
+        <h4>Distribución de Estrellas</h4>
+        <div class="stars-chart">
+          <div *ngFor="let star of getStarsArray(profileRatingsReport.starsDistribution)" class="star-bar">
+            <span class="star-label">{{ star.stars }}★</span>
+            <div class="star-progress">
+              <div class="star-fill" [style.width.%]="star.percentage"></div>
             </div>
+            <span class="star-count">{{ star.count }}</span>
+          </div>
+        </div>
+      </div>
 
-            <!-- Distribución de Estrellas -->
-            <div class="stars-distribution">
-              <h4>Distribución de Estrellas</h4>
-              <div class="stars-chart">
-                <div *ngFor="let star of getStarsArray(eventRatingsReport.starsDistribution)" class="star-bar">
-                  <span class="star-label">{{ star.stars }}★</span>
-                  <div class="star-progress">
-                    <div class="star-fill" [style.width.%]="star.percentage"></div>
-                  </div>
-                  <span class="star-count">{{ star.count }}</span>
+      <!-- Top Perfiles -->
+      <div class="top-profiles">
+        <div class="top-rated">
+          <h4>Perfiles Mejor Calificados</h4>
+          <div class="profiles-list">
+            <div *ngFor="let profile of profileRatingsReport.topRatedProfiles" class="profile-item">
+              <div class="profile-info">
+                <h5>{{ profile.profileName }}</h5>
+                <span class="profile-level">{{ getLevelName(profile.level) }}</span>
+                <div class="dance-styles">
+                  <span *ngFor="let style of profile.danceStyles" class="style-tag">
+                    {{ style }}
+                  </span>
                 </div>
               </div>
-            </div>
-
-            <!-- Top Eventos -->
-            <div class="top-events">
-              <div class="top-rated">
-                <h4>Eventos Mejor Calificados</h4>
-                <div class="events-list">
-                  <div *ngFor="let event of eventRatingsReport.topRatedEvents" class="event-item">
-                    <div class="event-info">
-                      <h5>{{ event.eventName }}</h5>
-                      <span class="event-type">{{ event.eventType }}</span>
-                    </div>
-                    <div class="event-rating">
-                      <span class="rating">{{ event.averageRating | number:'1.1-1' }}★</span>
-                      <span class="count">({{ event.totalRatings }})</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="most-rated">
-                <h4>Eventos Más Calificados</h4>
-                <div class="events-list">
-                  <div *ngFor="let event of eventRatingsReport.mostRatedEvents" class="event-item">
-                    <div class="event-info">
-                      <h5>{{ event.eventName }}</h5>
-                      <span class="event-type">{{ event.eventType }}</span>
-                    </div>
-                    <div class="event-rating">
-                      <span class="rating">{{ event.averageRating | number:'1.1-1' }}★</span>
-                      <span class="count">({{ event.totalRatings }})</span>
-                    </div>
-                  </div>
-                </div>
+              <div class="profile-rating">
+                <span class="rating">{{ profile.averageRating | number:'1.1-1' }}★</span>
+                <span class="count">({{ profile.totalRatings }})</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Reporte de Perfiles -->
-        <div class="report-section" *ngIf="profileRatingsReport">
-          <h2>Reporte de Ratings de Perfiles</h2>
-          <div class="report-content">
-            <div class="stats-grid">
-              <div class="stat-item">
-                <span class="stat-label">Total de Ratings:</span>
-                <span class="stat-value">{{ profileRatingsReport.totalProfileRatings }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Rating Promedio:</span>
-                <span class="stat-value">{{ profileRatingsReport.averageProfileRating | number:'1.1-1' }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">% con Comentarios:</span>
-                <span class="stat-value">{{ profileRatingsReport.commentPercentage | number:'1.1-1' }}%</span>
-              </div>
-            </div>
-
-            <!-- Distribución de Estrellas -->
-            <div class="stars-distribution">
-              <h4>Distribución de Estrellas</h4>
-              <div class="stars-chart">
-                <div *ngFor="let star of getStarsArray(profileRatingsReport.starsDistribution)" class="star-bar">
-                  <span class="star-label">{{ star.stars }}★</span>
-                  <div class="star-progress">
-                    <div class="star-fill" [style.width.%]="star.percentage"></div>
-                  </div>
-                  <span class="star-count">{{ star.count }}</span>
+        <div class="most-rated">
+          <h4>Perfiles Más Calificados</h4>
+          <div class="profiles-list">
+            <div *ngFor="let profile of profileRatingsReport.mostRatedProfiles" class="profile-item">
+              <div class="profile-info">
+                <h5>{{ profile.profileName }}</h5>
+                <span class="profile-level">{{ getLevelName(profile.level) }}</span>
+                <div class="dance-styles">
+                  <span *ngFor="let style of profile.danceStyles" class="style-tag">
+                    {{ style }}
+                  </span>
                 </div>
               </div>
-            </div>
-
-            <!-- Top Perfiles -->
-            <div class="top-profiles">
-              <div class="top-rated">
-                <h4>Perfiles Mejor Calificados</h4>
-                <div class="profiles-list">
-                  <div *ngFor="let profile of profileRatingsReport.topRatedProfiles" class="profile-item">
-                    <div class="profile-info">
-                      <h5>{{ profile.profileName }}</h5>
-                      <span class="profile-level">{{ getLevelName(profile.level) }}</span>
-                      <div class="dance-styles">
-                        <span *ngFor="let style of profile.danceStyles" class="style-tag">
-                          {{ style }}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="profile-rating">
-                      <span class="rating">{{ profile.averageRating | number:'1.1-1' }}★</span>
-                      <span class="count">({{ profile.totalRatings }})</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="most-rated">
-                <h4>Perfiles Más Calificados</h4>
-                <div class="profiles-list">
-                  <div *ngFor="let profile of profileRatingsReport.mostRatedProfiles" class="profile-item">
-                    <div class="profile-info">
-                      <h5>{{ profile.profileName }}</h5>
-                      <span class="profile-level">{{ getLevelName(profile.level) }}</span>
-                      <div class="dance-styles">
-                        <span *ngFor="let style of profile.danceStyles" class="style-tag">
-                          {{ style }}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="profile-rating">
-                      <span class="rating">{{ profile.averageRating | number:'1.1-1' }}★</span>
-                      <span class="count">({{ profile.totalRatings }})</span>
-                    </div>
-                  </div>
-                </div>
+              <div class="profile-rating">
+                <span class="rating">{{ profile.averageRating | number:'1.1-1' }}★</span>
+                <span class="count">({{ profile.totalRatings }})</span>
               </div>
             </div>
           </div>
         </div>
-
-      <!-- Loading State -->
-      <div *ngIf="loading" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <p>Cargando reportes...</p>
-      </div>
-
-      <!-- Error State -->
-      <div *ngIf="error" class="error-message">
-        <p>{{ error }}</p>
-        <button (click)="refreshData()">Reintentar</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="loading-overlay">
+  <div class="loading-spinner"></div>
+  <p>Cargando reportes...</p>
+</div>
+
+<!-- Error State -->
+<div *ngIf="error" class="error-message">
+  <p>{{ error }}</p>
+  <button (click)="refreshData()">Reintentar</button>
+</div>

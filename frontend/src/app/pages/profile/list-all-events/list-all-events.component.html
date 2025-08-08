@@ -1,5 +1,5 @@
-<div class="container mt-4">
-  <h2 class="mb-4 text-orange">Todos los Eventos</h2>
+<div class="events-container">
+  <h2 class="text-center mb-4">Todos los Eventos</h2>
 
   <!-- Notificaciones de inscripción -->
   <div *ngIf="registrationSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -190,14 +190,7 @@
             </button>
           </div>
 
-          <!-- Calificar -->
-          <div class="mt-2" *ngIf="isPastEvent(event)">
-            <button type="button" class="btn btn-outline-warning btn-sm w-100"
-                    (click)="openRatingModal(event)">
-              <i class="fas fa-star me-1"></i>
-              Calificar Evento
-            </button>
-          </div>
+          
         </div>
       </div>
     </div>
