@@ -8,7 +8,8 @@ public enum DanceStyle {
     KIZOMBA,
     JAZZ,
     CONTEMPORANEO,
-    BREAKDANCE
+    BREAKDANCE,
+    ARABE
     // podés agregar los que quieras
 }
 

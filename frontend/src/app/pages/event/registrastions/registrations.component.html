@@ -17,7 +17,7 @@
         <div class="col-md-6">
           <p class="mb-2">
             <i class="bi bi-calendar-event me-2 text-orange"></i>
-            <strong>Fecha:</strong> {{ event.dateTime | date:'fullDate' }} - {{ event.dateTime | date:'shortTime' }}
+            <strong>Fecha:</strong> {{ event.dateTime | date:'dd/MM/yyyy HH:mm' }}
           </p>
           <p class="mb-2" *ngIf="event.address">
             <i class="bi bi-geo-alt-fill me-2 text-orange"></i>
@@ -128,7 +128,7 @@
           <!-- Basic Info -->
           <p class="text-muted mb-2">
             <i class="bi bi-calendar-plus me-2 text-orange"></i>
-            <small>Inscrito el: {{ registration.registrationDate | date:'short' }}</small>
+            <small>Inscrito el: {{ registration.registrationDate | date:'dd/MM/yyyy HH:mm' }}</small>
           </p>
 
           <!-- Payment Status Warning -->

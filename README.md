@@ -58,7 +58,7 @@ Este proyecto forma parte de la tesis de grado de Santiago Barrionuevo.
 - Mensajería segura y moderada
 
 
-ngrok start --all --config "C:\Users\santi\Desktop\ngrok2\ngrok.yml"
+ngrok start --all --config "C:\Users\santi\Desktop\BAILACONMIGO\BailaConmigo_app\.ngrok2\ngrok.yml"
 
 https://e9bc-152-171-81-105.ngrok-free.app/api/mercadopago/webhook/inscription-notification
 

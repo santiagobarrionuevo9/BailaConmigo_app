@@ -607,27 +607,35 @@ public class EmailService {
                 helper.setSubject("Cancelación del evento - " + event.getName());
 
                 String htmlContent = """
-                <html>
-                <body style="font-family: Arial, sans-serif; color: #333;">
-                  <h2 style="color: #dc3545;">Cancelación del evento</h2>
-                  <p>Hola <strong>%s</strong>,</p>
-                  
-                  <p>Lamentamos informarte que el evento <strong>"%s"</strong> ha sido cancelado.</p>
-                  
-                  <p><strong>Motivo:</strong> %s</p>
-                  
-                  <p>Si tenés alguna pregunta, por favor contactá al organizador.</p>
-                  
-                  <p style="color: #888;">Con ritmo,</p>
-                  <p><strong>Equipo de Baila Conmigo</strong></p>
-                  <hr />
-                  <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
-                </body>
-                </html>
-                """.formatted(
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #dc3545;">Cancelación del evento</h2>
+              <p>Hola <strong>%s</strong>,</p>
+              
+              <p>Lamentamos informarte que el evento <strong>"%s"</strong> ha sido cancelado.</p>
+              
+              <p><strong>Motivo:</strong> %s</p>
+              
+              <p>Si tenés alguna pregunta, por favor contactá al organizador:</p>
+              <ul>
+                <li><strong>Email:</strong> %s</li>
+                <li><strong>Teléfono:</strong> %s</li>
+              </ul>
+              
+              <p><strong>Importante:</strong> El reembolso se procesará en un plazo de <strong>una semana</strong>.</p>
+              
+              <p style="color: #888;">Con ritmo,</p>
+              <p><strong>Equipo de Baila Conmigo</strong></p>
+              <hr />
+              <small style="color: #aaa;">Este es un correo automático. Por favor, no respondas a este mensaje.</small>
+            </body>
+            </html>
+            """.formatted(
                         dancer.getFullName(),
                         event.getName(),
-                        cancellationReason
+                        cancellationReason,
+                        event.getOrganizer().getContactEmail(),
+                        event.getOrganizer().getContactPhone()
                 );
 
                 helper.setText(htmlContent, true);
@@ -637,6 +645,7 @@ public class EmailService {
             }
         }
     }
+
     /**
      * Envía notificaciones de cancelación de evento a múltiples inscripciones
      */

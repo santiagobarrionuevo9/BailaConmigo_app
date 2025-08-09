@@ -125,37 +125,37 @@ INSERT INTO dancer_styles (dancer_id, style) VALUES (10, 'SALSA');
 
 -- Insertar elementos multimedia
 -- Carlos Rodriguez (Masculino) - profile_id 1
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/hombre1.jpg', 1);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/hombre1.jpg', 1);
 
 -- Maria Gomez (Femenino) - profile_id 2
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/mujer1.jpg', 2);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/mujer1.jpg', 2);
 
 -- Laura Martinez (Femenino) - profile_id 3
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/mujer2.jpg', 3);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/mujer2.jpg', 3);
 
 -- Roberto Sanchez (Masculino) - profile_id 4
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/hombre2.jpg', 4);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/hombre2.jpg', 4);
 
 -- Ana Lopez (Femenino) - profile_id 5
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/mujer4.jpg', 5);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/mujer4.jpg', 5);
 
 -- Luis Fernandez (Masculino) - profile_id 6
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/mujer3.jpg', 6);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/mujer3.jpg', 6);
 
 -- Sofia Ramirez (Femenino) - profile_id 7
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/mujer4.jpg', 7);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/mujer4.jpg', 7);
 
 -- Carla Diaz (Femenino) - profile_id 8
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/mujer5.jpg', 8);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/mujer5.jpg', 8);
 
 -- Valentina Herrera (Femenino) - profile_id 9
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/hombre4.jpg', 9);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/hombre4.jpg', 9);
 
 -- Martin Castro (Masculino) - profile_id 10
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/mujer7.jpg', 10);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/mujer7.jpg', 10);
 
 -- Luciana Pérez (Femenino) - profile_id 11
-INSERT INTO media (url, profile_id) VALUES ('https://abfba8402917.ngrok-free.app/hombre3.jpg', 11);
+INSERT INTO media (url, profile_id) VALUES ('https://b82423ac7184.ngrok-free.app/hombre3.jpg', 11);
 
 
 -- Insertar calificaciones
@@ -806,3 +806,214 @@ VALUES (16, 1, 'Hola Carlos! Gracias por escribir. Sí, llevo muchos años en es
 
 INSERT INTO message (sender_id, recipient_id, content, timestamp)
 VALUES (1, 16, 'Principalmente tango y bachata. Estoy en nivel avanzado pero siempre busco mejorar.', '2024-08-01 20:08:00');
+
+INSERT INTO users (full_name, email, password, gender, birthdate, city_id, country_id, role, subscription_type, subscription_expiration, created_date)
+VALUES ('Agostina Barrionuevo', 'agostina.barrionuevo15@gmail.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Femenino', '2005-12-15', 1, 66, 'BAILARIN', 'BASICO', '2025-12-31', '2024-01-01 12:00:00');
+
+-- 2. Insertar el perfil corregido con la edad correcta y user_id correcto
+INSERT INTO dancer_profiles (user_id, full_name, age, city, level, about_me, availability)
+VALUES (20, 'Agostina Barrionuevo', 19, 'Córdoba', 'AVANZADO',
+        'Bailarina con 8 años de experiencia en danza árabe, 1 año y medio de salsa y 2 años de jazz.',
+        'Lunes a Viernes: 18:00 - 22:00, Fines de semana: disponible todo el día');
+
+-- 3. Agregar los estilos de baile mencionados en su descripción
+-- Nota: Necesitarías agregar 'ARABE' como estilo si no existe en tu enum,
+-- o usar el estilo más cercano disponible
+
+-- Si tienes el estilo ARABE en tu enum:
+INSERT INTO dancer_styles (dancer_id, style) VALUES (14, 'ARABE');  -- dancer_id será 14 (siguiente disponible)
+INSERT INTO dancer_styles (dancer_id, style) VALUES (14, 'SALSA');
+INSERT INTO dancer_styles (dancer_id, style) VALUES (14, 'JAZZ');
+
+-- Si NO tienes ARABE, podrías usar CONTEMPORANEO como alternativa:
+-- INSERT INTO dancer_styles (dancer_id, style) VALUES (14, 'CONTEMPORANEO');
+-- INSERT INTO dancer_styles (dancer_id, style) VALUES (14, 'SALSA');
+-- INSERT INTO dancer_styles (dancer_id, style) VALUES (14, 'JAZZ');
+
+
+-- 5. OPCIONAL: Agregar algunas calificaciones para el perfil
+INSERT INTO ratings (rater_id, dancer_profile_id, stars, comment)
+VALUES (1, 14, 5, 'Agostina tiene un estilo único en danza árabe, muy expresiva.');
+
+INSERT INTO ratings (rater_id, dancer_profile_id, stars, comment)
+VALUES (2, 14, 4, 'Muy talentosa para su edad. Gran técnica en jazz.');
+
+-- MATCHES PARA AGOSTINA BARRIONUEVO (user_id 19)
+-- ===============================================
+
+-- 9. Carlos (1) y Agostina (19) - para el rating que Carlos le dará a Agostina
+INSERT INTO match (liker_id, liked_user_id, matched, created_date)
+VALUES (1, 20, true, '2024-05-25');
+
+
+
+-- 10. María (2) y Agostina (19) - para el rating que María le dará a Agostina
+INSERT INTO match (liker_id, liked_user_id, matched, created_date)
+VALUES (2, 20, true, '2024-05-28');
+
+-- MENSAJES INICIALES PARA LOS MATCHES DE AGOSTINA:
+
+-- Carlos y Agostina
+INSERT INTO message (sender_id, recipient_id, content, timestamp)
+VALUES (1, 19, '¡Hola Agostina! Me llamó la atención tu experiencia en danza árabe. ¿Podrías enseñarme algunos movimientos?', '2024-05-25 18:30:00');
+
+INSERT INTO message (sender_id, recipient_id, content, timestamp)
+VALUES (19, 1, 'Hola Carlos! Claro, me encanta compartir lo que sé. También me gustaría aprender tango de vos.', '2024-05-25 18:45:00');
+
+-- María y Agostina
+INSERT INTO message (sender_id, recipient_id, content, timestamp)
+VALUES (2, 19, 'Agostina, vi que también bailas salsa. ¿Te gustaría practicar juntas?', '2024-05-28 17:15:00');
+
+INSERT INTO message (sender_id, recipient_id, content, timestamp)
+VALUES (19, 2, 'María! Sí, me encantaría. Tenés mucha experiencia, seguro aprendo mucho de vos.', '2024-05-28 17:30:00');
+
+-- EVENTOS ADICIONALES DEL ORGANIZADOR 2 (Bachata Movement) EN CÓRDOBA
+-- ====================================================================
+
+-- Evento 13: Taller de Bachata Sensual en Córdoba
+INSERT INTO events (name, description, date_time, address, capacity, price, event_type, additional_info, status, city_id, country_id, organizer_id)
+VALUES (
+           'Bachata Sensual - Workshop Avanzado Córdoba',
+           'Taller especializado en bachata sensual con técnicas avanzadas de conexión y fluidez. Ideal para bailarines con experiencia intermedia.',
+           '2025-08-28 19:00:00',
+           'Centro Cultural Córdoba, Av. Poeta Lugones 401, Córdoba',
+           50,
+           2500.00,
+           'CLASE',
+           'Se requiere nivel intermedio. Incluye material de apoyo y certificado de participación.',
+           'ACTIVO',
+           2, 66, 2
+       );
+
+-- Evento 14: Festival de Bachata Córdoba 2025
+INSERT INTO events (name, description, date_time, address, capacity, price, event_type, additional_info, status, city_id, country_id, organizer_id)
+VALUES (
+           'Festival de Bachata Córdoba 2025',
+           'El evento más grande de bachata en el interior del país. Tres días de workshops, shows y fiestas con artistas nacionales e internacionales.',
+           '2025-10-18 15:00:00',
+           'Complejo Ferial Córdoba, Av. Armada Argentina 1500, Córdoba',
+           400,
+           6800.00,
+           'CLASE',
+           'Pase completo de 3 días. Incluye acceso a todos los workshops, shows y fiestas nocturnas. Descuentos por inscripción anticipada.',
+           'ACTIVO',
+           2, 66, 2
+       );
+
+-- Evento 15: Bachata para Principiantes - Córdoba
+INSERT INTO events (name, description, date_time, address, capacity, price, event_type, additional_info, status, city_id, country_id, organizer_id)
+VALUES (
+           'Bachata desde Cero - Clase Inicial Córdoba',
+           'Clase especial para quienes nunca bailaron bachata. Aprende los pasos básicos en un ambiente relajado y divertido.',
+           '2025-09-05 18:30:00',
+           'Estudio Ritmo y Compás, Bv. San Juan 245, Córdoba',
+           35,
+           1800.00,
+           'CLASE',
+           'No se requiere experiencia previa. Incluye material didáctico y práctica guiada.',
+           'ACTIVO',
+           2, 66, 2
+       );
+
+-- Evento 16: Competencia Regional de Bachata
+INSERT INTO events (name, description, date_time, address, capacity, price, event_type, additional_info, status, city_id, country_id, organizer_id)
+VALUES (
+           'Copa Córdoba de Bachata 2025',
+           'Competencia regional de bachata con categorías Amateur y Pro. Clasificatorio para el campeonato nacional.',
+           '2025-11-22 14:00:00',
+           'Teatro del Libertador San Martín, Av. Vélez Sársfield 365, Córdoba',
+           250,
+           4500.00,
+           'COMPETENCIA',
+           'Inscripciones por pareja. Incluye entrada para acompañantes y after party exclusivo para competidores.',
+           'ACTIVO',
+           2, 66, 2
+       );
+
+-- Evento 17: Masterclass de Bachata con Invitados Especiales
+INSERT INTO events (name, description, date_time, address, capacity, price, event_type, additional_info, status, city_id, country_id, organizer_id)
+VALUES (
+           'Masterclass Exclusive - Ataca y La Alemana en Córdoba',
+           'Masterclass única con los reconocidos instructores dominicanos Ataca y La Alemana. Una oportunidad irrepetible.',
+           '2025-09-14 16:00:00',
+           'Hotel Sheraton Córdoba, Duarte Quirós 1300, Córdoba',
+           60,
+           8500.00,
+           'CLASE',
+           'Nivel avanzado requerido. Incluye video de la clase, certificado firmado y meet & greet con los instructores.',
+           'ACTIVO',
+           2, 66, 2
+       );
+
+-- Evento 18: Bachata Social Night Córdoba
+INSERT INTO events (name, description, date_time, address, capacity, price, event_type, additional_info, status, city_id, country_id, organizer_id)
+VALUES (
+           'Noche Social de Bachata - Córdoba Dancing',
+           'Noche social mensual de bachata. Ambiente relajado para practicar y conocer otros bailarines de la ciudad.',
+           '2025-08-16 21:00:00',
+           'Club Social Córdoba, 27 de Abril 2050, Córdoba',
+           80,
+           1200.00,
+           'SOCIAL',
+           'Entrada incluye una consumición. DJ en vivo y pista especial para bachata. Dress code: elegante sport.',
+           'ACTIVO',
+           2, 66, 2
+       );
+
+-- ESTILOS PARA LOS NUEVOS EVENTOS
+-- ================================
+
+INSERT INTO event_styles (event_id, style) VALUES (13, 'BACHATA');
+INSERT INTO event_styles (event_id, style) VALUES (14, 'BACHATA');
+INSERT INTO event_styles (event_id, style) VALUES (15, 'BACHATA');
+INSERT INTO event_styles (event_id, style) VALUES (16, 'BACHATA');
+INSERT INTO event_styles (event_id, style) VALUES (17, 'BACHATA');
+INSERT INTO event_styles (event_id, style) VALUES (18, 'BACHATA');
+
+-- REGISTRACIONES PARA LOS NUEVOS EVENTOS
+-- ======================================
+
+-- Registraciones para el Workshop Avanzado (evento 13)
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (13, 2, '2025-08-01 10:30:00', FALSE, '2025-08-01 10:35:00', 'PAY-1301', 'mercado_pago', 2500.00, 'CONFIRMADO');
+
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (13, 11, '2025-08-03 14:15:00', FALSE, '2025-08-03 14:20:00', 'PAY-1302', 'transferencia', 2500.00, 'CONFIRMADO');
+
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (13, 20, '2025-08-05 16:45:00', FALSE, '2025-08-05 16:50:00', 'PAY-1303', 'mercado_pago', 2500.00, 'CONFIRMADO');
+
+-- Registración pendiente de pago
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, status)
+VALUES (13, 17, '2025-08-20 12:00:00', FALSE, 'PENDIENTE');
+
+-- Registraciones para el Festival (evento 14)
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (14, 1, '2025-09-01 09:00:00', FALSE, '2025-09-01 09:05:00', 'PAY-1401', 'tarjeta_credito', 6800.00, 'CONFIRMADO');
+
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (14, 4, '2025-09-02 15:30:00', FALSE, '2025-09-02 15:35:00', 'PAY-1402', 'mercado_pago', 6800.00, 'CONFIRMADO');
+
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (14, 6, '2025-09-03 11:20:00', FALSE, '2025-09-03 11:25:00', 'PAY-1403', 'transferencia', 6800.00, 'CONFIRMADO');
+
+-- Registraciones para Principiantes (evento 15)
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (15, 5, '2025-08-25 13:45:00', FALSE, '2025-08-25 13:50:00', 'PAY-1501', 'mercado_pago', 1800.00, 'CONFIRMADO');
+
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (15, 15, '2025-08-26 10:15:00', FALSE, '2025-08-26 10:20:00', 'PAY-1502', 'efectivo', 1800.00, 'CONFIRMADO');
+
+-- Registración para la Masterclass exclusiva (evento 17)
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (17, 2, '2025-08-10 08:00:00', FALSE, '2025-08-10 08:05:00', 'PAY-1701', 'transferencia', 8500.00, 'CONFIRMADO');
+
+-- Registraciones para la Noche Social (evento 18)
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (18, 10, '2025-08-10 19:30:00', FALSE, '2025-08-10 19:35:00', 'PAY-1801', 'mercado_pago', 1200.00, 'CONFIRMADO');
+
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (18, 12, '2025-08-11 20:15:00', FALSE, '2025-08-11 20:20:00', 'PAY-1802', 'efectivo', 1200.00, 'CONFIRMADO');
+
+INSERT INTO event_registrations (event_id, user_id, registration_date, attended, payment_date, payment_reference, payment_method, paid_amount, status)
+VALUES (18, 14, '2025-08-12 17:45:00', FALSE, '2025-08-12 17:50:00', 'PAY-1803', 'mercado_pago', 1200.00, 'CONFIRMADO');
