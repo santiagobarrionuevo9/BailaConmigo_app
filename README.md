@@ -57,19 +57,3 @@ Este proyecto forma parte de la tesis de grado de Santiago Barrionuevo.
 - Notificaciones visuales de mensajes nuevos
 - Mensajería segura y moderada
 
-
-ngrok start --all --config "C:\Users\santi\Desktop\BAILACONMIGO\BailaConmigo_app\.ngrok2\ngrok.yml"
-
-https://e9bc-152-171-81-105.ngrok-free.app/api/mercadopago/webhook/inscription-notification
-
-CuentaPrincipal:
-TESTUSER1854249359
-YAb43f5wZW
-
-Organizador:
-TESTUSER1203582495
-FleYJ6QxYS
-
-Bailarin:
-TESTUSER338153412
-8iLk7LXjrM
